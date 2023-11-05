@@ -1,0 +1,126 @@
+{% load static %}
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+	<ul class="nav">
+		<li class="nav-item nav-profile">
+			<a href="/profile/" class="nav-link">
+				<div class="nav-profile-image">
+					<img src="{{ user.profile_picture.url }}" alt="profile">
+					<span class="login-status online"></span>
+					<!--change to offline or busy as needed-->
+				</div>
+				<div class="nav-profile-text d-flex flex-column">
+					<span class="font-weight-bold mb-2 text-wrap">{{ user.first_name }} {{ user.last_name }}</span>
+					<span class="text-secondary text-small">
+						{% if user.is_superuser %}
+						Administrator
+						{% elif user.is_staff %}
+						Manager
+						{% else %}
+						Operator
+						{% endif %}
+					</span>
+				</div>
+				<i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+			</a>
+		</li>
+		<li class="nav-item{% if request.path == '/' %} active{% endif %}">
+			<a class="nav-link" href="/">
+				<span class="menu-title">Dashboard</span>
+				<i class="mdi mdi-home menu-icon"></i>
+			</a>
+		</li>
+		<li class="nav-item{% if 'clients/' in request.path %} active{% endif %}">
+			<a class="nav-link" data-bs-toggle="collapse" href="#clients-orders" aria-expanded="{% if 'clients/' in request.path %}true{% else %}false{% endif %}" aria-controls="clients-orders">
+				<span class="menu-title">Clients Orders</span>
+				<i class="menu-arrow"></i>
+				<i class="mdi mdi-clipboard menu-icon"></i>
+			</a>
+			<div class="collapse{% if 'clients/' in request.path %} show{% endif %}" id="clients-orders">
+				<ul class="nav flex-column sub-menu">
+					<li class="nav-item">
+						<a class="nav-link{% if 'clients/clients/' in request.path %} active{% endif %}" href="/clients/clients/">Clients</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'clients/orders/' in request.path %} active{% endif %}" href="/clients/orders/">Orders</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'clients/offers/' in request.path %} active{% endif %}" href="/clients/offers/">Offers</a>
+					</li>
+				</ul>
+			</div>
+		</li>
+		<li class="nav-item{% if 'providers/' in request.path %} active{% endif %}">
+			<a class="nav-link" data-bs-toggle="collapse" href="#providers-orders" aria-expanded="{% if 'providers/' in request.path %}true{% else %}false{% endif %}" aria-controls="providers-orders">
+				<span class="menu-title">Providers Orders</span>
+				<i class="menu-arrow"></i>
+				<i class="mdi mdi-cart menu-icon"></i>
+			</a>
+			<div class="collapse{% if 'providers/' in request.path %} show{% endif %}" id="providers-orders">
+				<ul class="nav flex-column sub-menu">
+					<li class="nav-item">
+						<a class="nav-link{% if 'providers/providers/' in request.path %} active{% endif %}" href="/providers/providers/">Providers</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'providers/orders/' in request.path %} active{% endif %}" href="/providers/orders/">Orders</a>
+					</li>
+				</ul>
+			</div>
+		</li>
+		<li class="nav-item{% if 'payments/' in request.path %} active{% endif %}">
+			<a class="nav-link" data-bs-toggle="collapse" href="#payments" aria-expanded="{% if 'payments/' in request.path %}true{% else %}false{% endif %}" aria-controls="payments">
+				<span class="menu-title">Payments</span>
+				<i class="menu-arrow"></i>
+				<i class="mdi mdi-cash menu-icon"></i>
+			</a>
+			<div class="collapse{% if 'payments/' in request.path %} show{% endif %}" id="payments">
+				<ul class="nav flex-column sub-menu">
+					<li class="nav-item">
+						<a class="nav-link{% if 'payments/payments/' in request.path %} active{% endif %}" href="/payments/payments/">Payments</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'payments/invoices/' in request.path %} active{% endif %}" href="/payments/invoices/">Invoices</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'payments/receipts/' in request.path %} active{% endif %}" href="/payments/receipts/">Receipts</a>
+					</li>
+				</ul>
+			</div>
+		</li>
+		{% if user.is_superuser or user.is_staff %}
+		<li class="nav-item{% if 'settings/' in request.path %} active{% endif %}">
+			<a class="nav-link" data-bs-toggle="collapse" href="#settings" aria-expanded="{% if 'settings/' in request.path %}true{% else %}false{% endif %}" aria-controls="settings">
+				<span class="menu-title">Settings</span>
+				<i class="menu-arrow"></i>
+				<i class="mdi mdi-settings menu-icon"></i>
+			</a>
+			<div class="collapse{% if 'settings/' in request.path %} show{% endif %}" id="settings">
+				<ul class="nav flex-column sub-menu">
+					<li class="nav-item">
+						<a class="nav-link{% if 'settings/services/' in request.path %} active{% endif %}" href="/settings/services/">Services</a>
+					</li>
+					{% if user.is_superuser %}
+					<li class="nav-item">
+						<a class="nav-link{% if 'settings/statuses/' in request.path %} active{% endif %}" href="/settings/statuses/">Statuses</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'settings/currencies/' in request.path %} active{% endif %}" href="/settings/currencies/">Currencies</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if 'settings/units/' in request.path %} active{% endif %}" href="/settings/units/">Units</a>
+					</li>
+					{% endif %}
+					<li class="nav-item">
+						<a class="nav-link{% if 'settings/users/' in request.path %} active{% endif %}" href="/settings/users/">Users</a>
+					</li>
+				</ul>
+			</div>
+		</li>
+		{% endif %}
+		<li class="nav-item">
+			<a class="nav-link" href="/login/">
+			  <span class="menu-title">Sign out</span>
+			  <i class="mdi mdi-power menu-icon"></i>
+			</a>
+		</li>		
+	</ul>
+</nav>

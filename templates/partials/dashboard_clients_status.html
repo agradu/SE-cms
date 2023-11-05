@@ -1,0 +1,35 @@
+<div class="card">
+	<div class="card-body">
+		<h4 class="card-title">Clients Status</h4>
+		<div class="table-responsive">
+			<table class="table">
+				<thead>
+					<tr>
+						<th> # </th>
+						<th> Client </th>
+						<th> Due Date </th>
+						<th> Progress </th>
+						<th> Payed </th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for o in client_orders %}
+					<tr onclick="window.location='#';">
+						<td> {{ o.order.id}} </td>
+						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </td>
+						<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
+						<td>
+							<div class="progress">
+								<div class="progress-bar bg-gradient-{{ o.status.style}}" role="progressbar" style="width: {{ o.status.percent }}%" aria-valuenow="{{ o.status.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+							</div>
+						</td>
+						<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
+							{{ o.payed }}%
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

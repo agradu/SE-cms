@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Orders form clients{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-clipboard"></i>
+		</span> Orders form clients
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						<tr>
+						  <td width="50%">
+							<div class="input-group input-group-sm">
+							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+							  <input type="text" class="form-control" placeholder="Search clients" aria-label="Search clients">
+							</div>
+						  </td>
+						  <td>
+							<div class="input-group input-group-sm">
+							  <input type="date" class="form-control">
+							</div>
+						  </td>
+						  <td>
+							<div class="col input-group input-group-sm">
+							  <input type="date" class="form-control">
+							</div>
+						  </td>
+						  <td>
+							<div class="col input-group input-group-sm">
+							  <button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+							</div>
+						  </td>
+						</tr>
+					  </tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th> <a href="">Order</a> </th>
+								<th> <a href="">Client</a> </th>
+								<th> Description </th>
+								<th> <a href="">Assignee</a> </th>
+								<th> <a href="">Registered</a> </th>
+								<th> <a href="">Due Date</a> </th>
+								<th> <a href="">Status</a> </th>
+								<th> <a href="">Value</a> </th>
+								<th> <a href="">Payed</a> </th>
+								<th> <a href="">Last Update</a> </th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for o in client_orders %}
+							<tr>
+								<td> <a href=""> {{ o.order.id}} </a> </td>
+								<td> <a href=""> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </a> </td>
+								<td>
+									{% for e in o.elements %}
+									<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
+									{% endfor %}
+								</td>
+								<td>
+									<img src="{{ o.order.user.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.user.first_name}} {{ o.order.user.last_name}}
+								</td>
+								<td> {{ o.order.created_at|date:"d.m.Y"}} - {{ o.order.created_at|time:"H:i"}} </td>
+								<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
+								<td>
+									<label class="badge badge-{{ o.status.style}}">{{ o.status.name}}</label>
+								</td>
+								<td> 123 euro</td>
+								<td> <a href="" class="text-primary">100 %</a> </td>
+								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						<tr>
+							<td>
+							  <div class="btn-group btn-group-sm">
+								<button type="button" class="btn btn-primary">1</button>
+								<button type="button" class="btn btn-outline-secondary">2</button>
+								<button type="button" class="btn btn-outline-secondary">3</button>
+								<button type="button" class="btn btn-outline-secondary">4</button>
+							  </div>
+							</td>
+						  </tr>
+						  <tr>
+							<td>
+							  <div class="input-group input-group-sm">
+								<button type="button" class="btn btn-gradient-primary btn-icon-text">
+								  <i class="mdi mdi-clipboard-check btn-icon-prepend"></i> Register a new order</button>
+							  </div>
+							</td>
+						  </tr>
+					  </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

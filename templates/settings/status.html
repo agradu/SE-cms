@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Status{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-flag-outline"></i>
+		</span> Status
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<form method="post">
+				{% csrf_token %}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th> Status name</th>
+								<th> Style</th>
+								<th> Percent</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td> <input type="text" class="form-control" name="name" value="{{ status.name }}"></td>
+								<td> <input type="text" class="form-control" name="style" value="{{ status.style }}"></td>
+								<td> <input type="text" class="form-control" name="percent" value="{{ status.percent }}"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						  <tr>
+							<td width="3%">
+							  <div class="input-group input-group-sm">
+								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+								  <i class="mdi mdi-flag-outline btn-icon-prepend"></i> Save status</button>
+							  </div>
+							</td>
+							<td>{{ update }}</td>
+						  </tr>
+					  </tbody>
+					</table>
+				</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-home"></i>
+		</span> Dashboard
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		{% include 'partials/dashboard_recent_orders.html' %}
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-6 grid-margin stretch-card">
+		{% include 'partials/dashboard_clients_status.html' %}
+	</div>
+	<div class="col-md-6 grid-margin stretch-card">
+		{% include 'partials/dashboard_providers_status.html' %}
+	</div>
+</div>
+<!--
+<div class="row">
+	<div class="col-12 grid-margin">
+		{% include 'partials/dashboard_chart.html' %}
+	</div>
+</div>
+-->
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Services{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-tag"></i>
+		</span> Services
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th> Icon </th>
+								<th> Service </th>
+								<th> Minimum price </th>
+								<th> Maximum price </th>
+								<th> Currency </th>
+								<th> UM </th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for service in services %}
+							<tr>
+								<td> <i class="mdi {{ service.icon }} mdi-18px"></i> </td>
+								<td> <a href="{% url 'service_detail' service.id %}""> {{ service.name }} </a> </td>
+								<td> {{ service.price_min }} </td>
+								<td> {{ service.price_max }} </td>
+								<td> {{ service.currency.symbol }} </td>
+								<td> {{ service.um.name }} </td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						{% if services.paginator.num_pages > 1 %}
+						<tr>
+							<td>
+							  <div class="btn-group btn-group-sm">
+								{% for pg in services.paginator.page_range %}
+								{% if pg == services.number %}
+								<button type="button" class="btn btn-primary" onclick="location.href='/settings/services/?page={{ pg }}';">{{ pg }}</button>
+								{% else %}
+								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/settings/services/?page={{ pg }}';">{{ pg }}</button>
+								{% endif %}
+								{% endfor %}
+							  </div>
+							</td>
+						  </tr>
+						  {% endif %}
+						  <tr>
+							<td>
+							  <div class="input-group input-group-sm">
+								<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/settings/services/0/';">
+								  <i class="mdi mdi-tag btn-icon-prepend"></i> Register a new service</button>
+							  </div>
+							</td>
+						  </tr>
+					  </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

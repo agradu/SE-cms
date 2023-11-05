@@ -1,0 +1,41 @@
+<div class="card">
+	<div class="card-body">
+		<h4 class="card-title">Recent Orders</h4>
+		<div class="table-responsive">
+			<table class="table">
+				<thead>
+					<tr>
+						<th> Order </th>
+						<th> Client/Provider </th>
+						<th> Details </th>
+						<th> Assignee </th>
+						<th> Registered </th>
+						<th> Status </th>
+						<th> Last Update </th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for o in recent_orders %}
+					<tr onclick="window.location='#';">
+						<td> {{ o.order.id}} </td>
+						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </td>
+						<td>
+							{% for e in o.elements %}
+							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
+							{% endfor %}
+						</td>
+						<td>
+							<img src="{{ o.order.user.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.user.first_name}} {{ o.order.user.last_name}} 
+						</td>
+						<td> {{ o.order.created_at|date:"d.m.Y"}} - {{ o.order.created_at|time:"H:i"}} </td>
+						<td>
+							<label class="badge badge-{{ o.status.style}}">{{ o.status.name}}</label>
+						</td>
+						<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

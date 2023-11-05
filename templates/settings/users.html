@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Users{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-account"></i>
+		</span> Registered users
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						<tr>
+						  <td width="50%">
+							<div class="input-group input-group-sm">
+							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+							  <input type="text" class="form-control" placeholder="Search userss" aria-label="Search clients">
+							</div>
+						  </td>
+						  <td>
+						  </td>
+						</tr>
+					  </tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th> Type </th>
+								<th> Picture </th>
+								<th> Name </th>
+								<th> Phone </th>
+								<th> E-mail </th>
+								<th> Registered </th>
+								<th> Last login </th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for us in users %}
+							<tr>
+								<td> 
+									{% if us.is_superuser %}
+									Administrator
+									{% elif us.is_staff %}
+									Manager
+									{% elif us.is_active %}
+									Operator
+									{% else %}
+									Inactive
+									{% endif %}	
+								</td>
+								<td> <img src="{{ us.profile_picture.url }}" class="me-2" alt="image"> </td>
+								<td> <a href="{% url 'user_detail' us.id %}">{{ us.first_name }} {{ us.last_name }}</a> </td>
+								<td> {{ us.phone }} </td>
+								<td> {{ us.email }} </td>
+								<td> {{ us.date_joined|date:"d.m.Y H:i" }} </td>
+								<td> {{ us.last_login|date:"d.m.Y H:i" }} </td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						{% if users.paginator.num_pages > 1 %}
+						<tr>
+							<td>
+							  <div class="btn-group btn-group-sm">
+								{% for pg in users.paginator.page_range %}
+								{% if pg == users.number %}
+								<button type="button" class="btn btn-primary" onclick="location.href='/settings/users/?page={{ pg }}';">{{ pg }}</button>
+								{% else %}
+								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/settings/users/?page={{ pg }}';">{{ pg }}</button>
+								{% endif %}
+								{% endfor %}
+							  </div>
+							</td>
+						  </tr>
+						  {% endif %}
+						  <tr>
+							<td>
+							  <div class="input-group input-group-sm">
+								<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/settings/users/0/';">
+								  <i class="mdi mdi-account-plus btn-icon-prepend"></i> Register a new user</button>
+							  </div>
+							</td>
+						  </tr>
+					  </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
