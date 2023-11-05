@@ -59,7 +59,7 @@ LOGIN_URL = 'login/'  # Setează URL-ul către pagina de autentificare
 LOGIN_REDIRECT_URL = None  # Setează URL-ul către care utilizatorii sunt redirecționați după autentificare
 
 # Setează durata sesiunii la 15 minute (15 * 60 secunde)
-SESSION_COOKIE_AGE = 30 * 60
+# SESSION_COOKIE_AGE = 30 * 60
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

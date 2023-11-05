@@ -48,16 +48,16 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="">Order</a> </th>
-								<th> <a href="">Client</a> </th>
+								<th> <a href="/clients/orders/?sort=order">Order</a> </th>
+								<th> <a href="/clients/orders/?sort=client">Client</a> </th>
 								<th> Description </th>
-								<th> <a href="">Assignee</a> </th>
-								<th> <a href="">Registered</a> </th>
-								<th> <a href="">Due Date</a> </th>
-								<th> <a href="">Status</a> </th>
-								<th> <a href="">Value</a> </th>
-								<th> <a href="">Payed</a> </th>
-								<th> <a href="">Last Update</a> </th>
+								<th> <a href="/clients/orders/?sort=assignee">Assignee</a> </th>
+								<th> <a href="/clients/orders/?sort=registered">Registered</a> </th>
+								<th> <a href="/clients/orders/?sort=deadline">Due Date</a> </th>
+								<th> <a href="/clients/orders/?sort=status">Status</a> </th>
+								<th> <a href="/clients/orders/?sort=value">Value</a> </th>
+								<th> <a href="/clients/orders/?sort=payed">Payed</a> </th>
+								<th> <a href="/clients/orders/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
@@ -78,8 +78,10 @@
 								<td>
 									<label class="badge badge-{{ o.status.style}}">{{ o.status.name}}</label>
 								</td>
-								<td> 123 euro</td>
-								<td> <a href="" class="text-primary">100 %</a> </td>
+								<td> {{ o.value}} {{ o.currency}}</td>
+								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
+									{{ o.payed}} %
+								</td>
 								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}
@@ -89,16 +91,21 @@
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
+						{% if client_orders.paginator.num_pages > 1 %}
 						<tr>
 							<td>
 							  <div class="btn-group btn-group-sm">
-								<button type="button" class="btn btn-primary">1</button>
-								<button type="button" class="btn btn-outline-secondary">2</button>
-								<button type="button" class="btn btn-outline-secondary">3</button>
-								<button type="button" class="btn btn-outline-secondary">4</button>
+								{% for pg in client_orders.paginator.page_range %}
+								{% if pg == client_orders.number %}
+								<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+								{% else %}
+								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+								{% endif %}
+								{% endfor %}
 							  </div>
 							</td>
 						  </tr>
+						  {% endif %}
 						  <tr>
 							<td>
 							  <div class="input-group input-group-sm">

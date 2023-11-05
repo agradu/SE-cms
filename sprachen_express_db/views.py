@@ -24,33 +24,56 @@ def dashboard(request):
     selected_orders = Order.objects.filter(is_client=True).order_by('deadline')[:6]
     client_orders = []
     for o in selected_orders:
-        o_invoices = Invoice.objects.filter(order=o)
-        payed = 0
-        for i in o_invoices:
-            payed += Payment.objects.aggregate(payed=Sum('price'))
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        status = order_elements[0].status
+        o_status = order_elements[0].status
+        o_value = 0
         for e in order_elements:
-            if e.status.id < status.id:
-                status = e.status
-        if status.id < 5:
-            client_orders.append({"order":o, "elements":order_elements, "status":status, "payed":payed})
-    
+            o_value += e.price
+            if e.status.id < o_status.id:
+                o_status = e.status
+        o_invoices = Invoice.objects.filter(order=o)
+        o_payed = 0
+        for i in o_invoices:
+            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+        payed = int(o_value / 100 * o_payed)
+        
+        if o_status.id < 5:
+            client_orders.append(
+                {
+                    "order":o, 
+                    "elements":order_elements, 
+                    "status":o_status, 
+                    "payed":payed,
+                    "value": o_value
+                }
+            )
     # last unfinished provider orders
     selected_orders = Order.objects.filter(is_client=False).order_by('deadline')[:6]
     provider_orders = []
     for o in selected_orders:
-        o_invoices = Invoice.objects.filter(order=o)
-        payed = 0
-        for i in o_invoices:
-            payed += Payment.objects.aggregate(payed=Sum('price'))
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        status = order_elements[0].status
+        o_status = order_elements[0].status
+        o_value = 0
         for e in order_elements:
-            if e.status.id < status.id:
-                status = e.status
-        if status.id < 5:
-            provider_orders.append({"order":o, "elements":order_elements, "status":status, "payed":payed})
+            o_value += e.price
+            if e.status.id < o_status.id:
+                o_status = e.status
+        o_invoices = Invoice.objects.filter(order=o)
+        o_payed = 0
+        for i in o_invoices:
+            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+        payed = int(o_value / 100 * o_payed)
+        
+        if o_status.id < 5:
+            provider_orders.append(
+                {
+                    "order":o, 
+                    "elements":order_elements, 
+                    "status":o_status, 
+                    "payed":payed,
+                    "value": o_value
+                }
+            )
 
     return render(
         request,
