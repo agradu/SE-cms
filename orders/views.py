@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from orders.models import Order, OrderElement
 from payments.models import Payment
 from invoices.models import Invoice
 from django.core.paginator import Paginator
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 # Create your views here.
 
@@ -14,8 +16,25 @@ def c_clients(request):
 
 @login_required(login_url='/login/')
 def c_orders(request):
-    selected_orders = Order.objects.filter(is_client=True)
+    # search elements
+    search = ""
+    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
+    date_monday = date_now - timedelta(days=date_now.weekday())
+    reg_start = date_monday.strftime('%Y-%m-%d')
+    filter_start = date_monday
+    reg_end = date_now.strftime('%Y-%m-%d')
+    filter_end = date_now
+    if request.method == 'POST':
+        search = request.POST.get('search')
+        if len(search) > 2:
+            reg_start = request.POST.get('reg_start')
+            filter_start = datetime.strptime(reg_start, '%Y-%m-%d')
+            filter_start = timezone.make_aware(filter_start)
+            reg_end = request.POST.get('reg_end')
+            filter_end = datetime.strptime(reg_end, '%Y-%m-%d')
+            filter_end = timezone.make_aware(filter_end).replace(hour=23, minute=59, second=59, microsecond=0)
     # CLIENT ORDERS
+    selected_orders = Order.objects.filter(is_client=True).filter(Q(person__firstname__icontains=search) | Q(person__lastname__icontains=search) | Q(person__company_name__icontains=search)).filter(created_at__gte=filter_start, created_at__lte=filter_end)
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
@@ -42,10 +61,6 @@ def c_orders(request):
             }
         )
     # sorting types
-    if request.method == 'POST':
-        search = request.POST.get('search')
-        reg_start = request.POST.get('reg_start')
-        reg_end = request.POST.get('reg_end')
     page = request.GET.get('page')
     sort = request.GET.get('sort')
     if sort == 'order':
@@ -76,7 +91,7 @@ def c_orders(request):
         request,
         'clients/c_orders.html', 
         {
-            'client_orders': orders_on_page, "sort": sort
+            'client_orders': orders_on_page, "sort": sort, "search": search, "reg_start": reg_start, "reg_end": reg_end
         }
     )
 
