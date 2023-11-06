@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
-from orders.models import Order, OrderElement
+from .models import Order, OrderElement
 from payments.models import Payment
 from invoices.models import Invoice
 from django.core.paginator import Paginator
@@ -9,10 +9,6 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 
 # Create your views here.
-
-@login_required(login_url='/login/')
-def c_clients(request):
-    return render(request, 'clients/c_clients.html')
 
 @login_required(login_url='/login/')
 def c_orders(request):
@@ -100,10 +96,6 @@ def c_orders(request):
 @login_required(login_url='/login/')
 def c_offers(request):
     return render(request, 'clients/c_offers.html')
-
-@login_required(login_url='/login/')
-def p_providers(request):
-    return render(request, 'providers/p_providers.html')
 
 @login_required(login_url='/login/')
 def p_orders(request):
