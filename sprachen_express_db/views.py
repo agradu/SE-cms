@@ -28,7 +28,7 @@ def dashboard(request):
         o_status = order_elements[0].status
         o_value = 0
         for e in order_elements:
-            o_value += e.price
+            o_value += e.price * e.units
             if e.status.id < o_status.id:
                 o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)
@@ -55,7 +55,7 @@ def dashboard(request):
         o_status = order_elements[0].status
         o_value = 0
         for e in order_elements:
-            o_value += e.price
+            o_value += e.price * e.units
             if e.status.id < o_status.id:
                 o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)

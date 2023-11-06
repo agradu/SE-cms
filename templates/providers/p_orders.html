@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Sprachen Express - Orders form clients{% endblock %}
+{% block title %}Sprachen Express - Orders for providers{% endblock %}
 
 {% block content %}
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-cart"></i>
-		</span> Orders to providers
+			<i class="mdi mdi-clipboard"></i>
+		</span> Orders for providers
 	</h3>
 </div>
 {% load static %}
@@ -16,102 +16,99 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="table-responsive">
+					<form method="post">
+					{% csrf_token %}
 					<table class="table">
 					  <tbody>
 						<tr>
 						  <td width="50%">
 							<div class="input-group input-group-sm">
 							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="text" class="form-control" placeholder="Search clients" aria-label="Search clients">
+							  <input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
 							</div>
 						  </td>
 						  <td>
 							<div class="input-group input-group-sm">
-							  <input type="date" class="form-control">
+							  <input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
 							</div>
 						  </td>
 						  <td>
 							<div class="col input-group input-group-sm">
-							  <input type="date" class="form-control">
+							  <input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+							</div>
+						  </td>
+						  <td>
+							<div class="col input-group input-group-sm">
+							  <button type="submit" class="btn btn-gradient-primary me-2">Search</button>
 							</div>
 						  </td>
 						</tr>
 					  </tbody>
 					</table>
+					</form>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="">Order</a> </th>
-								<th> <a href="">Client</a> </th>
+								<th> <a href="/providers/orders/?sort=order">Order</a> </th>
+								<th> <a href="/providers/orders/?sort=client">Client</a> </th>
 								<th> Description </th>
-								<th> <a href="">Assignee</a> </th>
-								<th> <a href="">Registered</a> </th>
-								<th> <a href="">Due Date</a> </th>
-								<th> <a href="">Status</a> </th>
-								<th> <a href="">Value</a> </th>
-								<th> <a href="">Payed</a> </th>
-								<th> <a href="">Last Update</a> </th>
+								<th> <a href="/providers/orders/?sort=assignee">Assignee</a> </th>
+								<th> <a href="/providers/orders/?sort=registered">Registered</a> </th>
+								<th> <a href="/providers/orders/?sort=deadline">Due Date</a> </th>
+								<th> <a href="/providers/orders/?sort=status">Status</a> </th>
+								<th> <a href="/providers/orders/?sort=value">Value</a> </th>
+								<th> <a href="/providers/orders/?sort=payed">Payed</a> </th>
+								<th> <a href="/providers/orders/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
+							{% for o in client_orders %}
 							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
+								<td> <a href=""> {{ o.order.id}} </a> </td>
+								<td> <a href=""> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
 								<td>
-									<i class="mdi mdi-file-word-box mdi-18px"></i>
-									<i class="mdi mdi-google-translate mdi-18px"></i>
-									<i class="mdi mdi-seal mdi-18px"></i>
+									{% for e in o.elements %}
+									<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
+									{% endfor %}
 								</td>
 								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
+									<img src="{{ o.order.user.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.user.first_name}} {{ o.order.user.last_name}}
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 12.12.2012 - 16:30 </td>
+								<td> {{ o.order.created_at|date:"d.m.Y"}} - {{ o.order.created_at|time:"H:i"}} </td>
+								<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
 								<td>
-									<label class="badge badge-success">Wartet</label>
+									<label class="badge badge-{{ o.status.style}}">{{ o.status.name}}</label>
 								</td>
-								<td> 123 euro</td>
-								<td> <a href="" class="text-danger">0 %</a> </td>
-								<td> 12.12.2012 - 16:30 </td>
+								<td> {{ o.value}} {{ o.currency}}</td>
+								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
+									{{ o.payed}} %
+								</td>
+								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
 							</tr>
-							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
-								<td>
-									<i class="mdi mdi-file-word-box mdi-18px"></i>
-									<i class="mdi mdi-google-translate mdi-18px"></i>
-									<i class="mdi mdi-seal mdi-18px"></i>
-								</td>
-								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
-								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td>
-									<label class="badge badge-success">Wartet</label>
-								</td>
-								<td> 123 euro</td>
-								<td> <a href="" class="text-warning">50 %</a> </td>
-								<td> 12.12.2012 - 16:30 </td>
-							</tr>
+							{% endfor %}
 						</tbody>
 					</table>
 				</div>
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
+						{% if client_orders.paginator.num_pages > 1 %}
 						<tr>
 							<td>
 							  <div class="btn-group btn-group-sm">
-								<button type="button" class="btn btn-primary">1</button>
-								<button type="button" class="btn btn-outline-secondary">2</button>
-								<button type="button" class="btn btn-outline-secondary">3</button>
-								<button type="button" class="btn btn-outline-secondary">4</button>
+								{% for pg in client_orders.paginator.page_range %}
+								{% if pg == client_orders.number %}
+								<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+								{% else %}
+								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+								{% endif %}
+								{% endfor %}
 							  </div>
 							</td>
 						  </tr>
+						  {% endif %}
 						  <tr>
 							<td>
 							  <div class="input-group input-group-sm">
