@@ -18,7 +18,7 @@
 					{% for o in recent_orders %}
 					<tr onclick="window.location='#';">
 						<td> {{ o.order.id}} </td>
-						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </td>
+						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</td>
 						<td>
 							{% for e in o.elements %}
 							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>

@@ -16,7 +16,7 @@
 					{% for o in client_orders %}
 					<tr onclick="window.location='#';">
 						<td> {{ o.order.id}} </td>
-						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </td>
+						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</td>
 						<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
 						<td>
 							<div class="progress">

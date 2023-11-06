@@ -19,9 +19,9 @@ def c_orders(request):
     # search elements
     search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_monday = date_now - timedelta(days=date_now.weekday())
-    reg_start = date_monday.strftime('%Y-%m-%d')
-    filter_start = date_monday
+    date_before = date_now - timedelta(days=6)
+    reg_start = date_before.strftime('%Y-%m-%d')
+    filter_start = date_before
     reg_end = date_now.strftime('%Y-%m-%d')
     filter_end = date_now
     if request.method == 'POST':
@@ -33,6 +33,8 @@ def c_orders(request):
             reg_end = request.POST.get('reg_end')
             filter_end = datetime.strptime(reg_end, '%Y-%m-%d')
             filter_end = timezone.make_aware(filter_end).replace(hour=23, minute=59, second=59, microsecond=0)
+        else:
+            search = ""
     # CLIENT ORDERS
     selected_orders = Order.objects.filter(is_client=True).filter(Q(person__firstname__icontains=search) | Q(person__lastname__icontains=search) | Q(person__company_name__icontains=search)).filter(created_at__gte=filter_start, created_at__lte=filter_end)
     client_orders = []

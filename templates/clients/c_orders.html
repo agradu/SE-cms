@@ -67,7 +67,7 @@
 							{% for o in client_orders %}
 							<tr>
 								<td> <a href=""> {{ o.order.id}} </a> </td>
-								<td> <a href=""> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </a> </td>
+								<td> <a href=""> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
 								<td>
 									{% for e in o.elements %}
 									<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
