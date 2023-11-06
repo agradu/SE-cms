@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Sprachen Express - Orders form clients{% endblock %} {% block content %} <div class="page-header">
+{% extends "base.html" %} {% block title %}Sprachen Express - Clients{% endblock %} {% block content %} <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-account-outline"></i>
@@ -43,21 +43,21 @@
 								<th> Last Update </th>
 							</tr>
 						</thead>
-						<tbody> {% for c in selected_clients %} 
+						<tbody> {% for p in selected_clients %} 
 							<tr>
 								<td>
-									<i class="mdi {% if c.entity == 'sp' %}mdi-account-star{% elif c.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px"></i>
+									<i class="mdi {% if p.entity == 'sp' %}mdi-account-star{% elif p.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px"></i>
 								</td>
 								<td>
-									<a href="">{{ c.firstname}} {{ c.lastname}} {% if c.company_name != "" %}- {{ c.company_name}} {% endif %}</a>
+									<a href="">{{ p.firstname}} {{ p.lastname}} {% if p.company_name != "" %}- {{ p.company_name}} {% endif %}</a>
 								</td>
-								<td> {{ c.phone}} </td>
-								<td> {{ c.email}} </td>
+								<td> {{ p.phone}} </td>
+								<td> {{ p.email}} </td>
 								<td>
-									<img src="{{ c.user.profile_picture.url }}" class="me-2" alt="image"> {{ c.user.first_name}} {{ c.user.last_name}}
+									<img src="{{ p.user.profile_picture.url }}" class="me-2" alt="image"> {{ p.user.first_name}} {{ p.user.last_name}}
 								</td>
-								<td> {{ c.created_at|date:"d.m.Y"}} - {{ c.created_at|time:"H:i"}} </td>
-								<td> {{ c.modified_at|date:"d.m.Y"}} - {{ c.modified_at|time:"H:i"}} </td>
+								<td> {{ p.created_at|date:"d.m.Y"}} - {{ p.created_at|time:"H:i"}} </td>
+								<td> {{ p.modified_at|date:"d.m.Y"}} - {{ p.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -66,11 +66,20 @@
 				<div class="table-responsive">
 					<table class="table">
 						<tbody>
-							{% if client_orders.paginator.num_pages > 1 %} <tr>
+							{% if selected_clients.paginator.num_pages > 1 %} <tr>
 								<td>
-									<div class="btn-group btn-group-sm"> {% for pg in client_orders.paginator.page_range %} {% if pg == client_orders.number %} <button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button> {% else %} <button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button> {% endif %} {% endfor %} </div>
+									<div class="btn-group btn-group-sm">
+										{% for pg in selected_clients.paginator.page_range %}
+										{% if pg == selected_clients.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										{% else %}
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										{% endif %}
+										{% endfor %}
+									</div>
 								</td>
-							</tr> {% endif %}
+							</tr>
+							{% endif %}
 							<tr>
 								<td>
 									<div class="input-group input-group-sm">

@@ -34,6 +34,7 @@ class Person(models.Model):
     email = models.EmailField(max_length=255, blank=True)
     phone = models.CharField(max_length=100, blank=True)
     address = models.CharField(max_length=255, blank=True)
+    services = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     modified_at = models.DateTimeField(default=timezone.now)
     user = models.ForeignKey(
