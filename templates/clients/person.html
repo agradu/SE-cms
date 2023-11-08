@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Sprachen Express - Person{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-account"></i>
+		</span> Person: {{ person.firstname }} {{ person.lastname }} - {{ person.company_name }}
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<form method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">First Name</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="firstname" value="{{ person.firstname }}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Last Name</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="lastname" value="{{ person.lastname }}">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Type</label>
+							<div class="col-sm-9">
+								<select class="form-select" name="entity">
+									<option value="pi"{% if person.entity == 'pi' %} selected{% endif %}>Private individual</option>
+									<option value="sp"{% if person.entity == 'sp' %} selected{% endif %}>Sole proprietor</option>
+									<option value="co"{% if person.entity == 'co' %} selected{% endif %}>Company</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Gender</label>
+							<div class="col-sm-9">
+								<select class="form-select" name="gender">
+									<option value="ma"{% if person.gender == 'ma' %} selected{% endif %}>Man</option>
+									<option value="wo"{% if person.gender != 'wo' and us.is_active == True %} selected{% endif %}>Woman</option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Phone</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="phone" value="{{ person.phone }}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Address</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="address" value="{{ person.address }}">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">E-mail</label>
+							<div class="col-sm-9">
+								<input type="email" class="form-control" name="email" value="{{ person.email }}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">ID Card</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="identity_card" value="{{ person.identity_card }}">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Company name</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="company_name" value="{{ person.company_name }}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Company tax code</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="company_tax_code" value="{{ person.company_tax_code }}">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Company IBAN</label>
+							<div class="col-sm-9">
+								<input type="email" class="form-control" name="company_iban" value="{{ person.company_iban }}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group row">
+							<label class="col-sm-3 col-form-label">Services</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" name="services" value="{{ person.services }}">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<div class="form-group row">
+							<div class="col-sm-2">
+								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+								  <i class="mdi mdi-account btn-icon-prepend"></i> Save Client</button>
+							</div>
+							<div class="col-sm-10">
+								{{ update }}
+							</div>
+						  </tr>
+						</div>
+					</div>
+				</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

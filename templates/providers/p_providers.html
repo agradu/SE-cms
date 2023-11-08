@@ -60,7 +60,7 @@
 								</td>
 								<td> {{ p.provider.phone}} </td>
 								<td> {{ p.provider.email}} </td>
-								<td> {{ p.provider.services}} </td>
+								<td> {{ p.provider.services|truncatechars:80}} </td>
 								<td> {{ p.total_orders}} </td>
 								<td> {{ p.provider.created_at|date:"d.m.Y"}} - {{ p.provider.created_at|time:"H:i"}} </td>
 								<td> {{ p.provider.modified_at|date:"d.m.Y"}} - {{ p.provider.modified_at|time:"H:i"}} </td>
@@ -89,8 +89,8 @@
 							<tr>
 								<td>
 									<div class="input-group input-group-sm">
-										<button type="button" class="btn btn-gradient-primary btn-icon-text">
-											<i class="mdi mdi-account-plus btn-icon-prepend"></i> Register a new client </button>
+										<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/persons/0/';">
+											<i class="mdi mdi-account-plus btn-icon-prepend"></i> Register a new provider </button>
 									</div>
 								</td>
 							</tr>

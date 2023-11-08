@@ -49,7 +49,7 @@
 									<i class="mdi {% if p.entity == 'sp' %}mdi-account-star{% elif p.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px"></i>
 								</td>
 								<td>
-									<a href="">{{ p.firstname}} {{ p.lastname}} {% if p.company_name != "" %}- {{ p.company_name}} {% endif %}</a>
+									<a href="/persons/{{ p.id}}">{{ p.firstname}} {{ p.lastname}} {% if p.company_name != "" %}- {{ p.company_name}} {% endif %}</a>
 								</td>
 								<td> {{ p.phone}} </td>
 								<td> {{ p.email}} </td>
@@ -83,7 +83,7 @@
 							<tr>
 								<td>
 									<div class="input-group input-group-sm">
-										<button type="button" class="btn btn-gradient-primary btn-icon-text">
+										<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/persons/0/';">
 											<i class="mdi mdi-account-plus btn-icon-prepend"></i> Register a new client </button>
 									</div>
 								</td>
