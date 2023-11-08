@@ -21,7 +21,9 @@ def c_clients(request):
     selected_clients = []
     for person in filtered_persons:
         if Order.objects.filter(person=person).filter(is_client=True).exists() or not Order.objects.filter(person=person).exists():
-            selected_clients.append(person)
+            person_total_orders = Order.objects.filter(person=person).count()
+            client = {"client": person, "total_orders": person_total_orders}
+            selected_clients.append(client)
     page = request.GET.get('page')
     paginator = Paginator(selected_clients, 10)
     clients_on_page = paginator.get_page(page)

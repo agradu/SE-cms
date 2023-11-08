@@ -46,18 +46,18 @@
 						<tbody> {% for p in selected_clients %} 
 							<tr>
 								<td>
-									<i class="mdi {% if p.entity == 'sp' %}mdi-account-star{% elif p.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px"></i>
+									<i class="mdi {% if p.client.entity == 'sp' %}mdi-account-star{% elif p.client.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px text-{% if p.total_orders > 0 %}primary{% else %}secondary{% endif %}"></i>
 								</td>
 								<td>
-									<a href="/persons/{{ p.id}}/">{{ p.firstname}} {{ p.lastname}} {% if p.company_name != "" %}- {{ p.company_name}} {% endif %}</a>
+									<a href="/persons/{{ p.client.id}}/">{{ p.client.firstname}} {{ p.client.lastname}} {% if p.client.company_name != "" %}- {{ p.client.company_name}} {% endif %}</a>
 								</td>
-								<td> {{ p.phone}} </td>
-								<td> {{ p.email}} </td>
+								<td> {{ p.client.phone}} </td>
+								<td> {{ p.client.email}} </td>
 								<td>
-									<img src="{{ p.user.profile_picture.url }}" class="me-2" alt="image"> {{ p.user.first_name}} {{ p.user.last_name}}
+									<img src="{{ p.client.user.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.user.first_name}} {{ p.client.user.last_name}}
 								</td>
-								<td> {{ p.created_at|date:"d.m.Y"}} - {{ p.created_at|time:"H:i"}} </td>
-								<td> {{ p.modified_at|date:"d.m.Y"}} - {{ p.modified_at|time:"H:i"}} </td>
+								<td> {{ p.client.created_at|date:"d.m.Y"}} - {{ p.client.created_at|time:"H:i"}} </td>
+								<td> {{ p.client.modified_at|date:"d.m.Y"}} - {{ p.client.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}
 						</tbody>
