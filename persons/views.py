@@ -20,7 +20,7 @@ def c_clients(request):
     filtered_persons = Person.objects.filter(Q(firstname__icontains=search) | Q(lastname__icontains=search) | Q(company_name__icontains=search)).order_by('firstname')[:30]
     selected_clients = []
     for person in filtered_persons:
-        if Order.objects.filter(person=person).filter(is_client=True).exists():
+        if Order.objects.filter(person=person).filter(is_client=True).exists() or not Order.objects.filter(person=person).exists():
             selected_clients.append(person)
     page = request.GET.get('page')
     paginator = Paginator(selected_clients, 10)
@@ -43,7 +43,7 @@ def p_providers(request):
     filtered_persons = Person.objects.filter(Q(firstname__icontains=search_name) | Q(lastname__icontains=search_name) | Q(company_name__icontains=search_name)).filter(services__icontains=search_service).order_by('firstname')[:30]
     selected_providers = []
     for person in filtered_persons:
-        if Order.objects.filter(person=person).filter(is_client=False).exists() or not Order.objects.filter(person=person).filter(is_client=True).exists():
+        if Order.objects.filter(person=person).filter(is_client=False).exists() or not Order.objects.filter(person=person).exists():
             person_total_orders = Order.objects.filter(person=person).count()
             provider = {"provider": person, "total_orders": person_total_orders}
             selected_providers.append(provider)

@@ -54,7 +54,7 @@
 							<div class="col-sm-9">
 								<select class="form-select" name="gender">
 									<option value="ma"{% if person.gender == 'ma' %} selected{% endif %}>Man</option>
-									<option value="wo"{% if person.gender != 'wo' and us.is_active == True %} selected{% endif %}>Woman</option>
+									<option value="wo"{% if person.gender == 'wo' %} selected{% endif %}>Woman</option>
 								</select>
 							</div>
 						</div>

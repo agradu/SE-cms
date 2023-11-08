@@ -56,7 +56,7 @@
 									<i class="mdi {% if p.provider.entity == 'sp' %}mdi-account-star{% elif p.provider.entity == 'co' %}mdi-account-box{% else %}mdi-account{% endif %} mdi-18px"></i>
 								</td>
 								<td>
-									<a href="">{{ p.provider.firstname}} {{ p.provider.lastname}} {% if p.provider.company_name != "" %}- {{ p.provider.company_name}} {% endif %}</a>
+									<a href="/persons/{{ p.provider.id}}">{{ p.provider.firstname}} {{ p.provider.lastname}} {% if p.provider.company_name != "" %}- {{ p.provider.company_name}} {% endif %}</a>
 								</td>
 								<td> {{ p.provider.phone}} </td>
 								<td> {{ p.provider.email}} </td>
