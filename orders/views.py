@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
 from .models import Order, OrderElement
+from persons.models import Person
 from payments.models import Payment
 from invoices.models import Invoice
+from services.models import Currency, Status
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -15,7 +17,7 @@ def c_orders(request):
     # search elements
     search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=6)
+    date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime('%Y-%m-%d')
     filter_start = date_before
     reg_end = date_now.strftime('%Y-%m-%d')
@@ -36,13 +38,9 @@ def c_orders(request):
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        o_status = order_elements[0].status
-        o_currency = order_elements[0].currency.symbol
         o_value = 0
         for e in order_elements:
             o_value += e.price * e.units
-            if e.status.id < o_status.id:
-                o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
@@ -51,10 +49,8 @@ def c_orders(request):
         client_orders.append(
             {
                 "order":o, 
-                "elements":order_elements, 
-                "status":o_status, 
-                "payed":payed, 
-                "currency":o_currency,
+                "elements":order_elements,
+                "payed":payed,
                 "value": o_value,
             }
         )
@@ -89,7 +85,71 @@ def c_orders(request):
         request,
         'clients/c_orders.html', 
         {
-            'client_orders': orders_on_page, "sort": sort, "search": search, "reg_start": reg_start, "reg_end": reg_end
+            'client_orders': orders_on_page,
+            "sort": sort,
+            "search": search,
+            "reg_start": reg_start,
+            "reg_end": reg_end
+        }
+    )
+
+@login_required(login_url='/login/')
+def c_order(request, order_id, client_id):
+    statuses = Status.objects.all().order_by('id')
+    currencies = Currency.objects.all().order_by('id')
+    search = ""
+    clients = []
+    elements = []
+    date_now = timezone.now()
+    if order_id != 0:
+        new = False
+        order = get_object_or_404(Order, id=order_id)
+        client = order.person
+        if request.method == 'POST':
+            if 'search' in request.POST:
+                search = request.POST.get('search')
+                if len(search) > 3:
+                    clients = Person.objects.filter(Q(firstname__icontains=search) | Q(lastname__icontains=search) | Q(company_name__icontains=search))
+            if 'new_client' in request.POST:
+                new_client = request.POST.get('new_client')
+                client = get_object_or_404(Person, id=new_client)
+                order.person = client
+                order.modified_at = date_now
+                order.save()
+            if 'order_description' in request.POST:
+                order.description = request.POST.get('order_description')
+                order.status = statuses[int(request.POST.get('order_status'))-1]
+                order.currency = currencies[int(request.POST.get('order_currency'))-1]
+                order.modified_by = request.user
+                order.modified_at = date_now
+                deadline_date = request.POST.get('deadline_date')
+                deadline_time = request.POST.get('deadline_time')
+                order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                order.save()
+    else:
+        new = True
+        client = get_object_or_404(Person, id=client_id)
+        order = Order(
+            person=client,
+            deadline=date_now,
+            is_client=True,
+            modified_by=request.user,
+            created_by=request.user,
+            status=statuses[0],
+            currency=currencies[0]
+        )
+        order.save()
+
+    return render(
+        request,
+        'clients/c_order.html',
+        {
+            "clients": clients,
+            "order": order,
+            "elements": elements,
+            "currencies": currencies,
+            "statuses": statuses,
+            "new": new
         }
     )
 
@@ -102,7 +162,7 @@ def p_orders(request):
     # search elements
     search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=6)
+    date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime('%Y-%m-%d')
     filter_start = date_before
     reg_end = date_now.strftime('%Y-%m-%d')
@@ -123,13 +183,9 @@ def p_orders(request):
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        o_status = order_elements[0].status
-        o_currency = order_elements[0].currency.symbol
         o_value = 0
         for e in order_elements:
             o_value += e.price * e.units
-            if e.status.id < o_status.id:
-                o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
@@ -137,11 +193,9 @@ def p_orders(request):
         payed = int(o_value / 100 * o_payed)
         client_orders.append(
             {
-                "order":o, 
-                "elements":order_elements, 
-                "status":o_status, 
-                "payed":payed, 
-                "currency":o_currency,
+                "order":o,
+                "elements":order_elements,
+                "payed":payed,
                 "value": o_value,
             }
         )
@@ -176,6 +230,70 @@ def p_orders(request):
         request,
         'providers/p_orders.html', 
         {
-            'client_orders': orders_on_page, "sort": sort, "search": search, "reg_start": reg_start, "reg_end": reg_end
+            'client_orders': orders_on_page,
+            "sort": sort,
+            "search": search,
+            "reg_start": reg_start,
+            "reg_end": reg_end
+        }
+    )
+
+@login_required(login_url='/login/')
+def p_order(request, order_id, provider_id):
+    statuses = Status.objects.all().order_by('id')
+    currencies = Currency.objects.all().order_by('id')
+    search = ""
+    providers = []
+    elements = []
+    date_now = timezone.now()
+    if order_id != 0:
+        new = False
+        order = get_object_or_404(Order, id=order_id)
+        provider = order.person
+        if request.method == 'POST':
+            if 'search' in request.POST:
+                search = request.POST.get('search')
+                if len(search) > 3:
+                    providers = Person.objects.filter(Q(firstname__icontains=search) | Q(lastname__icontains=search) | Q(company_name__icontains=search))
+            if 'new_provider' in request.POST:
+                new_provider = request.POST.get('new_provider')
+                provider = get_object_or_404(Person, id=new_provider)
+                order.person = provider
+                order.modified_at = date_now
+                order.save()
+            if 'order_description' in request.POST:
+                order.description = request.POST.get('order_description')
+                order.status = statuses[int(request.POST.get('order_status'))-1]
+                order.currency = currencies[int(request.POST.get('order_currency'))-1]
+                order.modified_by = request.user
+                deadline_date = request.POST.get('deadline_date')
+                deadline_time = request.POST.get('deadline_time')
+                order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                order.modified_at = date_now
+                order.save()
+    else:
+        new = True
+        provider = get_object_or_404(Person, id=provider_id)
+        order = Order(
+            person=provider,
+            deadline=date_now,
+            is_client=False,
+            modified_by=request.user,
+            created_by=request.user,
+            status=statuses[0],
+            currency=currencies[0]
+        )
+        order.save()
+
+    return render(
+        request,
+        'providers/p_order.html',
+        {
+            "providers": providers,
+            "order": order,
+            "elements": elements,
+            "currencies": currencies,
+            "statuses": statuses,
+            "new": new
         }
     )

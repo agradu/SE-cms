@@ -3,6 +3,10 @@
 find . -type f -name "0*.py" -exec rm -f {} \; -print
 find . -type f -name "0*.pyc" -exec rm -f {} \; -print
 echo "All migrations in apps are cleaned!"
+find "./media/profile_pictures" -type f ! -name "my-profile-default.jpg" -exec rm {} \; -print
+echo "All pictures are clened!"
+echo ""
+
 
 # Parameters for PostgreSQL connection
 PGUSER="postgres"
@@ -37,4 +41,5 @@ echo -n "Enter the email for superuser: "
 read DJANGO_EMAIL
 
 python manage.py createsuperuser --username="$DJANGO_USER" --email="$DJANGO_EMAIL"
+export DJANGO_USER
 python manage.py runscript data_load

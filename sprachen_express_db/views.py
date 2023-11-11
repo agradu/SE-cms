@@ -14,10 +14,7 @@ def dashboard(request):
     recent_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        status = order_elements[0].status
-        for e in order_elements:
-            if e.status.id < status.id:
-                status = e.status
+        status = o.status
         recent_orders.append({"order":o, "elements":order_elements, "status":status})
 
     # last unfinished client orders
@@ -25,12 +22,10 @@ def dashboard(request):
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        o_status = order_elements[0].status
+        o_status = o.status
         o_value = 0
         for e in order_elements:
             o_value += e.price * e.units
-            if e.status.id < o_status.id:
-                o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
@@ -52,12 +47,10 @@ def dashboard(request):
     provider_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
-        o_status = order_elements[0].status
+        o_status = o.status
         o_value = 0
         for e in order_elements:
             o_value += e.price * e.units
-            if e.status.id < o_status.id:
-                o_status = e.status
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
@@ -78,7 +71,9 @@ def dashboard(request):
     return render(
         request,
         'dashboard.html', 
-        {'recent_orders': recent_orders, 'client_orders': client_orders, 'provider_orders': provider_orders}
+        {'recent_orders': recent_orders,
+         'client_orders': client_orders,
+         'provider_orders': provider_orders}
     )
 
 @csrf_protect

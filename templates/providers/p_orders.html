@@ -66,20 +66,20 @@
 						<tbody>
 							{% for o in client_orders %}
 							<tr>
-								<td> <a href=""> {{ o.order.id}} </a> </td>
-								<td> <a href=""> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a> </td>
+								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
 								<td>
 									{% for e in o.elements %}
 									<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
 									{% endfor %}
 								</td>
 								<td>
-									<img src="{{ o.order.user.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.user.first_name}} {{ o.order.user.last_name}}
+									<img src="{{ o.order.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.modified_by.first_name}} {{ o.order.modified_by.last_name}}
 								</td>
 								<td> {{ o.order.created_at|date:"d.m.Y"}} - {{ o.order.created_at|time:"H:i"}} </td>
 								<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
 								<td>
-									<label class="badge badge-{{ o.status.style}}">{{ o.status.name}}</label>
+									<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 								</td>
 								<td> {{ o.value}} {{ o.currency}}</td>
 								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
@@ -109,14 +109,6 @@
 							</td>
 						  </tr>
 						  {% endif %}
-						  <tr>
-							<td>
-							  <div class="input-group input-group-sm">
-								<button type="button" class="btn btn-gradient-primary btn-icon-text">
-								  <i class="mdi mdi-clipboard-check btn-icon-prepend"></i> Register a new order</button>
-							  </div>
-							</td>
-						  </tr>
 					  </tbody>
 					</table>
 				</div>

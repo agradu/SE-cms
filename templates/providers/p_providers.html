@@ -64,6 +64,11 @@
 								<td> {{ p.total_orders}} </td>
 								<td> {{ p.provider.created_at|date:"d.m.Y"}} - {{ p.provider.created_at|time:"H:i"}} </td>
 								<td> {{ p.provider.modified_at|date:"d.m.Y"}} - {{ p.provider.modified_at|time:"H:i"}} </td>
+								<td>
+									<button type="button" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/providers/order/0/{{ p.provider.id}}/';">
+										<i class="mdi mdi-clipboard-outline"></i>
+									</button>
+								</td>
 							</tr>
 							{% endfor %}
 						</tbody>

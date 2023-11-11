@@ -39,8 +39,10 @@
 								<th> Phone </th>
 								<th> E-mail </th>
 								<th> Assignee </th>
+								<th> Orders </th>
 								<th> Registered </th>
 								<th> Last Update </th>
+								<th> </th>
 							</tr>
 						</thead>
 						<tbody> {% for p in selected_clients %} 
@@ -54,10 +56,16 @@
 								<td> {{ p.client.phone}} </td>
 								<td> {{ p.client.email}} </td>
 								<td>
-									<img src="{{ p.client.user.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.user.first_name}} {{ p.client.user.last_name}}
+									<img src="{{ p.client.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.modified_by.first_name}} {{ p.client.modified_by.last_name}}
 								</td>
+								<td> {{ p.total_orders}} </td>
 								<td> {{ p.client.created_at|date:"d.m.Y"}} - {{ p.client.created_at|time:"H:i"}} </td>
 								<td> {{ p.client.modified_at|date:"d.m.Y"}} - {{ p.client.modified_at|time:"H:i"}} </td>
+								<td>
+									<button type="button" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
+										<i class="mdi mdi-clipboard-outline"></i>
+									</button>
+								</td>
 							</tr>
 							{% endfor %}
 						</tbody>

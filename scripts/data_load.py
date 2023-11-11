@@ -1,8 +1,15 @@
 from django.contrib.auth.models import User
 from services.models import Status, UM, Service, Currency
+from users.models import CustomUser
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from io import BytesIO
+from PIL import Image
+import os
 
 
 def run():
+    default_image = 'media/profile_pictures/my-profile-default.jpg'
+    username = os.environ.get("DJANGO_USER")
     statuses = [
         ["Wartet","danger",20],
         ["Bestätigt","primary",40],
@@ -38,3 +45,15 @@ def run():
             currency=currency,
             um=um,
         )
+
+    with open(default_image, 'rb') as f:
+        image_data = BytesIO(f.read())
+        image = Image.open(image_data)
+        image_size = image.size
+        profile_picture = InMemoryUploadedFile(image_data, None, default_image, 'image/jpg', image_size, None)
+        user = CustomUser.objects.filter(username=username).first()
+        user.profile_picture = profile_picture
+        user.first_name = "Adrian George"
+        user.last_name = "Radu"
+        user.email = "adrian.george.radu@gmail.com"
+        user.save()

@@ -30,7 +30,9 @@ def c_clients(request):
     return render(
         request,
         'clients/c_clients.html',
-        {"selected_clients": clients_on_page, "search": search}
+        {"selected_clients": clients_on_page,
+         "search": search
+        }
     )
 
 @login_required(login_url='/login/')
@@ -55,7 +57,10 @@ def p_providers(request):
     return render(
         request,
         'providers/p_providers.html',
-        {"selected_providers": providers_on_page, "search_name": search_name, "search_service": search_service}
+        {"selected_providers": providers_on_page,
+         "search_name": search_name,
+         "search_service": search_service
+        }
     )
 
 @login_required(login_url='/login/')
@@ -78,7 +83,7 @@ def person_detail(request, person_id):
             person.address = request.POST.get('address')
             person.services = request.POST.get('services')
             person.modified_at = date_now
-            person.user = request.user
+            person.modified_by = request.user
             person.save()
         else:
             update = ""
@@ -107,7 +112,9 @@ def person_detail(request, person_id):
                         email = request.POST.get('email'),
                         services = request.POST.get('services'),
                         modified_at = date_now,
-                        user = request.user,
+                        modified_by = request.user,
+                        created_at = date_now,
+                        created_by = request.user,
                     )
                     person.save()
             else:

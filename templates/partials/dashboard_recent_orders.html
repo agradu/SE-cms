@@ -2,7 +2,7 @@
 	<div class="card-body">
 		<h4 class="card-title">Recent Orders</h4>
 		<div class="table-responsive">
-			<table class="table">
+			<table class="table table-hover">
 				<thead>
 					<tr>
 						<th> Order </th>
@@ -16,16 +16,16 @@
 				</thead>
 				<tbody>
 					{% for o in recent_orders %}
-					<tr onclick="window.location='#';">
+					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';">
 						<td> {{ o.order.id}} </td>
-						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</td>
+						<td> <a href="/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a></td>
 						<td>
 							{% for e in o.elements %}
 							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
 							{% endfor %}
 						</td>
 						<td>
-							<img src="{{ o.order.user.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.user.first_name}} {{ o.order.user.last_name}} 
+							<img src="{{ o.order.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ o.order.modified_by.first_name}} {{ o.order.modified_by.last_name}} 
 						</td>
 						<td> {{ o.order.created_at|date:"d.m.Y"}} - {{ o.order.created_at|time:"H:i"}} </td>
 						<td>
