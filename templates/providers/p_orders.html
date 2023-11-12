@@ -6,7 +6,7 @@
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-clipboard"></i>
+			<i class="mdi mdi-cart"></i>
 		</span> Orders for providers
 	</h3>
 </div>
@@ -24,7 +24,7 @@
 						  <td width="50%">
 							<div class="input-group input-group-sm">
 							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+							  <input type="text" class="form-control" placeholder="Search providers" name="search" value="{{ search }}" aria-label="Search providers">
 							</div>
 						  </td>
 						  <td>
@@ -52,7 +52,7 @@
 						<thead>
 							<tr>
 								<th> <a href="/providers/orders/?sort=order">Order</a> </th>
-								<th> <a href="/providers/orders/?sort=client">Client</a> </th>
+								<th> <a href="/providers/orders/?sort=provider">Provider</a> </th>
 								<th> Description </th>
 								<th> <a href="/providers/orders/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/providers/orders/?sort=registered">Registered</a> </th>
@@ -64,7 +64,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{% for o in client_orders %}
+							{% for o in provider_orders %}
 							<tr>
 								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a> </td>
 								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
@@ -94,12 +94,12 @@
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
-						{% if client_orders.paginator.num_pages > 1 %}
+						{% if provider_orders.paginator.num_pages > 1 %}
 						<tr>
 							<td>
 							  <div class="btn-group btn-group-sm">
-								{% for pg in client_orders.paginator.page_range %}
-								{% if pg == client_orders.number %}
+								{% for pg in provider_orders.paginator.page_range %}
+								{% if pg == provider_orders.number %}
 								<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 								{% else %}
 								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>

@@ -1,17 +1,10 @@
-{% extends "base.html" %}
-
-{% block title %}Sprachen Express - Order{% endblock %}
-
-{% block content %}
-<div class="page-header">
+{% extends "base.html" %} {% block title %}Sprachen Express - Order{% endblock %} {% block content %} <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-account"></i>
+			<i class="mdi mdi-clipboard"></i>
 		</span> Order #{{ order.id }} from {{ order.person.firstname }} {{ order.person.lastname }} - {{ order.person.company_name }}
 	</h3>
-</div>
-{% load static %}
-{% if new == False %}
+</div> {% load static %} {% if new == False %} 
 <div class="row">
 	<div class="col-12 grid-margin">
 		<div class="card">
@@ -21,8 +14,7 @@
 				<div class="row">
 					<div class="col-md-12">
 						<div class="row">
-							<form method="post" class="col-md-4"> {% csrf_token %} 
-								<div class="form-group row">
+							<form method="post" class="col-md-4"> {% csrf_token %} <div class="form-group row">
 									<div class="col-sm-8">
 										<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
 									</div>
@@ -31,14 +23,9 @@
 									</div>
 								</div>
 							</form>
-							<form method="post" class="col-md-8"> {% csrf_token %} 
-								<div class="form-group row">
+							<form method="post" class="col-md-8"> {% csrf_token %} <div class="form-group row">
 									<div class="col-sm-9">
-										<select class="form-select" name="new_client">
-											{% for c in clients %}
-											<option value="{{ c.id }}" {% if c.id == order.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option>
-											{% endfor %}
-										</select>
+										<select class="form-select" name="new_client"> {% for c in clients %} <option value="{{ c.id }}" {% if c.id == order.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option> {% endfor %} </select>
 									</div>
 									<div class="col-sm-3">
 										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
@@ -52,84 +39,72 @@
 			</div>
 		</div>
 	</div>
-</div>
-{% endif %}
+</div> {% endif %} 
 <div class="row">
 	<div class="col-12 grid-margin">
 		<div class="card">
 			<div class="card-body">
 				<h4 class="card-title">Order details</h4>
-				<p>Order created by <b>{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b>{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>.</p>
-				<form method="post" action="/clients/order/{{ order.id }}/{{ order.person.id }}/">
-				{% csrf_token %}
-				<div class="row">
-					<div class="col-md-12">
-						<div class="form-group row">
-							<label class="col-sm-1 col-form-label">Description</label>
-							<div class="col-sm-11">
-								<input type="text" class="form-control" name="order_description" value="{{ order.description }}">
+				<p>Order created by <b class="text-primary">{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b class="text-success">{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>. </p>
+				<form method="post" action="/clients/order/{{ order.id }}/{{ order.person.id }}/"> {% csrf_token %} <div class="row">
+						<div class="col-md-12">
+							<div class="form-group row">
+								<label class="col-sm-1 col-form-label">Description</label>
+								<div class="col-sm-11">
+									<input type="text" class="form-control" name="order_description" value="{{ order.description }}">
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-6">
-						<div class="form-group row">
-							<label class="col-sm-2 col-form-label">Currency</label>
-							<div class="col-sm-10">
-								<select class="form-select" name="order_currency">
-									{% for c in currencies %}
-									<option value="{{ c.id }}" {% if c.id == order.currency.id %} selected{% endif %}>{{ c.name }} - {{ c.symbol }}</option>
-									{% endfor %}
-								</select>
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group row">
+								<label class="col-sm-2 col-form-label">Currency</label>
+								<div class="col-sm-10">
+									<select class="form-select" name="order_currency"> {% for c in currencies %} <option value="{{ c.id }}" {% if c.id == order.currency.id %} selected{% endif %}>{{ c.name }} - {{ c.symbol }}</option> {% endfor %} </select>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group row">
+								<label class="col-sm-2 col-form-label">Status</label>
+								<div class="col-sm-10">
+									<select class="form-select" name="order_status"> {% for s in statuses %} <option value="{{ s.id }}" {% if s.id == order.status.id %} selected{% endif %}>{{ s.name }}</option> {% endfor %} </select>
+								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-6">
-						<div class="form-group row">
-							<label class="col-sm-2 col-form-label">Status</label>
-							<div class="col-sm-10">
-								<select class="form-select" name="order_status">
-									{% for s in statuses %}
-									<option value="{{ s.id }}" {% if s.id == order.status.id %} selected{% endif %}>{{ s.name }}</option>
-									{% endfor %}
-								</select>
+					<div class="row">
+						<div class="col-md-5">
+							<div class="form-group row">
+								<label class="col-sm-3 col-form-label">Deadline (date)</label>
+								<div class="col-sm-9">
+									<input type="date" class="form-control" name="deadline_date" value="{{ order.deadline|date:'Y-m-d' }}">
+								</div>
+							</div>
+						</div>
+						<div class="col-md-5">
+							<div class="form-group row">
+								<label class="col-sm-3 col-form-label">Deadline (time)</label>
+								<div class="col-sm-9">
+									<input type="time" class="form-control" name="deadline_time" value="{{ order.deadline|time:'H:i' }}">
+								</div>
+							</div>
+						</div>
+						<div class="col-md-2">
+							<div class="form-group row">
+								<div class="col-sm-12">
+									<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+										<i class="mdi mdi-clipboard-outline btn-icon-prepend"></i> Save the order </button>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-5">
-						<div class="form-group row">
-							<label class="col-sm-3 col-form-label">Deadline (date)</label>
-							<div class="col-sm-9">
-								<input type="date" class="form-control" name="deadline_date" value="{{ order.deadline|date:'Y-m-d' }}">
-							</div>
-						</div>
-					</div>
-					<div class="col-md-5">
-						<div class="form-group row">
-							<label class="col-sm-3 col-form-label">Deadline (time)</label>
-							<div class="col-sm-9">
-								<input type="time" class="form-control" name="deadline_time" value="{{ order.deadline|time:'H:i' }}">
-							</div>
-						</div>
-					</div>
-					<div class="col-md-2">
-						<div class="form-group row">
-							<div class="col-sm-12">
-								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-									<i class="mdi mdi-clipboard-outline btn-icon-prepend"></i> Save the order</button>
-							</div>
-						</div>
-					</div>
-				</div>
 				</form>
 			</div>
 		</div>
 	</div>
-</div>
-{% if new == False %}
+</div> {% if new == False %} 
 <div class="row">
 	<div class="col-12 grid-margin">
 		<div class="card">
@@ -138,85 +113,139 @@
 				<div class="table-responsive mt-3">
 					<table class="table table-hover">
 						<thead>
-							<tr>
+							<tr id="e_start">
 								<th> Service </th>
 								<th> Description </th>
 								<th> Quantity </th>
 								<th> Unit </th>
 								<th> Price </th>
-								<th> Currency </th>
 								<th> Status </th>
-								<th colspan="2"  width="1%"> </th>
+								<th colspan="2" width="1%"></th>
 							</tr>
 						</thead>
-						<tbody>  
-							<tr>
-								<td>Blaf asdfaregasdf adfgasd asdg
-								</td>
-								<td> EWTewtwert atads </td>
-								<td width="7%"> 3 </td>
-								<td width="10%"> Stk. </td>
-								<td width="10%"> 15.50 </td>
-								<td width="5%"> $ </td>
-								<td width="10%"> <label class="badge badge-warning">Überprüfung</label> </td>
-								<td>
-									<form method="post">
-									{% csrf_token %}
-									<input type="hidden" name="edit_element_id" value="1">
-									<button class="btn btn-gradient-primary btn-icon" type="submit">
-										<i class="mdi mdi-lead-pencil btn-icon-prepend"></i>
-									</button>
-								</td>
-								<td>
-									</form>
-									<form method="post">
-									{% csrf_token %}
-									<input type="hidden" name="delete_element_id" value="1">
-									<button class="btn btn-gradient-primary btn-icon" type="submit">
-										<i class="mdi mdi-delete-forever btn-icon-prepend"></i>
-									</button>
-									</form>
-								</td>
-							</tr>
-							<form method="post">
-							{% csrf_token %}
-							<tr>
-								<td><input type="hidden" name="element_id" value="0">
-									<select class="form-select" name="new_client">
-										<option value="{{ p.id }}"{% if p.id == search_results.id %} selected{% endif %}>Blaf asdfaregasdf adfgasd asdg</option>
-									</select>
-								</td>
-								<td> <input type="text" class="form-control" name="deadline_time" value="EWTewtwert atads"> </td>
-								<td width="7%"> <input type="text" class="form-control" name="deadline_time" value="3"> </td>
-								<td width="10%">
-									<select class="form-select" name="new_client">
-										<option value="{{ p.id }}"{% if p.id == search_results.id %} selected{% endif %}>Stk.</option>
-									</select>
-								</td>
-								<td width="10%"> <input type="text" class="form-control" name="deadline_time" value="15.50"> </td>
-								<td width="5%">
-									<select class="form-select" name="new_client">
-										<option value="{{ p.id }}"{% if p.id == search_results.id %} selected{% endif %}>$</option>
-									</select>
-								</td>
-								<td width="10%">
-									<select class="form-select" name="new_client">
-										<option value="{{ p.id }}"{% if p.id == search_results.id %} selected{% endif %}>Warten</option>
-									</select>
-								</td>
-								<td colspan="2" width="1%">
-									<button class="btn btn-gradient-primary btn-icon" type="submit">
-										<i class="mdi mdi-check btn-icon-prepend"></i>
-									</button>
-								</td>
-							</tr>
+						<tbody> 
+							{% for e in elements %}
+							{% if element_selected.id == e.id %}
+							<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
+								<tr id="e{{ e.id }}">
+									<td width="20%">
+										<input type="hidden" name="element_id" value="{{ e.id }}">
+										<select class="form-select" name="e_service">
+											{% for s in services %}
+											<option value="{{ s.id }}" {% if s.id == e.service.id %} selected{% endif %}>{{ s.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td>
+										<input type="text" class="form-control" name="e_description" value="{{ e.description }}">
+									</td>
+									<td width="7%">
+										<input type="text" class="form-control" name="e_quantity" value="{{ e.units }}">
+									</td>
+									<td width="10%">
+										<select class="form-select" name="e_um">
+											{% for u in ums %}
+											<option value="{{ u.id }}" {% if u.id == e.um.id %} selected{% endif %}>{{ u.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td width="10%">
+										<input type="text" class="form-control" name="e_price" value="{{ e.price }}">
+									</td>
+									<td width="10%">
+										<select class="form-select" name="e_status">
+											{% for s in statuses %}
+											<option value="{{ s.id }}" {% if s.id == e.status.id %} selected{% endif %}>{{ s.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td colspan="2" width="1%">
+										<button class="btn btn-gradient-primary btn-icon" type="submit">
+											<i class="mdi mdi-check btn-icon-prepend"></i>
+										</button>
+									</td>
+								</tr>
 							</form>
+							{% else %}
+							<tr id="e{{ e.id }}">
+								<td width="20%"> {{e.service.name}} </td>
+								<td> {{e.description}} </td>
+								<td width="7%"> {{e.units}} </td>
+								<td width="10%"> {{e.um.name}} </td>
+								<td width="10%"> {{e.price}} {{order.currency.symbol}} </td>
+								<td width="10%">
+									<label class="badge badge-{{e.status.style}}"> {{e.status.name}} </label>
+								</td>
+								<td>
+									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
+										<input type="hidden" name="edit_element_id" value="{{e.id}}">
+										<button class="btn btn-gradient-primary btn-icon" type="submit">
+											<i class="mdi mdi-lead-pencil btn-icon-prepend"></i>
+										</button>
+								</td>
+								<td>
+									</form>
+									<form method="post" action="#e_start"> {% csrf_token %}
+										<input type="hidden" name="delete_element_id" value="{{e.id}}">
+										<button class="btn btn-gradient-danger btn-icon" type="submit">
+											<i class="mdi mdi-delete-forever btn-icon-prepend"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							{% endif %}
+							{% endfor %}
+							<form method="post">
+								{% csrf_token %}
+								<tr>
+									<td width="20%">
+										<input type="hidden" name="element_id" value="0">
+										<select class="form-select" name="e_service">
+											{% for s in services %}
+											<option value="{{ s.id }}">{{ s.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td>
+										<input type="text" class="form-control" name="e_description" value="">
+									</td>
+									<td width="7%">
+										<input type="text" class="form-control" name="e_quantity" value="">
+									</td>
+									<td width="10%">
+										<select class="form-select" name="e_um">
+											{% for u in ums %}
+											<option value="{{ u.id }}">{{ u.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td width="10%">
+										<input type="text" class="form-control" name="e_price" value="">
+									</td>
+									<td width="10%">
+										<select class="form-select" name="e_status">
+											{% for s in statuses %}
+											<option value="{{ s.id }}">{{ s.name }}</option>
+											{% endfor %}
+										</select>
+									</td>
+									<td colspan="2" width="1%">
+										<button class="btn btn-gradient-primary btn-icon" type="submit">
+											<i class="mdi mdi-plus btn-icon-prepend"></i>
+										</button>
+									</td>
+								</tr>
+							</form>
+							<tr>
+								<td colspan="3"> </td>
+								<td> <b>TOTAL:</b> </td>
+								<td> <b>{{value}} {{order.currency.symbol}}</b> </td>
+								<td colspan="3"> </td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
-{% endif %}
-{% endblock %}
+</div> {% endif %} {% endblock %}

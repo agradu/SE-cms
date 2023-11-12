@@ -5,7 +5,7 @@ from .models import Order, OrderElement
 from persons.models import Person
 from payments.models import Payment
 from invoices.models import Invoice
-from services.models import Currency, Status
+from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -95,16 +95,22 @@ def c_orders(request):
 
 @login_required(login_url='/login/')
 def c_order(request, order_id, client_id):
+    # Default parts
     statuses = Status.objects.all().order_by('id')
     currencies = Currency.objects.all().order_by('id')
+    ums = UM.objects.all().order_by('id')
+    services = Service.objects.all().order_by('id')
     search = ""
     clients = []
     elements = []
+    element = ""
+    value = 0
     date_now = timezone.now()
-    if order_id != 0:
+    if order_id != 0: # if order exists
         new = False
         order = get_object_or_404(Order, id=order_id)
         client = order.person
+        elements = OrderElement.objects.filter(order=order).order_by('id')
         if request.method == 'POST':
             if 'search' in request.POST:
                 search = request.POST.get('search')
@@ -115,18 +121,49 @@ def c_order(request, order_id, client_id):
                 client = get_object_or_404(Person, id=new_client)
                 order.person = client
                 order.modified_at = date_now
-                order.save()
             if 'order_description' in request.POST:
                 order.description = request.POST.get('order_description')
                 order.status = statuses[int(request.POST.get('order_status'))-1]
+                for e in elements:
+                    e.status = order.status
+                    e.save()
                 order.currency = currencies[int(request.POST.get('order_currency'))-1]
-                order.modified_by = request.user
-                order.modified_at = date_now
                 deadline_date = request.POST.get('deadline_date')
                 deadline_time = request.POST.get('deadline_time')
                 order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
-                order.save()
-    else:
+            if 'element_id' in request.POST:
+                element_id = int(request.POST.get('element_id'))
+                if element_id > 0: # edit an element
+                    element = OrderElement.objects.get(id=element_id)
+                    element.service = services[int(request.POST.get('e_service'))-1]
+                    element.description = request.POST.get('e_description')
+                    element.units = request.POST.get('e_quantity')
+                    element.um = ums[int(request.POST.get('e_um'))-1]
+                    element.price = request.POST.get('e_price')
+                    element.status = statuses[int(request.POST.get('e_status'))-1]
+                    element.save()
+                else: # add an element to order
+                    element = OrderElement(order=order)
+                    element.service = services[int(request.POST.get('e_service'))-1]
+                    element.description = request.POST.get('e_description')
+                    element.units = request.POST.get('e_quantity')
+                    element.um = ums[int(request.POST.get('e_um'))-1]
+                    element.price = request.POST.get('e_price')
+                    element.status = statuses[int(request.POST.get('e_status'))-1]
+                    element.save()
+                # setting order status to minimum form elements
+                status_elements = sorted(elements, key=lambda x: x.status.id)
+                order.status = status_elements[0].status
+                element = "" # clearing the active element
+            if 'delete_element_id' in request.POST: # delete en element
+                element_id = int(request.POST.get('delete_element_id'))
+                element = OrderElement.objects.get(id=element_id)
+                element.delete()
+            if 'edit_element_id' in request.POST: # set an element editable in template
+                element_id = int(request.POST.get('edit_element_id'))
+                element = OrderElement.objects.get(id=element_id)
+
+    else: # if order is new
         new = True
         client = get_object_or_404(Person, id=client_id)
         order = Order(
@@ -138,7 +175,13 @@ def c_order(request, order_id, client_id):
             status=statuses[0],
             currency=currencies[0]
         )
-        order.save()
+    # Setting the modiffied user and date
+    order.modified_by = request.user
+    order.modified_at = date_now
+    order.save()
+    # Calculating the order value
+    for e in elements:
+        value += e.price * e.units
 
     return render(
         request,
@@ -147,9 +190,13 @@ def c_order(request, order_id, client_id):
             "clients": clients,
             "order": order,
             "elements": elements,
+            "value": value,
             "currencies": currencies,
             "statuses": statuses,
-            "new": new
+            "ums": ums,
+            "services": services,
+            "new": new,
+            "element_selected": element
         }
     )
 
@@ -178,9 +225,9 @@ def p_orders(request):
             filter_end = timezone.make_aware(filter_end).replace(hour=23, minute=59, second=59, microsecond=0)
         else:
             search = ""
-    # CLIENT ORDERS
+    # PROVIDERS ORDERS
     selected_orders = Order.objects.filter(is_client=False).filter(Q(person__firstname__icontains=search) | Q(person__lastname__icontains=search) | Q(person__company_name__icontains=search)).filter(created_at__gte=filter_start, created_at__lte=filter_end)
-    client_orders = []
+    provider_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
         o_value = 0
@@ -191,7 +238,7 @@ def p_orders(request):
         for i in o_invoices:
             o_payed += Payment.objects.aggregate(payed=Sum('price'))
         payed = int(o_value / 100 * o_payed)
-        client_orders.append(
+        provider_orders.append(
             {
                 "order":o,
                 "elements":order_elements,
@@ -203,34 +250,34 @@ def p_orders(request):
     page = request.GET.get('page')
     sort = request.GET.get('sort')
     if sort == 'order':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].id, reverse=True)
-    elif sort == 'client':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].person.firstname)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].id, reverse=True)
+    elif sort == 'provider':
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].person.firstname)
     elif sort == 'assignee':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].user.first_name)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].user.first_name)
     elif sort == 'registered':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].created_at, reverse=True)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].created_at, reverse=True)
     elif sort == 'deadline':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].deadline, reverse=True)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].deadline, reverse=True)
     elif sort == 'status':
-        client_orders = sorted(client_orders, key=lambda x: x["status"].id)
+        provider_orders = sorted(provider_orders, key=lambda x: x["status"].id)
     elif sort == 'value':
-        client_orders = sorted(client_orders, key=lambda x: x["value"], reverse=True)
+        provider_orders = sorted(provider_orders, key=lambda x: x["value"], reverse=True)
     elif sort == 'payed':
-        client_orders = sorted(client_orders, key=lambda x: x["payed"])
+        provider_orders = sorted(provider_orders, key=lambda x: x["payed"])
     elif sort == 'update':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].modified_at, reverse=True)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].modified_at, reverse=True)
     else:
-        client_orders = sorted(client_orders, key=lambda x: x["order"].created_at, reverse=True)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].created_at, reverse=True)
         
-    paginator = Paginator(client_orders, 10)
+    paginator = Paginator(provider_orders, 10)
     orders_on_page = paginator.get_page(page)
 
     return render(
         request,
         'providers/p_orders.html', 
         {
-            'client_orders': orders_on_page,
+            'provider_orders': orders_on_page,
             "sort": sort,
             "search": search,
             "reg_start": reg_start,
@@ -240,16 +287,22 @@ def p_orders(request):
 
 @login_required(login_url='/login/')
 def p_order(request, order_id, provider_id):
+    # Default parts
     statuses = Status.objects.all().order_by('id')
     currencies = Currency.objects.all().order_by('id')
+    ums = UM.objects.all().order_by('id')
+    services = Service.objects.all().order_by('id')
     search = ""
     providers = []
     elements = []
+    element = ""
+    value = 0
     date_now = timezone.now()
-    if order_id != 0:
+    if order_id != 0: # if order exists
         new = False
         order = get_object_or_404(Order, id=order_id)
         provider = order.person
+        elements = OrderElement.objects.filter(order=order).order_by('id')
         if request.method == 'POST':
             if 'search' in request.POST:
                 search = request.POST.get('search')
@@ -260,18 +313,49 @@ def p_order(request, order_id, provider_id):
                 provider = get_object_or_404(Person, id=new_provider)
                 order.person = provider
                 order.modified_at = date_now
-                order.save()
             if 'order_description' in request.POST:
                 order.description = request.POST.get('order_description')
                 order.status = statuses[int(request.POST.get('order_status'))-1]
+                for e in elements:
+                    e.status = order.status
+                    e.save()
                 order.currency = currencies[int(request.POST.get('order_currency'))-1]
-                order.modified_by = request.user
                 deadline_date = request.POST.get('deadline_date')
                 deadline_time = request.POST.get('deadline_time')
                 order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
-                order.modified_at = date_now
-                order.save()
-    else:
+            if 'element_id' in request.POST:
+                element_id = int(request.POST.get('element_id'))
+                if element_id > 0: # edit an element
+                    element = OrderElement.objects.get(id=element_id)
+                    element.service = services[int(request.POST.get('e_service'))-1]
+                    element.description = request.POST.get('e_description')
+                    element.units = request.POST.get('e_quantity')
+                    element.um = ums[int(request.POST.get('e_um'))-1]
+                    element.price = request.POST.get('e_price')
+                    element.status = statuses[int(request.POST.get('e_status'))-1]
+                    element.save()
+                else: # add an element to order
+                    element = OrderElement(order=order)
+                    element.service = services[int(request.POST.get('e_service'))-1]
+                    element.description = request.POST.get('e_description')
+                    element.units = request.POST.get('e_quantity')
+                    element.um = ums[int(request.POST.get('e_um'))-1]
+                    element.price = request.POST.get('e_price')
+                    element.status = statuses[int(request.POST.get('e_status'))-1]
+                    element.save()
+                # setting order status to minimum form elements
+                status_elements = sorted(elements, key=lambda x: x.status.id)
+                order.status = status_elements[0].status
+                element = "" # clearing the active element
+            if 'delete_element_id' in request.POST: # delete en element
+                element_id = int(request.POST.get('delete_element_id'))
+                element = OrderElement.objects.get(id=element_id)
+                element.delete()
+            if 'edit_element_id' in request.POST: # set an element editable in template
+                element_id = int(request.POST.get('edit_element_id'))
+                element = OrderElement.objects.get(id=element_id)
+
+    else: # if order is new
         new = True
         provider = get_object_or_404(Person, id=provider_id)
         order = Order(
@@ -283,7 +367,13 @@ def p_order(request, order_id, provider_id):
             status=statuses[0],
             currency=currencies[0]
         )
-        order.save()
+    # Setting the modiffied user and date
+    order.modified_by = request.user
+    order.modified_at = date_now
+    order.save()
+    # Calculating the order value
+    for e in elements:
+        value += e.price * e.units
 
     return render(
         request,
@@ -292,8 +382,12 @@ def p_order(request, order_id, provider_id):
             "providers": providers,
             "order": order,
             "elements": elements,
+            "value": value,
             "currencies": currencies,
             "statuses": statuses,
-            "new": new
+            "ums": ums,
+            "services": services,
+            "new": new,
+            "element_selected": element
         }
     )
