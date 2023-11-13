@@ -194,7 +194,7 @@
 										</select>
 									</td>
 									<td width="10%">
-										<input type="text" class="form-control" name="e_price" value="{{ e.price }}">
+										<input type="text" class="form-control" name="e_price" value="{{ e.price }}" title="{{ e.service.price_min }} ~ {{ e.service.price_max }} {{order.currency.symbol}}">
 									</td>
 									<td width="10%">
 										<select class="form-select" name="e_status">
