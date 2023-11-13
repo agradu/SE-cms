@@ -162,6 +162,9 @@ def c_order(request, order_id, client_id):
             if 'edit_element_id' in request.POST: # set an element editable in template
                 element_id = int(request.POST.get('edit_element_id'))
                 element = OrderElement.objects.get(id=element_id)
+            # Setting the modiffied user and date
+            order.modified_by = request.user
+            order.modified_at = date_now
 
     else: # if order is new
         new = True
@@ -175,9 +178,7 @@ def c_order(request, order_id, client_id):
             status=statuses[0],
             currency=currencies[0]
         )
-    # Setting the modiffied user and date
-    order.modified_by = request.user
-    order.modified_at = date_now
+
     order.save()
     # Calculating the order value
     for e in elements:
@@ -354,6 +355,9 @@ def p_order(request, order_id, provider_id):
             if 'edit_element_id' in request.POST: # set an element editable in template
                 element_id = int(request.POST.get('edit_element_id'))
                 element = OrderElement.objects.get(id=element_id)
+            # Setting the modiffied user and date
+            order.modified_by = request.user
+            order.modified_at = date_now
 
     else: # if order is new
         new = True
@@ -367,9 +371,7 @@ def p_order(request, order_id, provider_id):
             status=statuses[0],
             currency=currencies[0]
         )
-    # Setting the modiffied user and date
-    order.modified_by = request.user
-    order.modified_at = date_now
+    
     order.save()
     # Calculating the order value
     for e in elements:

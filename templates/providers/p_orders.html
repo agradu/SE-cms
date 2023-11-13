@@ -65,7 +65,7 @@
 						</thead>
 						<tbody>
 							{% for o in provider_orders %}
-							<tr>
+							<tr title="{{ o.order.description}}">
 								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a> </td>
 								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
 								<td>

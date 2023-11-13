@@ -75,7 +75,7 @@
 							</tr>
 						</thead>
 						<tbody> {% for o in client_orders %} 
-							<tr>
+							<tr title="{{ o.order.description}}">
 								<td>
 									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a>
 								</td>

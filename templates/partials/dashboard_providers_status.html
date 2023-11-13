@@ -14,9 +14,11 @@
 				</thead>
 				<tbody>
 					{% for o in provider_orders %}
-					<tr onclick="window.location='#';">
+					<tr onclick="window.location='/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
 						<td> {{ o.order.id}} </td>
-						<td> {{ o.order.person.firstname}} {{ o.order.person.lastname}} </td>
+						<td> 
+							<a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
+						</td>
 						<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
 						<td>
 							<div class="progress">

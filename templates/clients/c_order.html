@@ -1,45 +1,89 @@
-{% extends "base.html" %} {% block title %}Sprachen Express - Order{% endblock %} {% block content %} <div class="page-header">
+{% extends "base.html" %} 
+{% block title %}Sprachen Express - Order{% endblock %} 
+{% block content %} 
+<div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-clipboard"></i>
-		</span> Order #{{ order.id }} from {{ order.person.firstname }} {{ order.person.lastname }} - {{ order.person.company_name }}
+		</span> Order #{{ order.id }} from {{ order.person.firstname }} {{ order.person.lastname }}
 	</h3>
-</div> {% load static %} {% if new == False %} 
+</div> 
+{% load static %} 
+{% if new == False %} 
 <div class="row">
-	<div class="col-12 grid-margin">
+	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Modify the client</h4>
-				<p>(Only if is needed)</p>
+				<h4 class="card-title">Client details</h4>
 				<div class="row">
-					<div class="col-md-12">
-						<div class="row">
-							<form method="post" class="col-md-4"> {% csrf_token %} <div class="form-group row">
-									<div class="col-sm-8">
-										<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
-									</div>
-									<div class="col-sm-4">
-										<button type="submit" class="btn btn-gradient-primary">Search</button>
-									</div>
-								</div>
-							</form>
-							<form method="post" class="col-md-8"> {% csrf_token %} <div class="form-group row">
-									<div class="col-sm-9">
-										<select class="form-select" name="new_client"> {% for c in clients %} <option value="{{ c.id }}" {% if c.id == order.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option> {% endfor %} </select>
-									</div>
-									<div class="col-sm-3">
-										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-											<i class="mdi mdi-account btn-icon-prepend"></i> Select the client </button>
-									</div>
-								</div>
-							</form>
-						</div>
+					<div class="col-md-3">
+						<p><b>Name:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ order.person.firstname }} {{ order.person.lastname }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Company:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ order.person.company_name }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Contact:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p><a href="mailto:{{ order.person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ order.person.email }} / <a href="https://wa.me/{{ order.person.phone }}">
+							<i class="mdi mdi-whatsapp"></i></a> {{ order.person.phone }}<br>Address - {{ order.person.address }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Services:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ order.person.services }}</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div> {% endif %} 
+	<div class="col-md-6 grid-margin stretch-card">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Modify the client</h4>
+				<p>(Only if is needed)</p>
+				<div class="row">
+					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
+							<div class="col-sm-8">
+								<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
+							</div>
+							<div class="col-sm-4">
+								<button type="submit" class="btn btn-gradient-primary">Search</button>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="row">
+					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
+							<div class="col-sm-7">
+								<select class="form-select" name="new_client"> {% for c in clients %} <option value="{{ c.id }}" {% if c.id == order.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option> {% endfor %} </select>
+							</div>
+							<div class="col-sm-5">
+								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+									<i class="mdi mdi-account btn-icon-prepend"></i> Select the client </button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div> 
+{% endif %} 
 <div class="row">
 	<div class="col-12 grid-margin">
 		<div class="card">
@@ -238,8 +282,8 @@
 							</form>
 							<tr>
 								<td colspan="3"> </td>
-								<td> <b>TOTAL:</b> </td>
-								<td> <b>{{value}} {{order.currency.symbol}}</b> </td>
+								<td> <h4>TOTAL:</h4> </td>
+								<td> <h4>{{value}} {{order.currency.symbol}}</h4> </td>
 								<td colspan="3"> </td>
 							</tr>
 						</tbody>

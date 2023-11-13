@@ -16,7 +16,7 @@
 				</thead>
 				<tbody>
 					{% for o in recent_orders %}
-					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';">
+					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
 						<td> {{ o.order.id}} </td>
 						<td> <a href="/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a></td>
 						<td>
