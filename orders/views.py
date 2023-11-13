@@ -44,7 +44,9 @@ def c_orders(request):
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
-            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+            o_payments = Payment.objects.filter(invoice=i)
+            for p in o_payments:
+                o_payed += p.price
         payed = int(o_value / 100 * o_payed)
         client_orders.append(
             {
@@ -62,13 +64,13 @@ def c_orders(request):
     elif sort == 'client':
         client_orders = sorted(client_orders, key=lambda x: x["order"].person.firstname)
     elif sort == 'assignee':
-        client_orders = sorted(client_orders, key=lambda x: x["order"].user.first_name)
+        client_orders = sorted(client_orders, key=lambda x: x["order"].modified_by.first_name)
     elif sort == 'registered':
         client_orders = sorted(client_orders, key=lambda x: x["order"].created_at, reverse=True)
     elif sort == 'deadline':
         client_orders = sorted(client_orders, key=lambda x: x["order"].deadline, reverse=True)
     elif sort == 'status':
-        client_orders = sorted(client_orders, key=lambda x: x["status"].id)
+        client_orders = sorted(client_orders, key=lambda x: x["order"].status.id)
     elif sort == 'value':
         client_orders = sorted(client_orders, key=lambda x: x["value"], reverse=True)
     elif sort == 'payed':
@@ -130,7 +132,8 @@ def c_order(request, order_id, client_id):
                 order.currency = currencies[int(request.POST.get('order_currency'))-1]
                 deadline_date = request.POST.get('deadline_date')
                 deadline_time = request.POST.get('deadline_time')
-                order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                deadline_naive = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                order.deadline = timezone.make_aware(deadline_naive)
             if 'element_id' in request.POST:
                 element_id = int(request.POST.get('element_id'))
                 if element_id > 0: # edit an element
@@ -237,7 +240,9 @@ def p_orders(request):
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
-            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+            o_payments = Payment.objects.filter(invoice=i)
+            for p in o_payments:
+                o_payed += p.price
         payed = int(o_value / 100 * o_payed)
         provider_orders.append(
             {
@@ -255,13 +260,13 @@ def p_orders(request):
     elif sort == 'provider':
         provider_orders = sorted(provider_orders, key=lambda x: x["order"].person.firstname)
     elif sort == 'assignee':
-        provider_orders = sorted(provider_orders, key=lambda x: x["order"].user.first_name)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].modified_by.first_name)
     elif sort == 'registered':
         provider_orders = sorted(provider_orders, key=lambda x: x["order"].created_at, reverse=True)
     elif sort == 'deadline':
         provider_orders = sorted(provider_orders, key=lambda x: x["order"].deadline, reverse=True)
     elif sort == 'status':
-        provider_orders = sorted(provider_orders, key=lambda x: x["status"].id)
+        provider_orders = sorted(provider_orders, key=lambda x: x["order"].status.id)
     elif sort == 'value':
         provider_orders = sorted(provider_orders, key=lambda x: x["value"], reverse=True)
     elif sort == 'payed':
@@ -323,7 +328,8 @@ def p_order(request, order_id, provider_id):
                 order.currency = currencies[int(request.POST.get('order_currency'))-1]
                 deadline_date = request.POST.get('deadline_date')
                 deadline_time = request.POST.get('deadline_time')
-                order.deadline = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                deadline_naive = datetime.strptime(f'{deadline_date} {deadline_time}', '%Y-%m-%d %H:%M')
+                order.deadline = timezone.make_aware(deadline_naive)
             if 'element_id' in request.POST:
                 element_id = int(request.POST.get('element_id'))
                 if element_id > 0: # edit an element

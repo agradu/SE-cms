@@ -53,8 +53,9 @@
 								<td>
 									<a href="/persons/{{ p.client.id}}/">{{ p.client.firstname}} {{ p.client.lastname}} {% if p.client.company_name != "" %}- {{ p.client.company_name}} {% endif %}</a>
 								</td>
-								<td> {{ p.client.phone}} </td>
-								<td> {{ p.client.email}} </td>
+								<td> <a href="https://wa.me/{{ p.client.phone | slice:'2:' }}">
+									<i class="mdi mdi-whatsapp"></i></a>{{ p.client.phone}} </td>
+								<td> <a href="mailto:{{ p.client.email }}">{{ p.client.email}}</a> </td>
 								<td>
 									<img src="{{ p.client.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.modified_by.first_name}} {{ p.client.modified_by.last_name}}
 								</td>
@@ -62,7 +63,7 @@
 								<td> {{ p.client.created_at|date:"d.m.Y"}} - {{ p.client.created_at|time:"H:i"}} </td>
 								<td> {{ p.client.modified_at|date:"d.m.Y"}} - {{ p.client.modified_at|time:"H:i"}} </td>
 								<td>
-									<button type="button" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
+									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
 										<i class="mdi mdi-clipboard-outline"></i>
 									</button>
 								</td>

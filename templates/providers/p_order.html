@@ -36,7 +36,7 @@
 						<p><b>Contact:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p><a href="mailto:{{ order.person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ order.person.email }} / <a href="https://wa.me/{{ order.person.phone }}">
+						<p><a href="mailto:{{ order.person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ order.person.email }} / <a href="https://wa.me/{{ order.person.phone | slice:'2:' }}">
 							<i class="mdi mdi-whatsapp"></i></a> {{ order.person.phone }}<br>Address - {{ order.person.address }}</p>
 					</div>
 				</div>
@@ -52,7 +52,7 @@
 		</div>
 	</div>
 	<div class="col-md-6 grid-margin stretch-card">
-		<div class="card">
+		<div class="card bg-light">
 			<div class="card-body">
 				<h4 class="card-title">Modify the provider</h4>
 				<p>(Only if is needed)</p>
