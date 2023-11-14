@@ -54,6 +54,7 @@
 								<th> <a href="/payments/invoices/?sort=order">Order</a> </th>
 								<th> <a href="/payments/invoices/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/invoices/?sort=registered">Registered</a> </th>
+								<th> <a href="/payments/invoices/?sort=deadline">Due Date</a> </th>
 								<th style="text-align: right;"> <a href="/payments/invoices/?sort=value">Value</a> </th>
 								<th> <a href="/payments/invoices/?sort=payed">Payed</a> </th>
 								<th> <a href="/payments/invoices/?sort=update">Last Update</a> </th>
@@ -69,6 +70,7 @@
 									<img src="{{ i.invoice.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.invoice.modified_by.first_name}} {{ i.invoice.modified_by.last_name}}
 								</td>
 								<td> {{ i.invoice.created_at|date:"d.m.Y"}} - {{ i.invoice.created_at|time:"H:i"}} </td>
+								<td> {{ i.invoice.deadline|date:"d.m.Y"}} </td>
 								<td style="text-align: right;" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}> {{ i.value}} {{ i.invoice.order.currency.symbol}}</td>
 								<td class="text-{% if i.payed == 100 %}success{% elif i.payed == 0 %}danger{% else %}info{% endif %}">
 									{{ i.payed}} %
