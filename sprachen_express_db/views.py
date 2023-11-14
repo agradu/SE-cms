@@ -29,7 +29,9 @@ def dashboard(request):
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
-            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+            o_payments = Payment.objects.filter(invoice=i)
+            for p in o_payments:
+                o_payed += p.price
         payed = int(o_value / 100 * o_payed)
         
         if o_status.id < 5:
@@ -54,7 +56,9 @@ def dashboard(request):
         o_invoices = Invoice.objects.filter(order=o)
         o_payed = 0
         for i in o_invoices:
-            o_payed += Payment.objects.aggregate(payed=Sum('price'))
+            o_payments = Payment.objects.filter(invoice=i)
+            for p in o_payments:
+                o_payed += p.price
         payed = int(o_value / 100 * o_payed)
         
         if o_status.id < 5:

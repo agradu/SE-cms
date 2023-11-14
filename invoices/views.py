@@ -1,8 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
-from orders.models import Order, OrderElement
-from persons.models import Person
+from django.db.models import Q
+from orders.models import OrderElement
 from payments.models import Payment
 from .models import Invoice
 from services.models import Currency, Status, Service, UM
@@ -45,7 +44,7 @@ def invoices(request):
         i_payments = Payment.objects.filter(invoice=i)
         for p in i_payments:
             i_payed += p.price
-        payed = int(o_value / 100 * i_payed)
+        payed = int(i_payed / o_value * 100)
         client_invoices.append(
             {
                 "invoice":i,

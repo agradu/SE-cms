@@ -66,6 +66,12 @@
 				</ul>
 			</div>
 		</li>
+		<li class="nav-item{% if request.path == '/appointments/' %} active{% endif %}">
+			<a class="nav-link" href="/appointments/">
+			  <span class="menu-title">Appointments</span>
+			  <i class="mdi mdi-calendar-check menu-icon"></i>
+			</a>
+		</li>
 		<li class="nav-item{% if 'payments/' in request.path %} active{% endif %}">
 			<a class="nav-link" data-bs-toggle="collapse" href="#payments" aria-expanded="{% if 'payments/' in request.path %}true{% else %}false{% endif %}" aria-controls="payments">
 				<span class="menu-title">Payments</span>
@@ -85,6 +91,12 @@
 					</li>
 				</ul>
 			</div>
+		</li>
+		<li class="nav-item{% if request.path == '/statistics/' %} active{% endif %}">
+			<a class="nav-link" href="/statistics/">
+			  <span class="menu-title">Statistics</span>
+			  <i class="mdi mdi-chart-bar menu-icon"></i>
+			</a>
 		</li>
 		{% if user.is_superuser or user.is_staff %}
 		<li class="nav-item{% if 'settings/' in request.path %} active{% endif %}">

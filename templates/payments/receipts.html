@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
-{% block title %}Sprachen Express - Orders form clients{% endblock %}
-
+{% block title %}Sprachen Express - Receipts{% endblock %}
 {% block content %}
 <div class="page-header">
 	<h3 class="page-title">
@@ -16,82 +14,86 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table">
-					  <tbody>
-						<tr>
-						  <td width="50%">
-							<div class="input-group input-group-sm">
-							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="text" class="form-control" placeholder="Search" aria-label="Search">
-							</div>
-						  </td>
-						  <td>
-							<div class="input-group input-group-sm">
-							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						  <td>
-							<div class="col input-group input-group-sm">
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						</tr>
-					  </tbody>
-					</table>
+					<form method="post"> 
+						{% csrf_token %} 
+						<table class="table">
+							<tbody>
+								<tr>
+									<td width="50%">
+										<div class="input-group input-group-sm">
+											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+											<input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+										</div>
+									</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="">Receipt</a> </th>
-								<th> <a href="">Client</a> </th>
-								<th> <a href="">Invoice</a> </th>
-								<th> <a href="">Assignee</a> </th>
-								<th> <a href="">Registered</a> </th>
-								<th> <a href="">Value</a> </th>
-								<th> <a href="">Last Update</a> </th>
+								<th> <a href="/payments/receipts/?sort=receipt">Receipt</a> </th>
+								<th> <a href="/payments/receipts/?sort=person">Client/Provider</a> </th>
+								<th> <a href="/payments/receipts/?sort=invoice">Invoice</a> </th>
+								<th> <a href="/payments/receipts/?sort=order">Order</a> </th>
+								<th> <a href="/payments/receipts/?sort=assignee">Assignee</a> </th>
+								<th> <a href="/payments/receipts/?sort=registered">Registered</a> </th>
+								<th style="text-align: right;"> <a href="/payments/receipts/?sort=value">Value</a> </th>
+								<th> <a href="/payments/receipts/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
+							{% for r in client_receipts %} 
 							<tr>
-								<td> <a href="">CD 1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
-								<td> <a href="">AB 1234</a> </td>
+								<td> <a href="" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.serial}} {{ r.receipt.number}}</a> </td>
+								<td> <a href="/persons/{{ r.receipt.person.id}}/"{% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}> {{ r.receipt.person.firstname}} {{ r.receipt.person.lastname}} {% if r.receipt.person.company_name != "" %}- {{ r.receipt.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/payments/invoice/{{ r.receipt.invoice.id }}/" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.invoice.serial}} {{ r.receipt.invoice.number}}</a> </td>
+								<td> <a href="/{% if r.receipt.invoice.order.is_client %}clients{% else %}providers{% endif %}/order/{{ r.receipt.invoice.order.id }}/{{ r.receipt.person.id}}/" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.invoice.order.id}}</a> </td>
 								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
+									<img src="{{ r.receipt.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ r.receipt.modified_by.first_name}} {{ r.receipt.modified_by.last_name}}
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 123 euro</td>
-								<td> 12.12.2012 - 16:30 </td>
+								<td> {{ r.receipt.created_at|date:"d.m.Y"}} - {{ r.receipt.created_at|time:"H:i"}} </td>
+								<td style="text-align: right;" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}> {{ r.receipt.price }} {{ r.receipt.invoice.order.currency.symbol}}</td>
+								<td> {{ r.receipt.modified_at|date:"d.m.Y"}} - {{ r.receipt.modified_at|time:"H:i"}} </td>
 							</tr>
-							<tr>
-								<td> <a href="">CD 1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
-								<td> <a href="">AB 1234</a> </td>
-								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
-								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> - 123 euro</td>
-								<td> 12.12.2012 - 16:30 </td>
-							</tr>
+							{% endfor %}
 						</tbody>
 					</table>
 				</div>
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
-						<tr>
-							<td>
-							  <div class="btn-group btn-group-sm">
-								<button type="button" class="btn btn-primary">1</button>
-								<button type="button" class="btn btn-outline-secondary">2</button>
-								<button type="button" class="btn btn-outline-secondary">3</button>
-								<button type="button" class="btn btn-outline-secondary">4</button>
-							  </div>
-							</td>
-						  </tr>
+						{% if client_receipts.paginator.num_pages > 1 %} 
+							<tr>
+								<td>
+									<div class="btn-group btn-group-sm">
+										{% for pg in client_receipts.paginator.page_range %}
+										{% if pg == client_receipts.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% else %}
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% endif %}
+										{% endfor %} </div>
+								</td>
+							</tr> 
+							{% endif %}
 						  <tr>
 							<td>
 							  <div class="input-group input-group-sm">

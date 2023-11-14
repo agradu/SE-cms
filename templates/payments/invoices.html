@@ -82,15 +82,15 @@
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
-						{% if client_orders.paginator.num_pages > 1 %} 
+						{% if client_invoices.paginator.num_pages > 1 %} 
 							<tr>
 								<td>
 									<div class="btn-group btn-group-sm">
-										{% for pg in client_orders.paginator.page_range %}
-										{% if pg == client_orders.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% for pg in client_invoices.paginator.page_range %}
+										{% if pg == client_invoices.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>

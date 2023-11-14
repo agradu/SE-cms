@@ -1,6 +1,6 @@
 from django.db import models
 from persons.models import Person
-from orders.models import Order
+from orders.models import Order, OrderElement
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
@@ -29,3 +29,8 @@ class Invoice(models.Model):
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
         return f"{self.serial}{self.number} - {formatted_created_at} - {self.person.firstname} {self.person.lastname} {self.person.company_name} - {self.description}"
+    
+class InvoiceElement(models.Model):
+    element = models.ForeignKey(
+        OrderElement, on_delete=models.CASCADE
+    )
