@@ -50,30 +50,30 @@
 						<thead>
 							<tr>
 								<th> <a href="/payments/invoices/?sort=invoice">Invoice</a> </th>
-								<th> <a href="/payments/invoices/?sort=client">Client</a> </th>
+								<th> <a href="/payments/invoices/?sort=person">Client/Provider</a> </th>
 								<th> <a href="/payments/invoices/?sort=order">Order</a> </th>
 								<th> <a href="/payments/invoices/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/invoices/?sort=registered">Registered</a> </th>
-								<th> <a href="/payments/invoices/?sort=value">Value</a> </th>
+								<th style="text-align: right;"> <a href="/payments/invoices/?sort=value">Value</a> </th>
 								<th> <a href="/payments/invoices/?sort=payed">Payed</a> </th>
 								<th> <a href="/payments/invoices/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
-							{% for o in client_orders %} 
+							{% for i in client_invoices %} 
 							<tr>
-								<td> <a href="">{{ i.serial}} {{ i.number}}</a> </td>
-								<td> <a href="/persons/{{ i.person.id}}/"> {{ i.person.firstname}} {{ i.person.lastname}} {% if i.person.company_name != "" %}- {{ i.person.company_name}} {% endif %}</a> </td>
-								<td> <a href="/{% if i.order.is_client %}clients{% else %}providers{% endif %}/order/{{ i.order.id }}/{{ i.order.person.id}}/">{{ i.order.id}}</a> </td>
+								<td> <a href="" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}>{{ i.invoice.serial}} {{ i.invoice.number}}</a> </td>
+								<td> <a href="/persons/{{ i.invoice.person.id}}/"{% if not i.invoice.order.is_client %}class="text-success"{% endif %}> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/{% if i.invoice.order.is_client %}clients{% else %}providers{% endif %}/order/{{ i.invoice.order.id }}/{{ i.invoice.person.id}}/" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}>{{ i.invoice.order.id}}</a> </td>
 								<td>
-									<img src="{{ i.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.modified_by.first_name}} {{ i.modified_by.last_name}}
+									<img src="{{ i.invoice.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.invoice.modified_by.first_name}} {{ i.invoice.modified_by.last_name}}
 								</td>
-								<td> {{ i.created_at|date:"d.m.Y"}} - {{ i.created_at|time:"H:i"}} </td>
-								<td> {{ i.value}} {{ i.currency}}</td>
+								<td> {{ i.invoice.created_at|date:"d.m.Y"}} - {{ i.invoice.created_at|time:"H:i"}} </td>
+								<td style="text-align: right;" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}> {{ i.value}} {{ i.invoice.order.currency.symbol}}</td>
 								<td class="text-{% if i.payed == 100 %}success{% elif i.payed == 0 %}danger{% else %}info{% endif %}">
 									{{ i.payed}} %
 								</td>
-								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
+								<td> {{ i.invoice.modified_at|date:"d.m.Y"}} - {{ i.invoice.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}
 						</tbody>

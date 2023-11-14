@@ -81,7 +81,7 @@
 								<td>
 									<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 								</td>
-								<td> {{ o.value}} {{ o.currency}}</td>
+								<td> {{ o.value}} {{ o.order.currency.symbol }}</td>
 								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
 									{{ o.payed}} %
 								</td>
