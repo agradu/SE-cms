@@ -31,6 +31,6 @@ class Invoice(models.Model):
         return f"{self.serial}{self.number} - {formatted_created_at} - {self.person.firstname} {self.person.lastname} {self.person.company_name} - {self.description}"
     
 class InvoiceElement(models.Model):
-    element = models.ForeignKey(
-        OrderElement, on_delete=models.CASCADE
-    )
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, null=True, blank=True)
