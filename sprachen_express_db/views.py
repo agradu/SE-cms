@@ -32,7 +32,10 @@ def dashboard(request):
             o_payments = Payment.objects.filter(invoice=i)
             for p in o_payments:
                 o_payed += p.price
-        payed = int(o_value / 100 * o_payed)
+        if o_value > 0:
+            payed = int(o_payed / o_value * 100)
+        else:
+            payed = 0
         
         if o_status.id < 5:
             client_orders.append(
@@ -59,7 +62,10 @@ def dashboard(request):
             o_payments = Payment.objects.filter(invoice=i)
             for p in o_payments:
                 o_payed += p.price
-        payed = int(o_value / 100 * o_payed)
+        if o_value > 0:
+            payed = int(o_payed / o_value * 100)
+        else:
+            payed = 0
         
         if o_status.id < 5:
             provider_orders.append(
