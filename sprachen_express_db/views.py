@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Sum
 from orders.models import Order, OrderElement
 from payments.models import Payment
-from invoices.models import Invoice
+from invoices.models import Invoice, InvoiceElement
 
 @login_required(login_url='/login/')
 def dashboard(request):
@@ -24,14 +24,18 @@ def dashboard(request):
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
         o_status = o.status
         o_value = 0
+        o_payed = 0
         for e in order_elements:
             o_value += e.price * e.units
-        o_invoices = Invoice.objects.filter(order=o)
-        o_payed = 0
-        for i in o_invoices:
-            o_payments = Payment.objects.filter(invoice=i)
-            for p in o_payments:
-                o_payed += p.price
+            try:
+                invoice_element = InvoiceElement.objects.get(element=e)
+            except:
+                invoice_element = None
+            if invoice_element:
+                invoice = invoice_element.invoice
+                o_payments = Payment.objects.filter(invoice=invoice)
+                for p in o_payments:
+                    o_payed += p.price
         if o_value > 0:
             payed = int(o_payed / o_value * 100)
         else:
@@ -54,14 +58,18 @@ def dashboard(request):
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
         o_status = o.status
         o_value = 0
+        o_payed = 0
         for e in order_elements:
             o_value += e.price * e.units
-        o_invoices = Invoice.objects.filter(order=o)
-        o_payed = 0
-        for i in o_invoices:
-            o_payments = Payment.objects.filter(invoice=i)
-            for p in o_payments:
-                o_payed += p.price
+            try:
+                invoice_element = InvoiceElement.objects.get(element=e)
+            except:
+                invoice_element = None
+            if invoice_element:
+                invoice = invoice_element.invoice
+                o_payments = Payment.objects.filter(invoice=invoice)
+                for p in o_payments:
+                    o_payed += p.price
         if o_value > 0:
             payed = int(o_payed / o_value * 100)
         else:

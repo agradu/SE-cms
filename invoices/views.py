@@ -90,3 +90,10 @@ def invoices(request):
             "reg_end": reg_end
         }
     )
+
+@login_required(login_url='/login/')
+def invoice(request, invoice_id):
+    return render(
+        request,
+        'payments/invoice.html',
+    )

@@ -13,9 +13,6 @@ class Invoice(models.Model):
     number = models.CharField(max_length=20, blank=True)
     deadline = models.DateField(default=timezone.now)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    order = models.ForeignKey(
-        Order, on_delete=models.SET_NULL, null=True, blank=True, default=None
-    )
     description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
@@ -34,3 +31,7 @@ class InvoiceElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
     description = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"Invoice #{self.invoice.id} / Order #{self.element.order.id} / {self.element} - {self.element.price * self.element.units} {self.element.order.currency.symbol}"
+    

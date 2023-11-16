@@ -44,7 +44,7 @@ class OrderElement(models.Model):
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)
 
     def __str__(self):
-        return f"{self.service.name}"
+        return f"{self.service.name} - {self.order.person}"
     
 
 class Offer(models.Model):

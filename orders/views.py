@@ -4,7 +4,7 @@ from django.db.models import Sum, Q
 from .models import Order, OrderElement
 from persons.models import Person
 from payments.models import Payment
-from invoices.models import Invoice
+from invoices.models import Invoice, InvoiceElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -39,14 +39,20 @@ def c_orders(request):
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
         o_value = 0
+        o_payed = 0
         for e in order_elements:
             o_value += e.price * e.units
-        o_invoices = Invoice.objects.filter(order=o)
-        o_payed = 0
-        for i in o_invoices:
-            o_payments = Payment.objects.filter(invoice=i)
-            for p in o_payments:
-                o_payed += p.price
+            try:
+                invoice_element = InvoiceElement.objects.get(element=e)
+                print('element:',e)
+            except:
+                invoice_element = None
+            if invoice_element:
+                print('invoice_element:',invoice_element)
+                invoice = invoice_element.invoice
+                o_payments = Payment.objects.filter(invoice=invoice)
+                for p in o_payments:
+                    o_payed += p.price
         if o_value > 0:
             payed = int(o_payed / o_value * 100)
         else:
@@ -238,14 +244,18 @@ def p_orders(request):
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by('id')
         o_value = 0
+        o_payed = 0
         for e in order_elements:
             o_value += e.price * e.units
-        o_invoices = Invoice.objects.filter(order=o)
-        o_payed = 0
-        for i in o_invoices:
-            o_payments = Payment.objects.filter(invoice=i)
-            for p in o_payments:
-                o_payed += p.price
+            try:
+                invoice_element = InvoiceElement.objects.get(element=e)
+            except:
+                invoice_element = None
+            if invoice_element:
+                invoice = invoice_element.invoice
+                o_payments = Payment.objects.filter(invoice=invoice)
+                for p in o_payments:
+                    o_payed += p.price
         if o_value > 0:
             payed = int(o_payed / o_value * 100)
         else:
