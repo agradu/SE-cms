@@ -12,11 +12,19 @@ from services.models import Currency
 class Invoice(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='created_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="created_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     modified_at = models.DateTimeField(default=timezone.now)
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='modified_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="modified_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     serial = models.CharField(max_length=10, blank=True)
@@ -31,7 +39,8 @@ class Invoice(models.Model):
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
         return f"Invoice {self.serial}{self.number} from {formatted_created_at} - {self.person} - {self.description}"
-    
+
+
 class InvoiceElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
@@ -39,4 +48,3 @@ class InvoiceElement(models.Model):
 
     def __str__(self):
         return f"Element #{self.invoice.id} from invoice {self.invoice.serial}{self.invoice.number} / {self.element}"
-    

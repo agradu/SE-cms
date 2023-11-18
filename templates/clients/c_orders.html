@@ -49,34 +49,16 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th>
-									<a href="/clients/orders/?sort=order">Order</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=client">Client</a>
-								</th>
+								<th><a href="/clients/orders/?sort=order">Order</a></th>
+								<th><a href="/clients/orders/?sort=client">Client</a></th>
 								<th> Description </th>
-								<th>
-									<a href="/clients/orders/?sort=assignee">Assignee</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=registered">Registered</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=deadline">Due Date</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=status">Status</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=value">Value</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=payed">Payed</a>
-								</th>
-								<th>
-									<a href="/clients/orders/?sort=update">Last Update</a>
-								</th>
+								<th><a href="/clients/orders/?sort=assignee">Assignee</a></th>
+								<th><a href="/clients/orders/?sort=registered">Registered</a></th>
+								<th><a href="/clients/orders/?sort=deadline">Due Date</a></th>
+								<th><a href="/clients/orders/?sort=status">Status</a></th>
+								<th><a href="/clients/orders/?sort=value">Value</a></th>
+								<th><a href="/clients/orders/?sort=payed">Invoiced</a></th>
+								<th><a href="/clients/orders/?sort=update">Last Update</a></th>
 							</tr>
 						</thead>
 						<tbody> {% for o in client_orders %} 
@@ -96,9 +78,9 @@
 								<td>
 									<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 								</td>
-								<td> {{ o.value}} {{ o.order.currency.symbol }}</td>
+								<td> {{ o.order.value}} {{ o.order.currency.symbol }}</td>
 								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
-									{{ o.payed}} %
+									{{ o.invoiced}} %
 								</td>
 								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
 							</tr> {% endfor %} 

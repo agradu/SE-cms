@@ -8,15 +8,15 @@ import os
 
 
 def run():
-    default_image = 'media/profile_pictures/my-profile-default.jpg'
+    default_image = "media/profile_pictures/my-profile-default.jpg"
     username = os.environ.get("DJANGO_USER")
     statuses = [
-        ["Wartet","danger",20],
-        ["Bestätigt","primary",40],
-        ["Bearbeitung","info",60],
-        ["Überprüfung","warning",80],
-        ["Geliefert","success",100],
-        ["Abgesagt","dark",100]
+        ["Wartet", "danger", 20],
+        ["Bestätigt", "primary", 40],
+        ["Bearbeitung", "info", 60],
+        ["Überprüfung", "warning", 80],
+        ["Geliefert", "success", 100],
+        ["Abgesagt", "dark", 100],
     ]
     for status in statuses:
         Status.objects.get_or_create(name=status[0], style=status[1], percent=status[2])
@@ -45,11 +45,13 @@ def run():
             currency=currency,
             um=um,
         )
-    with open(default_image, 'rb') as f:
+    with open(default_image, "rb") as f:
         image_data = BytesIO(f.read())
         image = Image.open(image_data)
         image_size = image.size
-        profile_picture = InMemoryUploadedFile(image_data, None, default_image, 'image/jpg', image_size, None)
+        profile_picture = InMemoryUploadedFile(
+            image_data, None, default_image, "image/jpg", image_size, None
+        )
         user = CustomUser.objects.filter(username=username).first()
         print(f"Setting the username '{user.username}'")
         user.profile_picture = profile_picture

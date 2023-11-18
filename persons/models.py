@@ -8,11 +8,19 @@ from django.utils import timezone
 class Person(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='created_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="created_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     modified_at = models.DateTimeField(default=timezone.now)
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='modified_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="modified_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     person_choices = [
         ("pi", "Private individual"),
@@ -43,7 +51,6 @@ class Person(models.Model):
     email = models.EmailField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     services = models.CharField(max_length=255, blank=True)
-    
 
     def __str__(self):
         if self.company_name == "":

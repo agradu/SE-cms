@@ -11,29 +11,36 @@ from django.utils import timezone
 
 # Create your views here.
 
-@login_required(login_url='/login/')
+
+@login_required(login_url="/login/")
 def receipts(request):
     # search elements
     search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    reg_start = date_before.strftime('%Y-%m-%d')
+    reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
-    reg_end = date_now.strftime('%Y-%m-%d')
+    reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
-    if request.method == 'POST':
-        search = request.POST.get('search')
+    if request.method == "POST":
+        search = request.POST.get("search")
         if len(search) > 2:
-            reg_start = request.POST.get('reg_start')
-            filter_start = datetime.strptime(reg_start, '%Y-%m-%d')
+            reg_start = request.POST.get("reg_start")
+            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get('reg_end')
-            filter_end = datetime.strptime(reg_end, '%Y-%m-%d')
-            filter_end = timezone.make_aware(filter_end).replace(hour=23, minute=59, second=59, microsecond=0)
+            reg_end = request.POST.get("reg_end")
+            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+            filter_end = timezone.make_aware(filter_end).replace(
+                hour=23, minute=59, second=59, microsecond=0
+            )
         else:
             search = ""
     # CLIENT/PROVIDER INVOICES
-    selected_receipts = Receipt.objects.filter(Q(person__firstname__icontains=search) | Q(person__lastname__icontains=search) | Q(person__company_name__icontains=search)).filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    selected_receipts = Receipt.objects.filter(
+        Q(person__firstname__icontains=search)
+        | Q(person__lastname__icontains=search)
+        | Q(person__company_name__icontains=search)
+    ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
     client_receipts = []
     for r in selected_receipts:
         r_payed = 0
@@ -41,47 +48,58 @@ def receipts(request):
         for p in r_payments:
             r_payed += p.price
         payed = int(r_payed / r.price * 100)
-        client_receipts.append(
-            {
-                "receipt":r,
-                "payed":payed
-            }
-        )
+        client_receipts.append({"receipt": r, "payed": payed})
     # sorting types
-    page = request.GET.get('page')
-    sort = request.GET.get('sort')
-    if sort == 'receipt':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].id, reverse=True)
-    elif sort == 'person':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].person.firstname)
-    elif sort == 'assignee':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].modified_by.first_name)
-    elif sort == 'registered':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].created_at, reverse=True)
-    elif sort == 'deadline':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].deadline, reverse=True)
-    elif sort == 'status':
+    page = request.GET.get("page")
+    sort = request.GET.get("sort")
+    if sort == "receipt":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].id, reverse=True
+        )
+    elif sort == "person":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].person.firstname
+        )
+    elif sort == "assignee":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].modified_by.first_name
+        )
+    elif sort == "registered":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].created_at, reverse=True
+        )
+    elif sort == "deadline":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].deadline, reverse=True
+        )
+    elif sort == "status":
         client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].status.id)
-    elif sort == 'value':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].price, reverse=True)
-    elif sort == 'payed':
+    elif sort == "value":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].price, reverse=True
+        )
+    elif sort == "payed":
         client_receipts = sorted(client_receipts, key=lambda x: x["payed"])
-    elif sort == 'update':
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].modified_at, reverse=True)
+    elif sort == "update":
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].modified_at, reverse=True
+        )
     else:
-        client_receipts = sorted(client_receipts, key=lambda x: x["receipt"].created_at, reverse=True)
-        
+        client_receipts = sorted(
+            client_receipts, key=lambda x: x["receipt"].created_at, reverse=True
+        )
+
     paginator = Paginator(client_receipts, 10)
     receipts_on_page = paginator.get_page(page)
 
     return render(
         request,
-        'payments/receipts.html', 
+        "payments/receipts.html",
         {
-            'client_receipts': receipts_on_page,
+            "client_receipts": receipts_on_page,
             "sort": sort,
             "search": search,
             "reg_start": reg_start,
-            "reg_end": reg_end
-        }
+            "reg_end": reg_end,
+        },
     )

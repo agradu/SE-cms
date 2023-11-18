@@ -10,11 +10,19 @@ from django.conf import settings
 class Order(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='created_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="created_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     modified_at = models.DateTimeField(default=timezone.now)
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='modified_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="modified_by_%(class)s",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
@@ -46,7 +54,7 @@ class OrderElement(models.Model):
 
     def __str__(self):
         return f"Elm. #{self.order.id} - {self.service.name} ({self.price}{self.order.currency.symbol} * {self.quantity})"
-    
+
 
 class Offer(models.Model):
     deadline = models.DateTimeField(
@@ -60,7 +68,9 @@ class Offer(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
-    to_order = models.ForeignKey(Order, on_delete=models.SET_DEFAULT, null=True, blank=True, default="")
+    to_order = models.ForeignKey(
+        Order, on_delete=models.SET_DEFAULT, null=True, blank=True, default=""
+    )
 
     def __str__(self):
         formatted_deadline = self.deadline.strftime("%d.%m.%Y %H:%M")
