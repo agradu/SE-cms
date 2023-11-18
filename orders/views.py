@@ -87,9 +87,9 @@ def c_orders(request):
     elif sort == "status":
         client_orders = sorted(client_orders, key=lambda x: x["order"].status.id)
     elif sort == "value":
-        client_orders = sorted(client_orders, key=lambda x: x["value"], reverse=True)
-    elif sort == "payed":
-        client_orders = sorted(client_orders, key=lambda x: x["payed"])
+        client_orders = sorted(client_orders, key=lambda x: x["order"].value, reverse=True)
+    elif sort == "invoiced":
+        client_orders = sorted(client_orders, key=lambda x: x["invoiced"])
     elif sort == "update":
         client_orders = sorted(
             client_orders, key=lambda x: x["order"].modified_at, reverse=True
@@ -315,10 +315,10 @@ def p_orders(request):
         provider_orders = sorted(provider_orders, key=lambda x: x["order"].status.id)
     elif sort == "value":
         provider_orders = sorted(
-            provider_orders, key=lambda x: x["value"], reverse=True
+            provider_orders, key=lambda x: x["order"].value, reverse=True
         )
-    elif sort == "payed":
-        provider_orders = sorted(provider_orders, key=lambda x: x["payed"])
+    elif sort == "invoiced":
+        provider_orders = sorted(provider_orders, key=lambda x: x["invoiced"])
     elif sort == "update":
         provider_orders = sorted(
             provider_orders, key=lambda x: x["order"].modified_at, reverse=True
