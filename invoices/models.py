@@ -4,16 +4,12 @@ from orders.models import Order, OrderElement
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+from services.models import Currency
 
 # Create your models here.
 
 
 class Invoice(models.Model):
-    serial = models.CharField(max_length=10, blank=True)
-    number = models.CharField(max_length=20, blank=True)
-    deadline = models.DateField(default=timezone.now)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='created_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
@@ -22,10 +18,19 @@ class Invoice(models.Model):
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='modified_by_%(class)s', on_delete=models.SET_NULL, null=True, blank=True
     )
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    serial = models.CharField(max_length=10, blank=True)
+    number = models.CharField(max_length=20, blank=True)
+    deadline = models.DateField(default=timezone.now)
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    currency = models.ForeignKey(
+        Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
+    )
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
-        return f"{self.serial}{self.number} - {formatted_created_at} - {self.person.firstname} {self.person.lastname} {self.person.company_name} - {self.description}"
+        return f"Invoice {self.serial}{self.number} from {formatted_created_at} - {self.person} - {self.description}"
     
 class InvoiceElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
@@ -33,5 +38,5 @@ class InvoiceElement(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f"Invoice #{self.invoice.id} / Order #{self.element.order.id} / {self.element} - {self.element.price * self.element.units} {self.element.order.currency.symbol}"
+        return f"Element #{self.invoice.id} from invoice {self.invoice.serial}{self.invoice.number} / {self.element}"
     

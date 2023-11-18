@@ -52,7 +52,6 @@
 								<th> <a href="/payments/receipts/?sort=receipt">Receipt</a> </th>
 								<th> <a href="/payments/receipts/?sort=person">Client/Provider</a> </th>
 								<th> <a href="/payments/receipts/?sort=invoice">Invoice</a> </th>
-								<th> <a href="/payments/receipts/?sort=order">Order</a> </th>
 								<th> <a href="/payments/receipts/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/receipts/?sort=registered">Registered</a> </th>
 								<th style="text-align: right;"> <a href="/payments/receipts/?sort=value">Value</a> </th>
@@ -62,15 +61,14 @@
 						<tbody>
 							{% for r in client_receipts %} 
 							<tr>
-								<td> <a href="" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.serial}} {{ r.receipt.number}}</a> </td>
-								<td> <a href="/persons/{{ r.receipt.person.id}}/"{% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}> {{ r.receipt.person.firstname}} {{ r.receipt.person.lastname}} {% if r.receipt.person.company_name != "" %}- {{ r.receipt.person.company_name}} {% endif %}</a> </td>
-								<td> <a href="/payments/invoice/{{ r.receipt.invoice.id }}/" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.invoice.serial}} {{ r.receipt.invoice.number}}</a> </td>
-								<td> <a href="/{% if r.receipt.invoice.order.is_client %}clients{% else %}providers{% endif %}/order/{{ r.receipt.invoice.order.id }}/{{ r.receipt.person.id}}/" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}>{{ r.receipt.invoice.order.id}}</a> </td>
+								<td> <a href="/payments/receipt/{{ r.receipt.id}} ">{{ r.receipt.serial}} {{ r.receipt.number}}</a> </td>
+								<td> <a href="/persons/{{ r.receipt.person.id}}/"> {{ r.receipt.person.firstname}} {{ r.receipt.person.lastname}} {% if r.receipt.person.company_name != "" %}- {{ r.receipt.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/payments/invoice/{{ r.receipt.invoice.id }}/">{{ r.receipt.invoice.serial}} {{ r.receipt.invoice.number}}</a> </td>
 								<td>
 									<img src="{{ r.receipt.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ r.receipt.modified_by.first_name}} {{ r.receipt.modified_by.last_name}}
 								</td>
 								<td> {{ r.receipt.created_at|date:"d.m.Y"}} - {{ r.receipt.created_at|time:"H:i"}} </td>
-								<td style="text-align: right;" {% if not r.receipt.invoice.order.is_client %}class="text-success"{% endif %}> {{ r.receipt.price }} {{ r.receipt.invoice.order.currency.symbol}}</td>
+								<td style="text-align: right;"> {{ r.receipt.price }} {{ r.receipt.currency.symbol}}</td>
 								<td> {{ r.receipt.modified_at|date:"d.m.Y"}} - {{ r.receipt.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}

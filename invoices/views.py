@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import OrderElement
 from payments.models import Payment
-from .models import Invoice
+from .models import Invoice, InvoiceElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -36,20 +36,24 @@ def invoices(request):
     selected_invoices = Invoice.objects.filter(Q(person__firstname__icontains=search) | Q(person__lastname__icontains=search) | Q(person__company_name__icontains=search)).filter(created_at__gte=filter_start, created_at__lte=filter_end)
     client_invoices = []
     for i in selected_invoices:
-        order_elements = OrderElement.objects.filter(order=i.order).order_by('id')
-        o_value = 0
-        for e in order_elements:
-            o_value += e.price * e.units
+        invoice_elements = InvoiceElement.objects.filter(invoice=i).order_by('id')
+        i_value = 0
+        i_orders = []
+        for e in invoice_elements:
+            i_value += e.element.price * e.element.units
+            if e.element.order not in i_orders:
+                i_orders.append(e.element.order)
         i_payed = 0
         i_payments = Payment.objects.filter(invoice=i)
         for p in i_payments:
             i_payed += p.price
-        payed = int(i_payed / o_value * 100)
+        payed = int(i_payed / i_value * 100)
         client_invoices.append(
             {
-                "invoice":i,
-                "payed":payed,
-                "value": o_value,
+                "invoice": i,
+                "payed": payed,
+                "value": i_value,
+                "orders": i_orders
             }
         )
     # sorting types

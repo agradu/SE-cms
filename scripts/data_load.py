@@ -45,13 +45,13 @@ def run():
             currency=currency,
             um=um,
         )
-
     with open(default_image, 'rb') as f:
         image_data = BytesIO(f.read())
         image = Image.open(image_data)
         image_size = image.size
         profile_picture = InMemoryUploadedFile(image_data, None, default_image, 'image/jpg', image_size, None)
         user = CustomUser.objects.filter(username=username).first()
+        print(f"Setting the username '{user.username}'")
         user.profile_picture = profile_picture
         user.first_name = "Adrian George"
         user.last_name = "Radu"

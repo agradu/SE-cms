@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
-{% block title %}Sprachen Express - Orders form clients{% endblock %}
-
+{% block title %}Sprachen Express - Payments{% endblock %}
 {% block content %}
 <div class="page-header">
 	<h3 class="page-title">
@@ -16,97 +14,97 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table">
-					  <tbody>
-						<tr>
-						  <td width="50%">
-							<div class="input-group input-group-sm">
-							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="text" class="form-control" placeholder="Search" aria-label="Search">
-							</div>
-						  </td>
-						  <td>
-							<div class="input-group input-group-sm">
-							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						  <td>
-							<div class="col input-group input-group-sm">
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						</tr>
-					  </tbody>
-					</table>
+					<form method="post"> 
+						{% csrf_token %} 
+						<table class="table">
+							<tbody>
+								<tr>
+									<td width="50%">
+										<div class="input-group input-group-sm">
+											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+											<input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+										</div>
+									</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="">Payment</a> </th>
-								<th> <a href="">Payer</a> </th>
-								<th> <a href="">Invoice</a> </th>
-								<th> <a href="">Receipt</a> </th>
-								<th> <a href="">Assignee</a> </th>
-								<th> <a href="">Registered</a> </th>
-								<th> <a href="">Value</a> </th>
-								<th> <a href="">Type</a> </th>
-								<th> <a href="">Last Update</a> </th>
+								<th> <a href="/payments/payments/?sort=payment">Payment</a> </th>
+								<th> <a href="/payments/payments/?sort=person">Payer</a> </th>
+								<th> <a href="/payments/payments/?sort=invoice">Invoice</a> </th>
+								<th> <a href="/payments/payments/?sort=receipt">Receipt</a> </th>
+								<th> <a href="/payments/payments/?sort=assignee">Assignee</a> </th>
+								<th> <a href="/payments/payments/?sort=registered">Registered</a> </th>
+								<th style="text-align: right;"> <a href="/payments/payments/?sort=value">Value</a> </th>
+								<th> <a href="/payments/payments/?sort=type">Type</a> </th>
+								<th> <a href="/payments/payments/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
+							{% for p in client_payments %} 
 							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
-								<td> <a href="">AB 1234</a> </td>
-								<td>  </td>
+								<td> <a href="/payments/payment/{{ p.payment.id}}">{{ p.payment.id}}</a> </td>
+								<td> <a href="/persons/{{ p.payment.person.id}}/"> {{ p.payment.person.firstname}} {{ p.payment.person.lastname}} {% if p.payment.person.company_name != "" %}- {{ p.payment.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/payments/invoice/{{ p.payment.invoice.id }}/">{{ p.payment.invoice.serial}} {{ p.payment.invoice.number}}</a> </td>
+								<td> <a href="/payments/receipt/{{ p.payment.receipt.id }}/">{{ p.payment.receipt.serial}} {{ p.payment.receipt.number}}</a> </td>
 								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
+									<img src="{{ p.payment.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.payment.modified_by.first_name}} {{ p.payment.modified_by.last_name}}
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 123 euro</td>
-								<td> <i class="mdi mdi-bank mdi-18px"></i> </td>
-								<td> 12.12.2012 - 16:30 </td>
+								<td> {{ p.payment.created_at|date:"d.m.Y"}} - {{ p.payment.created_at|time:"H:i"}} </td>
+								<td style="text-align: right;"> {{ p.payment.price }} {{ p.payment.currency.symbol}}</td>
+								<td> <i class="mdi mdi-{{ p.payment.type }} mdi-18px"></i> </td>
+								<td> {{ p.payment.modified_at|date:"d.m.Y"}} - {{ p.payment.modified_at|time:"H:i"}} </td>
 							</tr>
-							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
-								<td> <a href="">AB 1234</a> </td>
-								<td> <a href="">CD 1234</a> </td>
-								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
-								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> - 123 euro</td>
-								<td> <i class="mdi mdi-cash mdi-18px"></i> </td>
-								<td> 12.12.2012 - 16:30 </td>
-							</tr>
+							{% endfor %}
 						</tbody>
 					</table>
 				</div>
 				<div class="table-responsive">
 					<table class="table">
-					  <tbody>
-						<tr>
-							<td>
-							  <div class="btn-group btn-group-sm">
-								<button type="button" class="btn btn-primary">1</button>
-								<button type="button" class="btn btn-outline-secondary">2</button>
-								<button type="button" class="btn btn-outline-secondary">3</button>
-								<button type="button" class="btn btn-outline-secondary">4</button>
-							  </div>
-							</td>
-						  </tr>
-						  <tr>
-							<td>
-							  <div class="input-group input-group-sm">
-								<button type="button" class="btn btn-gradient-primary btn-icon-text">
-								  <i class="mdi mdi-cash btn-icon-prepend"></i> Register a new payment</button>
-							  </div>
-							</td>
-						  </tr>
-					  </tbody>
+						<tbody>
+							{% if client_receipts.paginator.num_pages > 1 %} 
+								<tr>
+									<td>
+										<div class="btn-group btn-group-sm">
+											{% for pg in client_receipts.paginator.page_range %}
+											{% if pg == client_receipts.number %}
+											<button type="button" class="btn btn-primary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											{% else %}
+											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											{% endif %}
+											{% endfor %} </div>
+									</td>
+								</tr> 
+								{% endif %}
+							  <tr>
+								<td>
+								  <div class="input-group input-group-sm">
+									<button type="button" class="btn btn-gradient-primary btn-icon-text">
+										<i class="mdi mdi-cash btn-icon-prepend"></i> Register a new payment</button>
+								  </div>
+								</td>
+							  </tr>
+						  </tbody>
 					</table>
 				</div>
 			</div>

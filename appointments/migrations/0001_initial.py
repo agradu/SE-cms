@@ -12,13 +12,12 @@ class Migration(migrations.Migration):
     dependencies = [
         ("persons", "0001_initial"),
         ("orders", "0001_initial"),
-        ("services", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="Invoice",
+            name="Appointment",
             fields=[
                 (
                     "id",
@@ -34,17 +33,8 @@ class Migration(migrations.Migration):
                     "modified_at",
                     models.DateTimeField(default=django.utils.timezone.now),
                 ),
-                ("serial", models.CharField(blank=True, max_length=10)),
-                ("number", models.CharField(blank=True, max_length=20)),
-                ("deadline", models.DateField(default=django.utils.timezone.now)),
-                (
-                    "value",
-                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
-                ),
-                (
-                    "description",
-                    models.CharField(blank=True, max_length=255, null=True),
-                ),
+                ("schedule", models.DateTimeField(default=django.utils.timezone.now)),
+                ("description", models.CharField(blank=True, max_length=255)),
                 (
                     "created_by",
                     models.ForeignKey(
@@ -53,16 +43,6 @@ class Migration(migrations.Migration):
                         on_delete=django.db.models.deletion.SET_NULL,
                         related_name="created_by_%(class)s",
                         to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-                (
-                    "currency",
-                    models.ForeignKey(
-                        blank=True,
-                        default=None,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        to="services.currency",
                     ),
                 ),
                 (
@@ -76,41 +56,26 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "person",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="persons.person"
-                    ),
-                ),
-            ],
-        ),
-        migrations.CreateModel(
-            name="InvoiceElement",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "description",
-                    models.CharField(blank=True, max_length=255, null=True),
-                ),
-                (
-                    "element",
+                    "order_element",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         to="orders.orderelement",
                     ),
                 ),
                 (
-                    "invoice",
+                    "person",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="invoices.invoice",
+                        related_name="person_%(class)s",
+                        to="persons.person",
+                    ),
+                ),
+                (
+                    "with_person",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="with_person_%(class)s",
+                        to="persons.person",
                     ),
                 ),
             ],

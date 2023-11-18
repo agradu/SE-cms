@@ -52,7 +52,7 @@
 							<tr>
 								<th> <a href="/payments/invoices/?sort=invoice">Invoice</a> </th>
 								<th> <a href="/payments/invoices/?sort=person">Client/Provider</a> </th>
-								<th> <a href="/payments/invoices/?sort=order">Order</a> </th>
+								<th> Orders </th>
 								<th> <a href="/payments/invoices/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/invoices/?sort=registered">Registered</a> </th>
 								<th> <a href="/payments/invoices/?sort=deadline">Due Date</a> </th>
@@ -64,15 +64,19 @@
 						<tbody>
 							{% for i in client_invoices %} 
 							<tr>
-								<td> <a href="" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}>{{ i.invoice.serial}} {{ i.invoice.number}}</a> </td>
-								<td> <a href="/persons/{{ i.invoice.person.id}}/"{% if not i.invoice.order.is_client %}class="text-success"{% endif %}> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
-								<td> <a href="/{% if i.invoice.order.is_client %}clients{% else %}providers{% endif %}/order/{{ i.invoice.order.id }}/{{ i.invoice.person.id}}/" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}>{{ i.invoice.order.id}}</a> </td>
+								<td> <a href="/payments/invoice/{{ i.invoice.id}}">{{ i.invoice.serial}} {{ i.invoice.number}}</a> </td>
+								<td> <a href="/persons/{{ i.invoice.person.id}}/"> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
+								<td> 
+									{% for o in i.orders %}
+									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.id}}</a>
+									{% endfor %}
+								</td>
 								<td>
 									<img src="{{ i.invoice.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.invoice.modified_by.first_name}} {{ i.invoice.modified_by.last_name}}
 								</td>
 								<td> {{ i.invoice.created_at|date:"d.m.Y"}} - {{ i.invoice.created_at|time:"H:i"}} </td>
 								<td> {{ i.invoice.deadline|date:"d.m.Y"}} </td>
-								<td style="text-align: right;" {% if not i.invoice.order.is_client %}class="text-success"{% endif %}> {{ i.value}} {{ i.invoice.order.currency.symbol}}</td>
+								<td style="text-align: right;"> {{ i.value}} {{ i.invoice.currency.symbol}}</td>
 								<td class="text-{% if i.payed == 100 %}success{% elif i.payed == 0 %}danger{% else %}info{% endif %}">
 									{{ i.payed}} %
 								</td>
