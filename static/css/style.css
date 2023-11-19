@@ -13703,7 +13703,7 @@ dl {
 .auth .brand-logo {
   margin-bottom: 2rem; }
   .auth .brand-logo img {
-    width: 150px; }
+    width: 100%; }
 
 .auth form .form-group {
   margin-bottom: 1.5rem; }
@@ -13754,7 +13754,7 @@ dl {
       .navbar .navbar-brand-wrapper .navbar-brand:active, .navbar .navbar-brand-wrapper .navbar-brand:focus, .navbar .navbar-brand-wrapper .navbar-brand:hover {
         color: #1b2658; }
       .navbar .navbar-brand-wrapper .navbar-brand img {
-        width: calc(260px - 120px);
+        /*width: calc(260px - 120px);*/
         max-width: 100%;
         height: 28px;
         margin: auto;
@@ -13762,7 +13762,7 @@ dl {
       .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini {
         display: none; }
         .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini img {
-          width: calc(70px - 50px);
+          /*width: calc(70px - 50px);*/
           max-width: 100%;
           height: 28px;
           margin: auto; }

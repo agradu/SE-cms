@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
 from .models import Order, OrderElement
@@ -226,6 +226,11 @@ def c_order(request, order_id, client_id):
                 )
                 order.save()
                 new = False
+                return redirect(
+                    "c_order",
+                    order_id = order.id,
+                    client_id = client.id
+                )
 
     return render(
         request,
@@ -469,6 +474,11 @@ def p_order(request, order_id, provider_id):
                 )
                 order.save()
                 new = False
+                return redirect(
+                    "p_order",
+                    order_id = order.id,
+                    provider_id = provider.id
+                )
 
     return render(
         request,

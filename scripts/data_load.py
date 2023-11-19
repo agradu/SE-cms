@@ -11,19 +11,19 @@ def run():
     default_image = "media/profile_pictures/my-profile-default.jpg"
     username = os.environ.get("DJANGO_USER")
     statuses = [
-        ["Wartet", "danger", 20],
-        ["Bestätigt", "primary", 40],
-        ["Bearbeitung", "info", 60],
-        ["Überprüfung", "warning", 80],
-        ["Geliefert", "success", 100],
-        ["Abgesagt", "dark", 100],
+        ["Waiting", "danger", 20],
+        ["Confirmed", "primary", 40],
+        ["In progress", "info", 60],
+        ["In verification", "warning", 80],
+        ["Delivered", "success", 100],
+        ["Canceled", "dark", 100],
     ]
     for status in statuses:
         Status.objects.get_or_create(name=status[0], style=status[1], percent=status[2])
-    ums = ["Stk.", "Seiten", "Zeilen", "Tage", "Stunden", "Minuten"]
+    ums = ["pieces", "pages", "lines", "days", "hours", "minutes"]
     for um in ums:
         UM.objects.get_or_create(name=um)
-    um = UM.objects.filter(name="Stk.").first()
+    um = UM.objects.filter(name="pieces").first()
 
     currencies = [("€", "Euro"), ("$", "Dollar"), ("ron", "Leu")]
     for currency in currencies:
@@ -31,10 +31,10 @@ def run():
     currency = Currency.objects.filter(name="Euro").first()
 
     services = [
-        ("mdi-google-translate", "Übersetzung", 20, 30),
-        ("mdi-file-word-box", "Redactionsservice", 20, 30),
-        ("mdi-seal", "Vermittlung beim Notar", 20, 30),
-        ("mdi-star-circle", "Vermittlung Apostille", 20, 30),
+        ("mdi-google-translate", "Translation", 20, 30),
+        ("mdi-file-word-box", "Editing service", 20, 30),
+        ("mdi-seal", "Mediation of notarial services", 20, 30),
+        ("mdi-star-circle", "Mediation of apostille services", 20, 30),
     ]
     for service in services:
         Service.objects.get_or_create(
@@ -53,7 +53,7 @@ def run():
             image_data, None, default_image, "image/jpg", image_size, None
         )
         user = CustomUser.objects.filter(username=username).first()
-        print(f"Setting the username '{user.username}'")
+        print(f"Setting the username '{username}'")
         user.profile_picture = profile_picture
         user.first_name = "Adrian George"
         user.last_name = "Radu"
