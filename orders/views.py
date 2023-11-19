@@ -126,7 +126,6 @@ def c_order(request, order_id, client_id):
     clients = []
     elements = []
     element = ""
-    value = 0
     date_now = timezone.now()
     if order_id != 0:  # if order exists
         new = False
@@ -166,7 +165,7 @@ def c_order(request, order_id, client_id):
                     element = OrderElement.objects.get(id=element_id)
                     element.service = services[int(request.POST.get("e_service")) - 1]
                     element.description = request.POST.get("e_description")
-                    element.units = request.POST.get("e_quantity")
+                    element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
                     element.price = request.POST.get("e_price")
                     element.status = statuses[int(request.POST.get("e_status")) - 1]
@@ -175,7 +174,7 @@ def c_order(request, order_id, client_id):
                     element = OrderElement(order=order)
                     element.service = services[int(request.POST.get("e_service")) - 1]
                     element.description = request.POST.get("e_description")
-                    element.units = request.POST.get("e_quantity")
+                    element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
                     element.price = request.POST.get("e_price")
                     element.status = statuses[int(request.POST.get("e_status")) - 1]
@@ -194,24 +193,39 @@ def c_order(request, order_id, client_id):
             # Setting the modiffied user and date
             order.modified_by = request.user
             order.modified_at = date_now
+            # Calculating the order value
+            order.value = 0
+            for e in elements:
+                order.value += (e.price * e.quantity)
+            order.save()
 
     else:  # if order is new
         new = True
         client = get_object_or_404(Person, id=client_id)
-        order = Order(
-            person=client,
-            deadline=date_now,
-            is_client=True,
-            modified_by=request.user,
-            created_by=request.user,
-            status=statuses[0],
-            currency=currencies[0],
-        )
-
-    order.save()
-    # Calculating the order value
-    for e in elements:
-        value += e.price * e.units
+        order = ""
+        if request.method == "POST":
+            if "order_description" in request.POST:
+                description = request.POST.get("order_description")
+                status = statuses[int(request.POST.get("order_status")) - 1]
+                currency = currencies[int(request.POST.get("order_currency")) - 1]
+                deadline_date = request.POST.get("deadline_date")
+                deadline_time = request.POST.get("deadline_time")
+                deadline_naive = datetime.strptime(
+                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
+                )
+                deadline = timezone.make_aware(deadline_naive)
+                order = Order(
+                    description = description,
+                    person=client,
+                    deadline=deadline,
+                    is_client=True,
+                    modified_by=request.user,
+                    created_by=request.user,
+                    status=status,
+                    currency=currency,
+                )
+                order.save()
+                new = False
 
     return render(
         request,
@@ -219,8 +233,8 @@ def c_order(request, order_id, client_id):
         {
             "clients": clients,
             "order": order,
+            "client": client,
             "elements": elements,
-            "value": value,
             "currencies": currencies,
             "statuses": statuses,
             "ums": ums,
@@ -355,7 +369,6 @@ def p_order(request, order_id, provider_id):
     providers = []
     elements = []
     element = ""
-    value = 0
     date_now = timezone.now()
     if order_id != 0:  # if order exists
         new = False
@@ -395,7 +408,7 @@ def p_order(request, order_id, provider_id):
                     element = OrderElement.objects.get(id=element_id)
                     element.service = services[int(request.POST.get("e_service")) - 1]
                     element.description = request.POST.get("e_description")
-                    element.units = request.POST.get("e_quantity")
+                    element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
                     element.price = request.POST.get("e_price")
                     element.status = statuses[int(request.POST.get("e_status")) - 1]
@@ -404,7 +417,7 @@ def p_order(request, order_id, provider_id):
                     element = OrderElement(order=order)
                     element.service = services[int(request.POST.get("e_service")) - 1]
                     element.description = request.POST.get("e_description")
-                    element.units = request.POST.get("e_quantity")
+                    element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
                     element.price = request.POST.get("e_price")
                     element.status = statuses[int(request.POST.get("e_status")) - 1]
@@ -423,24 +436,39 @@ def p_order(request, order_id, provider_id):
             # Setting the modiffied user and date
             order.modified_by = request.user
             order.modified_at = date_now
+            # Calculating the order value
+            order.value = 0
+            for e in elements:
+                order.value += (e.price * e.quantity)
+            order.save()
 
     else:  # if order is new
         new = True
         provider = get_object_or_404(Person, id=provider_id)
-        order = Order(
-            person=provider,
-            deadline=date_now,
-            is_client=False,
-            modified_by=request.user,
-            created_by=request.user,
-            status=statuses[0],
-            currency=currencies[0],
-        )
-
-    order.save()
-    # Calculating the order value
-    for e in elements:
-        value += e.price * e.units
+        order = ""
+        if request.method == "POST":
+            if "order_description" in request.POST:
+                description = request.POST.get("order_description")
+                status = statuses[int(request.POST.get("order_status")) - 1]
+                currency = currencies[int(request.POST.get("order_currency")) - 1]
+                deadline_date = request.POST.get("deadline_date")
+                deadline_time = request.POST.get("deadline_time")
+                deadline_naive = datetime.strptime(
+                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
+                )
+                deadline = timezone.make_aware(deadline_naive)
+                order = Order(
+                    description = description,
+                    person=provider,
+                    deadline=deadline,
+                    is_client=False,
+                    modified_by=request.user,
+                    created_by=request.user,
+                    status=status,
+                    currency=currency,
+                )
+                order.save()
+                new = False
 
     return render(
         request,
@@ -448,13 +476,13 @@ def p_order(request, order_id, provider_id):
         {
             "providers": providers,
             "order": order,
+            "provider": provider,
             "elements": elements,
-            "value": value,
             "currencies": currencies,
             "statuses": statuses,
             "ums": ums,
             "services": services,
             "new": new,
-            "element_selected": element,
+            "element_selected": element
         },
     )

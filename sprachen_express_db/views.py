@@ -24,23 +24,19 @@ def dashboard(request):
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
         o_status = o.status
-        o_value = 0
-        o_payed = 0
+        o_invoiced = 0
         for e in order_elements:
-            o_value += e.price * e.units
             try:
                 invoice_element = InvoiceElement.objects.get(element=e)
+                o_invoiced += (
+                    invoice_element.element.price * invoice_element.element.quantity
+                )
             except:
                 invoice_element = None
-            if invoice_element:
-                invoice = invoice_element.invoice
-                o_payments = Payment.objects.filter(invoice=invoice)
-                for p in o_payments:
-                    o_payed += p.price
-        if o_value > 0:
-            payed = int(o_payed / o_value * 100)
+        if o.value > 0:
+            invoiced = int(o_invoiced / o.value * 100)
         else:
-            payed = 0
+            invoiced = 0
 
         if o_status.id < 5:
             client_orders.append(
@@ -48,8 +44,7 @@ def dashboard(request):
                     "order": o,
                     "elements": order_elements,
                     "status": o_status,
-                    "payed": payed,
-                    "value": o_value,
+                    "invoiced": invoiced,
                 }
             )
     # last unfinished provider orders
@@ -59,22 +54,19 @@ def dashboard(request):
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
         o_status = o.status
         o_value = 0
-        o_payed = 0
+        o_invoiced = 0
         for e in order_elements:
-            o_value += e.price * e.units
             try:
                 invoice_element = InvoiceElement.objects.get(element=e)
+                o_invoiced += (
+                    invoice_element.element.price * invoice_element.element.quantity
+                )
             except:
                 invoice_element = None
-            if invoice_element:
-                invoice = invoice_element.invoice
-                o_payments = Payment.objects.filter(invoice=invoice)
-                for p in o_payments:
-                    o_payed += p.price
-        if o_value > 0:
-            payed = int(o_payed / o_value * 100)
+        if o.value > 0:
+            invoiced = int(o_invoiced / o.value * 100)
         else:
-            payed = 0
+            invoiced = 0
 
         if o_status.id < 5:
             provider_orders.append(
@@ -82,8 +74,7 @@ def dashboard(request):
                     "order": o,
                     "elements": order_elements,
                     "status": o_status,
-                    "payed": payed,
-                    "value": o_value,
+                    "invoiced": invoiced,
                 }
             )
 

@@ -5,7 +5,7 @@
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-cart"></i>
-		</span> Order #{{ order.id }} to {{ order.person.firstname }} {{ order.person.lastname }}
+		</span> Order #{{ order.id }} to {{ provider.firstname }} {{ provider.lastname }}
 	</h3>
 </div>
 {% load static %}
@@ -90,7 +90,7 @@
 			<div class="card-body">
 				<h4 class="card-title">Order details</h4>
 				<p>Order created by <b class="text-primary">{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b class="text-success">{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>. </p>
-				<form method="post" action="/providers/order/{{ order.id }}/{{ order.person.id }}/">
+				<form method="post" action="/providers/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ provider.id }}/">
 				{% csrf_token %}
 				<div class="row">
 					<div class="col-md-12">
@@ -195,7 +195,7 @@
 										<input type="text" class="form-control" name="e_description" value="{{ e.description }}">
 									</td>
 									<td width="7%">
-										<input type="text" class="form-control" name="e_quantity" value="{{ e.units }}">
+										<input type="text" class="form-control" name="e_quantity" value="{{ e.quantity }}">
 									</td>
 									<td width="10%">
 										<select class="form-select" name="e_um">
@@ -225,7 +225,7 @@
 							<tr id="e{{ e.id }}">
 								<td width="20%"> {{e.service.name}} </td>
 								<td> {{e.description}} </td>
-								<td width="7%"> {{e.units}} </td>
+								<td width="7%"> {{e.quantity}} </td>
 								<td width="10%"> {{e.um.name}} </td>
 								<td width="10%"> {{e.price}} {{order.currency.symbol}} </td>
 								<td width="10%">
@@ -294,7 +294,7 @@
 							<tr>
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
-								<td> <h4>{{value}} {{order.currency.symbol}}</h4> </td>
+								<td> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
 								<td colspan="3"> </td>
 							</tr>
 						</tbody>
