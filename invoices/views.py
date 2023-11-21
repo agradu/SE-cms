@@ -59,7 +59,11 @@ def invoices(request):
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
-    if sort == "invoice":
+    if sort == "type":
+        client_invoices = sorted(
+            client_invoices, key=lambda x: x["invoice"].is_client, reverse=True
+        )
+    elif sort == "invoice":
         client_invoices = sorted(
             client_invoices, key=lambda x: x["invoice"].id, reverse=True
         )

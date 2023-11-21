@@ -50,8 +50,9 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
+								<th> <a href="/payments/invoices/?sort=type">Type</a> </th>
 								<th> <a href="/payments/invoices/?sort=invoice">Invoice</a> </th>
-								<th> <a href="/payments/invoices/?sort=person">Client/Provider</a> </th>
+								<th> <a href="/payments/invoices/?sort=person">Persons</a> </th>
 								<th> Orders </th>
 								<th> <a href="/payments/invoices/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/invoices/?sort=registered">Registered</a> </th>
@@ -64,6 +65,7 @@
 						<tbody>
 							{% for i in client_invoices %} 
 							<tr>
+								<td> <i class="mdi {% if i.invoice.is_client %}mdi-clipboard-outline{% else %}mdi-cart-outline{% endif %} mdi-18px"></i> </td>
 								<td> <a href="/payments/invoice/{{ i.invoice.id}}">{{ i.invoice.serial}} {{ i.invoice.number}}</a> </td>
 								<td> <a href="/persons/{{ i.invoice.person.id}}/"> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
 								<td> 
