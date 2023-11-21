@@ -30,9 +30,9 @@
         <!-- partial -->
         <div class="main-panel">
           <div class="content-wrapper"
-            {% if '/clients/' in request.path %}
+            {% if '/clients/orders/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-clients.jpg' %});"
-            {% elif '/providers/' in request.path %}
+            {% elif '/providers/orders/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-providers.jpg' %});"
             {% elif '/appointments/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-appointments.jpg' %});"
@@ -42,7 +42,7 @@
             style="background-image: url({% static 'images/backgrounds/bg-satistics.jpg' %});"
             {% elif '/settings/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-settings.jpg' %});"
-            {% elif '/persons/' in request.path %}
+            {% elif '/persons/' in request.path or '/clients/clients/' in request.path or '/providers/providers/' in request.path%}
             style="background-image: url({% static 'images/backgrounds/bg-persons.jpg' %});"
             {% else %}
             style="background-image: url({% static 'images/backgrounds/bg-dashboard.jpg' %});"
