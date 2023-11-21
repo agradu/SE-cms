@@ -25,13 +25,9 @@ def c_clients(request):
     ).order_by("firstname")[:30]
     selected_clients = []
     for person in filtered_persons:
-        if (
-            Order.objects.filter(person=person).filter(is_client=True).exists()
-            or not Order.objects.filter(person=person).exists()
-        ):
-            person_total_orders = Order.objects.filter(person=person).count()
-            client = {"client": person, "total_orders": person_total_orders}
-            selected_clients.append(client)
+        person_total_orders = Order.objects.filter(person=person, is_client=True).count()
+        client = {"client": person, "total_orders": person_total_orders}
+        selected_clients.append(client)
     page = request.GET.get("page")
     paginator = Paginator(selected_clients, 10)
     clients_on_page = paginator.get_page(page)
@@ -58,17 +54,14 @@ def p_providers(request):
             | Q(company_name__icontains=search_name)
         )
         .filter(services__icontains=search_service)
+        .exclude(services='')
         .order_by("firstname")[:30]
     )
     selected_providers = []
     for person in filtered_persons:
-        if (
-            Order.objects.filter(person=person).filter(is_client=False).exists()
-            or not Order.objects.filter(person=person).exists()
-        ):
-            person_total_orders = Order.objects.filter(person=person).count()
-            provider = {"provider": person, "total_orders": person_total_orders}
-            selected_providers.append(provider)
+        person_total_orders = Order.objects.filter(person=person, is_client=False).count()
+        provider = {"provider": person, "total_orders": person_total_orders}
+        selected_providers.append(provider)
     page = request.GET.get("page")
     paginator = Paginator(selected_providers, 10)
     providers_on_page = paginator.get_page(page)

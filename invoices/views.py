@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import OrderElement
-from payments.models import Payment
+from payments.models import Payment, PaymentInvoice
 from .models import Invoice, InvoiceElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
@@ -44,19 +44,17 @@ def invoices(request):
     client_invoices = []
     for i in selected_invoices:
         invoice_elements = InvoiceElement.objects.filter(invoice=i).order_by("id")
-        i_value = 0
         i_orders = []
         for e in invoice_elements:
-            i_value += e.element.price * e.element.units
             if e.element.order not in i_orders:
                 i_orders.append(e.element.order)
         i_payed = 0
-        i_payments = Payment.objects.filter(invoice=i)
+        i_payments = PaymentInvoice.objects.filter(invoice=i)
         for p in i_payments:
-            i_payed += p.price
-        payed = int(i_payed / i_value * 100)
+            i_payed += p.payment.value
+        payed = int(i_payed / i.value * 100)
         client_invoices.append(
-            {"invoice": i, "payed": payed, "value": i_value, "orders": i_orders}
+            {"invoice": i, "payed": payed, "value": i.value, "orders": i_orders}
         )
     # sorting types
     page = request.GET.get("page")
