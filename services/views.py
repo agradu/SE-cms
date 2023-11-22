@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 
 @login_required(login_url="/login/")
 def services(request):
-    services = Service.objects.all().order_by("name")
+    services = Service.objects.all().order_by('id')
     paginator = Paginator(services, 10)
     page = request.GET.get("page")
     services_on_page = paginator.get_page(page)

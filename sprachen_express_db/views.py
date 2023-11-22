@@ -6,6 +6,7 @@ from django.db.models import Sum
 from orders.models import Order, OrderElement
 from payments.models import Payment
 from invoices.models import Invoice, InvoiceElement
+from datetime import datetime, timezone
 
 
 @login_required(login_url="/login/")
@@ -38,6 +39,11 @@ def dashboard(request):
         else:
             invoiced = 0
 
+        if o.deadline < datetime.now(timezone.utc):
+            alert = "text-danger"
+        else:
+            alert = ""
+
         if o_status.id < 5:
             client_orders.append(
                 {
@@ -45,6 +51,7 @@ def dashboard(request):
                     "elements": order_elements,
                     "status": o_status,
                     "invoiced": invoiced,
+                    "alert": alert
                 }
             )
     # last unfinished provider orders
@@ -68,6 +75,11 @@ def dashboard(request):
         else:
             invoiced = 0
 
+        if o.deadline < datetime.now(timezone.utc):
+            alert = "text-danger"
+        else:
+            alert = ""
+
         if o_status.id < 5:
             provider_orders.append(
                 {
@@ -75,6 +87,7 @@ def dashboard(request):
                     "elements": order_elements,
                     "status": o_status,
                     "invoiced": invoiced,
+                    "alert": alert
                 }
             )
 
