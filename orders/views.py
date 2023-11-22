@@ -121,7 +121,7 @@ def c_order(request, order_id, client_id):
     statuses = Status.objects.all().order_by("id")
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
-    services = Service.objects.all().order_by("id")
+    services = Service.objects.all().order_by("name")
     search = ""
     clients = []
     elements = []
@@ -163,7 +163,8 @@ def c_order(request, order_id, client_id):
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
                     element = OrderElement.objects.get(id=element_id)
-                    element.service = services[int(request.POST.get("e_service")) - 1]
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
                     element.description = request.POST.get("e_description")
                     element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
@@ -172,7 +173,8 @@ def c_order(request, order_id, client_id):
                     element.save()
                 else:  # add an element to order
                     element = OrderElement(order=order)
-                    element.service = services[int(request.POST.get("e_service")) - 1]
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
                     element.description = request.POST.get("e_description")
                     element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
@@ -369,7 +371,7 @@ def p_order(request, order_id, provider_id):
     statuses = Status.objects.all().order_by("id")
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
-    services = Service.objects.all().order_by("id")
+    services = Service.objects.all().order_by("name")
     search = ""
     providers = []
     elements = []
@@ -411,7 +413,8 @@ def p_order(request, order_id, provider_id):
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
                     element = OrderElement.objects.get(id=element_id)
-                    element.service = services[int(request.POST.get("e_service")) - 1]
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
                     element.description = request.POST.get("e_description")
                     element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]
@@ -420,7 +423,8 @@ def p_order(request, order_id, provider_id):
                     element.save()
                 else:  # add an element to order
                     element = OrderElement(order=order)
-                    element.service = services[int(request.POST.get("e_service")) - 1]
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
                     element.description = request.POST.get("e_description")
                     element.quantity = request.POST.get("e_quantity")
                     element.um = ums[int(request.POST.get("e_um")) - 1]

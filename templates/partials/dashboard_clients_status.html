@@ -5,28 +5,33 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th> # </th>
-						<th> Client </th>
+						<th> Order from</th>
 						<th> Due Date </th>
 						<th> Progress </th>
-						<th> Payed </th>
+						<th> Invoiced </th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
 					{% for o in client_orders %}
 					<tr  onclick="window.location='/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
-						<td> {{ o.order.id}} </td>
 						<td> 
 							<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
 						</td>
-						<td> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
+						<td class="{{ o.alert }}"> {{ o.order.deadline|date:"d.m.Y"}} - {{ o.order.deadline|time:"H:i"}} </td>
 						<td>
 							<div class="progress">
 								<div class="progress-bar bg-gradient-{{ o.status.style}}" role="progressbar" style="width: {{ o.status.percent }}%" aria-valuenow="{{ o.status.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
 							</div>
 						</td>
-						<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
+						<td class="text-{% if o.invoiced == 100 %}success{% elif o.invoiced == 0 %}danger{% else %}info{% endif %}">
 							{{ o.invoiced }} %
+						</td>
+						<td> {% if o.invoiced < 100 %}
+							<a href="/payments/invoice/0/{{ o.order.person.id }}/" title="Create an invoice">
+							<i class="mdi mdi-file mdi-18px"></i>
+							</a>
+							{% endif %}
 						</td>
 					</tr>
 					{% endfor %}

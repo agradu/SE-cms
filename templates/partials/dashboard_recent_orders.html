@@ -5,8 +5,8 @@
 			<table class="table table-hover">
 				<thead>
 					<tr>
-						<th> Order </th>
-						<th> Client/Provider </th>
+						<th> Type </th>
+						<th> Order from / to </th>
 						<th> Details </th>
 						<th> Assignee </th>
 						<th> Registered </th>
@@ -17,8 +17,14 @@
 				<tbody>
 					{% for o in recent_orders %}
 					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
-						<td> {{ o.order.id}} </td>
-						<td> <a href="/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a></td>
+						<td><i class="mdi {% if o.order.is_client %}mdi-clipboard-outline{% else %}mdi-cart-outline{% endif %} mdi-18px"></i></td>
+						<td> 
+							{% if o.order.is_client %}
+							<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
+							{% else %}
+							<a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
+							{% endif %}
+						</td>
 						<td>
 							{% for e in o.elements %}
 							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
