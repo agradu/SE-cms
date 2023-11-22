@@ -59,6 +59,7 @@
 								<th><a href="/clients/orders/?sort=value">Value</a></th>
 								<th><a href="/clients/orders/?sort=invoiced">Invoiced</a></th>
 								<th><a href="/clients/orders/?sort=update">Last Update</a></th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody> {% for o in client_orders %} 
@@ -79,10 +80,16 @@
 									<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 								</td>
 								<td> {{ o.order.value}} {{ o.order.currency.symbol }}</td>
-								<td class="text-{% if o.payed == 100 %}success{% elif o.payed == 0 %}danger{% else %}info{% endif %}">
+								<td class="text-{% if o.invoiced == 100 %}success{% elif o.invoiced == 0 %}danger{% else %}info{% endif %}">
 									{{ o.invoiced}} %
 								</td>
 								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
+								<td> {% if o.invoiced < 100 %}
+									<button type="button" title="Create an invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/invoice/0/{{ o.order.person.id }}/';">
+									<i class="mdi mdi-file"></i>
+									</button>
+									{% endif %}
+								</td>
 							</tr> {% endfor %} 
 						</tbody>
 					</table>
