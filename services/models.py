@@ -39,7 +39,7 @@ class Service(models.Model):
         return f"{self.name}"
 
 class Serial(models.Model):
-    invoice_serial = models.CharField(max_length=10)
-    invoice_number = models.IntegerField()
-    receipt_serial = models.CharField(max_length=10)
-    receipt_number = models.IntegerField()
+    invoice_serial = models.CharField(max_length=10, blank=True)
+    invoice_number = models.PositiveIntegerField(default=0, verbose_name="positive number")
+    receipt_serial = models.CharField(max_length=10, blank=True)
+    receipt_number = models.PositiveIntegerField(default=0, verbose_name="positive number")
