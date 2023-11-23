@@ -1,10 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from orders.models import OrderElement
+from orders.models import Order, OrderElement
+from persons.models import Person
 from payments.models import Payment, PaymentInvoice
 from .models import Invoice, InvoiceElement
-from services.models import Currency, Status, Service, UM
+from services.models import Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -117,8 +118,107 @@ def invoices(request):
 
 
 @login_required(login_url="/login/")
-def invoice(request, invoice_id):
+def invoice(request, invoice_id, person_id, order_id):
+    # Default parts
+    invoice_elements = []
+    element = ""
+    date_now = timezone.now()
+    if invoice_id != 0:  # if invoice exists
+        new = False
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        person = invoice.person
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+        orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
+        uninvoiced_elements = orders_elements.exclude(id__in=invoice_elements)
+        if request.method == "POST":
+            if "invoice_description" in request.POST:
+                invoice.description = request.POST.get("invoice_description")
+                if invoice.is_client == False:
+                    invoice.serial = request.POST.get("invoice_serial")
+                    invoice.number = request.POST.get("invoice_number")
+                deadline_date = request.POST.get("deadline_date")
+                deadline_naive = datetime.strptime(
+                    f"{deadline_date}", "%Y-%m-%d"
+                )
+                invoice.deadline = timezone.make_aware(deadline_naive)
+            if "invoice_element_id" in request.POST:
+                invoice_element_id = int(request.POST.get("invoice_element_id"))
+                try: # delete an element
+                    element = InvoiceElement.objects.get(id=invoice_element_id)
+                    element.delete()
+                except:
+                    element = ""
+            if "uninvoiced_element_id" in request.POST:
+                uninvoiced_element_id = int(request.POST.get("uninvoiced_element_id"))
+                try: # add an element
+                    element = uninvoiced_elements.get(id=uninvoiced_element_id)
+                    InvoiceElement.objects.get_or_create(
+                        invoice=invoice,
+                        element=element
+                    )
+                except:
+                    element = ""
+            # Setting the modiffied user and date
+            invoice.modified_by = request.user
+            invoice.modified_at = date_now
+            # Calculating the order value
+            invoice.value = 0
+            for e in invoice_elements:
+                invoice.value += (e.element.price * e.element.quantity)
+            invoice.save()
+
+    else:  # if invoice is new
+        new = True
+        person = get_object_or_404(Person, id=person_id)
+        order = get_object_or_404(Order, id=order_id)
+        invoice = ""
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+        orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
+        uninvoiced_elements = orders_elements.exclude(id__in=invoice_elements)
+        if request.method == "POST":
+            if "invoice_description" in request.POST:
+                invoice_description = request.POST.get("invoice_description")
+                if order.is_client == False:
+                    invoice_serial = request.POST.get("invoice_serial")
+                    invoice_number = request.POST.get("invoice_number")
+                else:
+                    serials = Serial.objects.get(id=1)
+                    invoice_serial = serials.invoice_serial
+                    invoice_number = serials.invoice_number
+                    serials.invoice_number += 1
+                    serials.save()
+                deadline_date = request.POST.get("deadline_date")
+                deadline_naive = datetime.strptime(
+                    f"{deadline_date}", "%Y-%m-%d"
+                )
+                invoice_deadline = timezone.make_aware(deadline_naive)
+                invoice = Invoice(
+                    description = invoice_description,
+                    serial = invoice_serial,
+                    number = invoice_number,
+                    person = person,
+                    deadline = invoice_deadline,
+                    is_client = order.is_client,
+                    modified_by = request.user,
+                    created_by = request.user,
+                    currency = order.currency,
+                )
+                invoice.save()
+                new = False
+                return redirect(
+                    "invoice",
+                    invoice_id = invoice.id,
+                    order_id = order.id,
+                    person_id = person.id,
+                )
+
     return render(
         request,
         "payments/invoice.html",
+        {
+            "person": person,
+            "invoice": invoice,
+            "invoice_elements": invoice_elements,
+            "uninvoiced_elements": uninvoiced_elements
+        },
     )

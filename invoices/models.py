@@ -45,7 +45,6 @@ class Invoice(models.Model):
 class InvoiceElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
-    description = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"Element #{self.invoice.id} from invoice {self.invoice.serial}{self.invoice.number} / {self.element}"
