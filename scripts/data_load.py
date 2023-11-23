@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from services.models import Status, UM, Service, Currency
+from services.models import Status, UM, Service, Currency, Serial
 from users.models import CustomUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
@@ -24,6 +24,13 @@ def run():
     for um in ums:
         UM.objects.get_or_create(name=um)
     um = UM.objects.filter(name="pieces").first()
+
+    Serial.objects.get_or_create(
+        invoice_serial='SER',
+        invoice_number=1,
+        receipt_serial='SEQ',
+        receipt_number=1,
+    )
 
     currencies = [("€", "Euro"), ("$", "Dollar"), ("ron", "Leu")]
     for currency in currencies:
