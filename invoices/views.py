@@ -129,7 +129,8 @@ def invoice(request, invoice_id, person_id, order_id):
         person = invoice.person
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
-        uninvoiced_elements = orders_elements.exclude(id__in=invoice_elements)
+        invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
+        uninvoiced_elements = orders_elements.exclude(id__in=invoiced_elements)
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
@@ -172,9 +173,9 @@ def invoice(request, invoice_id, person_id, order_id):
         person = get_object_or_404(Person, id=person_id)
         order = get_object_or_404(Order, id=order_id)
         invoice = ""
-        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
-        uninvoiced_elements = orders_elements.exclude(id__in=invoice_elements)
+        invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
+        uninvoiced_elements = orders_elements.exclude(id__in=invoiced_elements)
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice_description = request.POST.get("invoice_description")
