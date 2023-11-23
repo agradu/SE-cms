@@ -37,3 +37,9 @@ class Service(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+class Serial(models.Model):
+    invoice_serial = models.CharField(max_length=10)
+    invoice_number = models.IntegerField()
+    receipt_serial = models.CharField(max_length=10)
+    receipt_number = models.IntegerField()
