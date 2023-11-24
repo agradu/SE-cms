@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Sprachen Express - Orders for providers{% endblock %}
+{% block title %}Sprachen Express - Orders to providers{% endblock %}
 
 {% block content %}
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-cart"></i>
-		</span> Orders for providers
+		</span> Orders to providers
 	</h3>
 </div>
 {% load static %}
@@ -68,7 +68,7 @@
 							{% for o in provider_orders %}
 							<tr title="{{ o.order.description}}">
 								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a> </td>
-								<td> <a href="/providers/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
+								<td> <a href="/persons/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a> </td>
 								<td>
 									{% for e in o.elements %}
 									<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>

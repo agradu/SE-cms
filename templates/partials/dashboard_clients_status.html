@@ -28,7 +28,7 @@
 							{{ o.invoiced }} %
 						</td>
 						<td> {% if o.invoiced < 100 %}
-							<a href="/payments/invoice/0/{{ o.order.person.id }}/" title="Create an invoice">
+							<a href="/payments/invoice/0/{{ o.order.person.id }}/{{ o.order.id }}/" title="Create an invoice">
 							<i class="mdi mdi-file mdi-18px"></i>
 							</a>
 							{% endif %}

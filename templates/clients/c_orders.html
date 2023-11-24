@@ -68,7 +68,7 @@
 									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a>
 								</td>
 								<td>
-									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
+									<a href="/persons/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
 								</td>
 								<td> {% for e in o.elements %} <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {% endfor %} </td>
 								<td>
@@ -85,7 +85,7 @@
 								</td>
 								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
 								<td> {% if o.invoiced < 100 %}
-									<button type="button" title="Create an invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/invoice/0/{{ o.order.person.id }}/';">
+									<button type="button" title="Create an invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/invoice/0/{{ o.order.person.id }}/{{ o.order.id }}/';">
 									<i class="mdi mdi-file"></i>
 									</button>
 									{% endif %}

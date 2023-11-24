@@ -127,6 +127,9 @@ def invoice(request, invoice_id, person_id, order_id):
     if invoice_id != 0:  # if invoice exists
         new = False
         invoice = get_object_or_404(Invoice, id=invoice_id)
+        invoice_serial = invoice.serial
+        invoice_number = invoice.number
+        is_client = invoice.is_client
         person = invoice.person
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
@@ -171,9 +174,13 @@ def invoice(request, invoice_id, person_id, order_id):
 
     else:  # if invoice is new
         new = True
+        invoice = ""
         person = get_object_or_404(Person, id=person_id)
         order = get_object_or_404(Order, id=order_id)
-        invoice = ""
+        serials = Serial.objects.get(id='1')
+        invoice_serial = serials.invoice_serial
+        invoice_number = serials.invoice_number
+        is_client = order.is_client
         orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
         invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
         uninvoiced_elements = orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
@@ -184,9 +191,6 @@ def invoice(request, invoice_id, person_id, order_id):
                     invoice_serial = request.POST.get("invoice_serial")
                     invoice_number = request.POST.get("invoice_number")
                 else:
-                    serials = Serial.objects.get(id=1)
-                    invoice_serial = serials.invoice_serial
-                    invoice_number = serials.invoice_number
                     serials.invoice_number += 1
                     serials.save()
                 deadline_date = request.POST.get("deadline_date")
@@ -220,6 +224,9 @@ def invoice(request, invoice_id, person_id, order_id):
         {
             "person": person,
             "invoice": invoice,
+            "invoice_serial": invoice_serial,
+            "invoice_number": invoice_number,
+            "is_client": is_client,
             "invoice_elements": invoice_elements,
             "uninvoiced_elements": uninvoiced_elements,
             "new": new

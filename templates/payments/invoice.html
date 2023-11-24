@@ -5,7 +5,7 @@
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-file"></i>
-		</span> Invoice {{ invoice.serial }}{{ invoice.number }} from {{ invoice.person.firstname }} {{ invoice.person.lastname }}
+		</span> Invoice {{ invoice.serial }}{{ invoice.number }} {%if is_client %}to{% else %}from{% endif %} {{ person.firstname }} {{ person.lastname }}
 	</h3>
 </div> 
 {% load static %} 
@@ -19,7 +19,7 @@
 						<p><b>Name:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p>{{ invoice.person.firstname }} {{ invoice.person.lastname }}</p>
+						<p>{{ person.firstname }} {{ person.lastname }}</p>
 					</div>
 				</div>
 				<div class="row">
@@ -27,7 +27,7 @@
 						<p><b>Company:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p>{{ invoice.person.company_name }}</p>
+						<p>{{ person.company_name }}</p>
 					</div>
 				</div>
 				<div class="row">
@@ -35,8 +35,8 @@
 						<p><b>Contact:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p><a href="mailto:{{ invoice.person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ invoice.person.email }} / <a href="https://wa.me/{{ invoice.person.phone | slice:'2:' }}">
-							<i class="mdi mdi-whatsapp"></i></a> {{ invoice.person.phone }}<br>Address - {{ invoice.person.address }}</p>
+						<p><a href="mailto:{{ person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ person.email }} / <a href="https://wa.me/{{ person.phone | slice:'2:' }}">
+							<i class="mdi mdi-whatsapp"></i></a> {{ person.phone }}<br>Address - {{ person.address }}</p>
 					</div>
 				</div>
 				<div class="row">
@@ -44,14 +44,14 @@
 						<p><b>Services:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p>{{ invoice.person.services }}</p>
+						<p>{{ person.services }}</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<div class="col-md-6 grid-margin stretch-card">
-		<div class="card bg-light">
+		<div class="card">
 			<div class="card-body">
 				<h4 class="card-title">Invoice details</h4>
 				<p>Invoice created by <b class="text-primary">{{invoice.created_by.first_name}} {{invoice.created_by.last_name}}</b> and modified by <b class="text-success">{{invoice.modified_by.first_name}} {{invoice.modified_by.last_name}}</b>. </p>
@@ -62,11 +62,11 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Serial</label>
 									<div class="col-sm-4">
-										<input type="text"{% if invoice.is_client %}disabled=""{% endif %} class="form-control" name="invoice_serial" value="{{ invoice.serial }}">
+										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_serial" value="{{ invoice_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
 									<div class="col-sm-4">
-										<input type="text"{% if invoice.is_client %}disabled=""{% endif %} class="form-control" name="invoice_number" value="{{ invoice.number }}">
+										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_number" value="{{ invoice_number }}">
 									</div>
 								</div>
 							</div>
@@ -126,7 +126,7 @@
 							<tr id="e{{ e.id }}">
 								<td width="20%"> {{e.element.service.name}} </td>
 								<td> {{e.element.description}} </td>
-								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">O# {{ e.element.order.id }}</a> from {{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}} </td>
+								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">O# {{ e.element.order.id }} from {{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}}</a> </td>
 								<td width="7%"> {{e.element.quantity}} </td>
 								<td width="10%"> {{e.element.um.name}} </td>
 								<td width="10%"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>
@@ -182,7 +182,7 @@
 							<tr id="ue{{ e.id }}">
 								<td width="20%"> {{ue.service.name}} </td>
 								<td> {{ue.description}} </td>
-								<td> <a href="/{% if ue.order.is_client %}clients{% else %}providers{% endif %}/order/{{ ue.order.id }}/{{ ue.order.person.id}}/">O# {{ue.order.id}}</a> from {{ ue.order.created_at|date:"d.m.Y"}} - {{ ue.order.created_at|time:"H:i"}} </td>
+								<td> <a href="/{% if ue.order.is_client %}clients{% else %}providers{% endif %}/order/{{ ue.order.id }}/{{ ue.order.person.id}}/">O# {{ue.order.id}} from {{ ue.order.created_at|date:"d.m.Y"}} - {{ ue.order.created_at|time:"H:i"}}</a> </td>
 								<td width="7%"> {{ue.quantity}} </td>
 								<td width="10%"> {{ue.um.name}} </td>
 								<td width="10%"> {{ue.price}} {{ue.order.currency.symbol}} </td>
