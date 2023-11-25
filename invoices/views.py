@@ -42,7 +42,7 @@ def invoices(request):
         | Q(person__lastname__icontains=search)
         | Q(person__company_name__icontains=search)
     ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
-    client_invoices = []
+    person_invoices = []
     for i in selected_invoices:
         invoice_elements = InvoiceElement.objects.filter(invoice=i).order_by("id")
         i_orders = []
@@ -53,62 +53,65 @@ def invoices(request):
         i_payments = PaymentInvoice.objects.filter(invoice=i)
         for p in i_payments:
             i_payed += p.payment.value
-        payed = int(i_payed / i.value * 100)
-        client_invoices.append(
+        if i.value > 0:
+            payed = int(i_payed / i.value * 100)
+        else:
+            payed = 0
+        person_invoices.append(
             {"invoice": i, "payed": payed, "value": i.value, "orders": i_orders}
         )
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
     if sort == "type":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].is_client, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].is_client, reverse=True
         )
     elif sort == "invoice":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].id, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].id, reverse=True
         )
     elif sort == "person":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].person.firstname
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].person.firstname
         )
     elif sort == "assignee":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].modified_by.first_name
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].modified_by.first_name
         )
     elif sort == "registered":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].created_at, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].created_at, reverse=True
         )
     elif sort == "deadline":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].deadline, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].deadline, reverse=True
         )
     elif sort == "status":
-        client_invoices = sorted(client_invoices, key=lambda x: x["invoice"].status.id)
+        person_invoices = sorted(person_invoices, key=lambda x: x["invoice"].status.id)
     elif sort == "value":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["value"], reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["value"], reverse=True
         )
     elif sort == "payed":
-        client_invoices = sorted(client_invoices, key=lambda x: x["payed"])
+        person_invoices = sorted(person_invoices, key=lambda x: x["payed"])
     elif sort == "update":
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].modified_at, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].modified_at, reverse=True
         )
     else:
-        client_invoices = sorted(
-            client_invoices, key=lambda x: x["invoice"].created_at, reverse=True
+        person_invoices = sorted(
+            person_invoices, key=lambda x: x["invoice"].created_at, reverse=True
         )
 
-    paginator = Paginator(client_invoices, 10)
+    paginator = Paginator(person_invoices, 10)
     invoices_on_page = paginator.get_page(page)
 
     return render(
         request,
         "payments/invoices.html",
         {
-            "client_invoices": invoices_on_page,
+            "person_invoices": invoices_on_page,
             "sort": sort,
             "search": search,
             "reg_start": reg_start,
@@ -122,19 +125,37 @@ def invoice(request, invoice_id, person_id, order_id):
     # Default parts
     invoice_elements = []
     uninvoiced_elements = []
-    element = ""
     date_now = timezone.now()
-    if invoice_id != 0:  # if invoice exists
-        new = False
+    person = get_object_or_404(Person, id=person_id)
+    serials = Serial.objects.get(id='1')
+    invoice_serial = serials.invoice_serial
+    invoice_number = serials.invoice_number
+    if order_id > 0:
+        order = get_object_or_404(Order, id=order_id)
+        is_client = order.is_client
+    else:
+        order = ""
+    if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
+        is_client = invoice.is_client
+        new = False
+    else:
+        invoice =""
+        new = True
+    all_orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
+    invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
+    uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
+    def set_value(invoice): # calculate and save the value of the invoice
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+        invoice.value = 0
+        for e in invoice_elements:
+            invoice.value += (e.element.price * e.element.quantity)
+        invoice.save()
+
+    if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
-        is_client = invoice.is_client
-        person = invoice.person
-        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
-        orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
-        invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
-        uninvoiced_elements = orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by('element__order__created_at')
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
@@ -142,17 +163,19 @@ def invoice(request, invoice_id, person_id, order_id):
                     invoice.serial = request.POST.get("invoice_serial")
                     invoice.number = request.POST.get("invoice_number")
                 deadline_date = request.POST.get("deadline_date")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date}", "%Y-%m-%d"
-                )
-                invoice.deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
+                    invoice.deadline = timezone.make_aware(deadline_naive)
+                except:
+                    invoice.deadline = date_now  
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
                 try: # delete an element
                     element = InvoiceElement.objects.get(id=invoice_element_id)
-                    element.delete()
+                    if InvoiceElement.objects.filter(invoice=invoice).count() > 1:
+                        element.delete()
                 except:
-                    element = ""
+                    print("Element",invoice_element_id,"is missing!")
             if "uninvoiced_element_id" in request.POST:
                 uninvoiced_element_id = int(request.POST.get("uninvoiced_element_id"))
                 try: # add an element
@@ -162,42 +185,29 @@ def invoice(request, invoice_id, person_id, order_id):
                         element=element
                     )
                 except:
-                    element = ""
+                    print("Element",uninvoiced_element_id,"is missing!")
             # Setting the modiffied user and date
             invoice.modified_by = request.user
             invoice.modified_at = date_now
-            # Calculating the order value
-            invoice.value = 0
-            for e in invoice_elements:
-                invoice.value += (e.element.price * e.element.quantity)
-            invoice.save()
+            # Save the invoice value
+            set_value(invoice)
 
     else:  # if invoice is new
-        new = True
-        invoice = ""
-        person = get_object_or_404(Person, id=person_id)
-        order = get_object_or_404(Order, id=order_id)
-        serials = Serial.objects.get(id='1')
-        invoice_serial = serials.invoice_serial
-        invoice_number = serials.invoice_number
-        is_client = order.is_client
-        orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
-        invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
-        uninvoiced_elements = orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice_description = request.POST.get("invoice_description")
                 if order.is_client == False:
                     invoice_serial = request.POST.get("invoice_serial")
                     invoice_number = request.POST.get("invoice_number")
-                else:
-                    serials.invoice_number += 1
-                    serials.save()
+                    if invoice_serial =="" and invoice_number =="":
+                        invoice_serial = "??"
+                        invoice_serial = "???"
                 deadline_date = request.POST.get("deadline_date")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date}", "%Y-%m-%d"
-                )
-                invoice_deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
+                    invoice_deadline = timezone.make_aware(deadline_naive)
+                except:
+                    invoice_deadline = date_now
                 invoice = Invoice(
                     description = invoice_description,
                     serial = invoice_serial,
@@ -210,7 +220,17 @@ def invoice(request, invoice_id, person_id, order_id):
                     currency = order.currency,
                 )
                 invoice.save()
+                # Add all uninvoiced elements to this invoice
+                for element in uninvoiced_elements:
+                    InvoiceElement.objects.get_or_create(
+                        invoice=invoice,
+                        element=element
+                    )
+                # Save the invoice value
+                set_value(invoice)
                 new = False
+                serials.invoice_number += 1
+                serials.save()
                 return redirect(
                     "invoice",
                     invoice_id = invoice.id,
@@ -232,3 +252,8 @@ def invoice(request, invoice_id, person_id, order_id):
             "new": new
         },
     )
+
+@login_required(login_url="/login/")
+def print_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")

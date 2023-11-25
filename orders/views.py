@@ -155,10 +155,11 @@ def c_order(request, order_id, client_id):
                 order.currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
-                )
-                order.deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    order.deadline = timezone.make_aware(deadline_naive)
+                except:
+                    order.deadline = date_now 
             if "element_id" in request.POST:
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
@@ -212,10 +213,11 @@ def c_order(request, order_id, client_id):
                 currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
-                )
-                deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    deadline = timezone.make_aware(deadline_naive)
+                except:
+                    deadline = date_now 
                 order = Order(
                     description = description,
                     person=client,
@@ -405,10 +407,11 @@ def p_order(request, order_id, provider_id):
                 order.currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
-                )
-                order.deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    order.deadline = timezone.make_aware(deadline_naive)
+                except:
+                    order.deadline = date_now 
             if "element_id" in request.POST:
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
@@ -462,10 +465,11 @@ def p_order(request, order_id, provider_id):
                 currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
-                deadline_naive = datetime.strptime(
-                    f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M"
-                )
-                deadline = timezone.make_aware(deadline_naive)
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    deadline = timezone.make_aware(deadline_naive)
+                except:
+                    deadline = date_now 
                 order = Order(
                     description = description,
                     person=provider,
