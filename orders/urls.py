@@ -13,4 +13,5 @@ urlpatterns = [
         views.p_order,
         name="p_order",
     ),
+    path("clients/print_order/<int:order_id>/", views.print_order, name="print_order"),
 ]

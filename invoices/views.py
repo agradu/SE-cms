@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
 from persons.models import Person
-from payments.models import Payment, PaymentInvoice
+from payments.models import PaymentInvoice
 from .models import Invoice, InvoiceElement
 from services.models import Serial
 from django.core.paginator import Paginator
@@ -286,5 +286,5 @@ def print_invoice(request, invoice_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = 'filename=output.pdf'
+    response['Content-Disposition'] = f'filename=invoice-{invoice.serial}-{invoice.number}.pdf'
     return response

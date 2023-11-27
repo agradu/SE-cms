@@ -1,14 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
+from django.db.models import Q
 from .models import Order, OrderElement
 from persons.models import Person
-from payments.models import Payment
-from invoices.models import Invoice, InvoiceElement
+from invoices.models import InvoiceElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
+from weasyprint import HTML, CSS
+import base64
 
 # Create your views here.
 
@@ -504,3 +507,31 @@ def p_order(request, order_id, provider_id):
             "element_selected": element
         },
     )
+
+@login_required(login_url="/login/")
+def print_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order_elements = OrderElement.objects.filter(order=order).order_by("id")
+    leading_number = str(order_id).rjust(3,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        img_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(img_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        order_content = f.read()
+
+    context = {
+        "order": order,
+        "leading_number": leading_number,
+        "order_elements": order_elements,
+        "logo_base64": logo_base64
+    }
+    html_content = render_to_string("clients/print_order.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=order_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=order_{order_id}.pdf'
+    return response

@@ -1,0 +1,96 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'css/invoice.css' %}" media="print" rel="stylesheet">
+    <title>Order</title>
+    <meta name="description" content="Invoice">
+  </head>
+  <body>
+    <div class="table">
+        <div class="tr">
+            <div class="td">
+                <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 250px;"> <br>
+                Ritterstraße 11b, 39124 Magdeburg
+            </div>
+            <div class="right td">
+                <b>{{ order.person.company_name }}<br>
+                {{ order.person.firstname }} {{ order.person.lastname }}</b><br>
+                {{ order.person.address }}
+            </div>
+        </div>
+    </div>
+    <div class="table invoice-daten">
+        <div class="tr">
+            <div class="td"><b>Auftragsdatum</b><br>
+                {{ order.created_at|date:"d.m.Y"}} - {{ order.created_at|time:"H:i"}}</div>
+            <div class="right td"><b>Frist</b><br>
+                {{ order.deadline|date:"d.m.Y"}} - {{ order.deadline|time:"H:i"}}</div>
+        </div>
+    </div>
+    <div class="invoice-title">
+        <b>Auftragsbestätigung Nr.</b> {{ leading_number }}
+    </div>
+    <div class="subtitle">
+        Es wurde vereinbart, dass innerhalb des oben genannten Zeitraums folgende Dienstleistungen erbracht werden sollen:
+    </div>
+    <div class="table">
+        <div class="tr bold">
+            <div class="td line-down">Beschreibung</div>
+            <div class="td right line-down pl">Menge</div>  
+            <div class="td right line-down pl">Einheit</div>
+            <div class="td right line-down pl">Einzelpreis</div>
+            <div class="td right line-down pl">Betrag</div>
+        </div>
+        {% for e in order_elements %}
+        <div class="tr">
+            <div class="td">{{ e.service.name }} - {{ e.description }}</div>
+            <div class="td right pl">{{ e.quantity }}</div>  
+            <div class="td right pl">{{ e.um.name }}</div>
+            <div class="td right pl">{{ e.price }}&nbsp;{{ order.currency.symbol }}</div>
+            <div class="td right pl">{{ e.price }}&nbsp;{{ order.currency.symbol }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="table">
+        <div class="tr">
+            <div class="td2 line-up pt">Nicht umsatzsteuerpflichtig nach § 19 1 UStG.</div>
+            <div class="td2 line-up colspan1 bold text-small pt">Nettobetrag</div>
+            <div class="td2 line-up colspan2 right bold text-small pt">{{ order.value }}&nbsp;{{ order.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td2"></div>
+            <div class="td2 colspan1 text-small">USt. 0,00 %</div>
+            <div class="td2 colspan2 right text-small">0&nbsp;{{ order.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td"></div>
+            <div class="td line-up colspan1 text-bigger">Gesamtsumme</div>
+            <div class="td line-up colspan2 right text-bigger pl">{{ order.value }}&nbsp;{{ order.currency.symbol }}</div>
+        </div>
+    </div>
+    <div class="footer">
+        <p><b>Dokumentenprotokoll:</b> <br>
+            {{ order.description }}</p>
+        <div class="table">
+            <div class="tr">
+                <div class="td">
+                    Mitarbeiter<br>
+                    <b class="text-bigger">{{ order.modified_by.first_name}} {{ order.modified_by.last_name}}</b><br>
+                    Unterschrift:
+                </div>
+                <div class="td right">
+                    Kunde<br>
+                    <b class="text-bigger">{{ order.person.firstname}} {{ order.person.lastname}}</b><br>
+                    Unterschrift:
+                </div>
+            </div>
+        </div>
+        <p class="line-up center" style="padding-top: 10pt">
+            <b>Sprachen Express</b> - Ritterstraße 11b, 39124 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
+            <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
+            <b>Bank</b> Postbank | <b>SWIFT/BIC</b> PBNKDEFF | <b>IBAN</b> DE91 8601 0090 0991 6239 01
+        </p>
+    </div>
+  </body>
+</html>
