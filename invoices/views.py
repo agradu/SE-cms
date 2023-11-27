@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
@@ -9,6 +11,8 @@ from services.models import Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
+from weasyprint import HTML, CSS
+import base64
 
 # Create your views here.
 
@@ -257,3 +261,30 @@ def invoice(request, invoice_id, person_id, order_id):
 def print_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+    date1 = invoice.created_at.date()
+    date2 = invoice.deadline
+    day_left = (date2 - date1).days
+    leading_number = invoice.number.rjust(3,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        svg_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(svg_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        invoice_content = f.read()
+
+    context = {
+        "invoice": invoice,
+        "day_left": day_left,
+        "leading_number": leading_number,
+        "invoice_elements": invoice_elements,
+        "logo_base64": logo_base64
+    }
+    html_content = render_to_string("payments/print_invoice.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'filename=output.pdf'
+    return response

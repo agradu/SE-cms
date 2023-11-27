@@ -114,9 +114,9 @@
 								<th> Service </th>
 								<th> Description </th>
 								<th> Order </th>
-								<th> Quantity </th>
+								<th style="text-align: right;"> Quantity </th>
 								<th> Unit </th>
-								<th> Price </th>
+								<th style="text-align: right;"> Price </th>
 								<th> Status </th>
 								<th width="1%"></th>
 							</tr>
@@ -127,9 +127,9 @@
 								<td width="20%"> {{e.element.service.name}} </td>
 								<td> {{e.element.description}} </td>
 								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">O# {{ e.element.order.id }} from {{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}}</a> </td>
-								<td width="7%"> {{e.element.quantity}} </td>
+								<td width="7%" style="text-align: right;"> {{e.element.quantity}} </td>
 								<td width="10%"> {{e.element.um.name}} </td>
-								<td width="10%"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>
+								<td width="10%" style="text-align: right;"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>
 								<td width="10%">
 									<label class="badge badge-{{e.element.status.style}}"> {{e.element.status.name}} </label>
 								</td>
@@ -137,7 +137,7 @@
 									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
 										<input type="hidden" name="invoice_element_id" value="{{e.id}}">
 										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
-											<i class="mdi mdi-delete-forever btn-icon-prepend"></i>
+											<i class="mdi mdi-minus btn-icon-prepend"></i>
 										</button>
 									</form>
 								</td>
@@ -147,8 +147,11 @@
 								<td colspan="3"> </td>
 								<td> <h4>INVOICE</h4> </td>
 								<td> <h4>TOTAL:</h4> </td>
-								<td> <h4>{{invoice.value}} {{invoice.currency.symbol}}</h4> </td>
-								<td colspan="3"> </td>
+								<td style="text-align: right;"> <h4>{{invoice.value}} {{invoice.currency.symbol}}</h4> </td>
+								<td colspan="3">
+									<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
+									<i class="mdi mdi-file-outline btn-icon-prepend"></i> Download </button>
+								</td>
 							</tr>
 						</tbody>
 					</table>
@@ -170,9 +173,9 @@
 								<th> Service </th>
 								<th> Description </th>
 								<th> Order </th>
-								<th> Quantity </th>
+								<th style="text-align: right;"> Quantity </th>
 								<th> Unit </th>
-								<th> Price </th>
+								<th style="text-align: right;"> Price </th>
 								<th> Status </th>
 								<th width="1%"></th>
 							</tr>
@@ -183,9 +186,9 @@
 								<td width="20%"> {{ue.service.name}} </td>
 								<td> {{ue.description}} </td>
 								<td> <a href="/{% if ue.order.is_client %}clients{% else %}providers{% endif %}/order/{{ ue.order.id }}/{{ ue.order.person.id}}/">O# {{ue.order.id}} from {{ ue.order.created_at|date:"d.m.Y"}} - {{ ue.order.created_at|time:"H:i"}}</a> </td>
-								<td width="7%"> {{ue.quantity}} </td>
+								<td width="7%" style="text-align: right;"> {{ue.quantity}} </td>
 								<td width="10%"> {{ue.um.name}} </td>
-								<td width="10%"> {{ue.price}} {{ue.order.currency.symbol}} </td>
+								<td width="10%" style="text-align: right;"> {{ue.price}} {{ue.order.currency.symbol}} </td>
 								<td width="10%">
 									<label class="badge badge-{{ue.status.style}}"> {{ue.status.name}} </label>
 								</td>

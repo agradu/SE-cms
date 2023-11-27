@@ -20,7 +20,7 @@
 						<p><b>Name:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p>{{ order.person.firstname }} {{ order.person.lastname }}</p>
+						<p><a href="/persons/{{ order.person.id }}/">{{ order.person.firstname }} {{ order.person.lastname }}</a></p>
 					</div>
 				</div>
 				<div class="row">
@@ -160,9 +160,9 @@
 							<tr id="e_start">
 								<th> Service </th>
 								<th> Description </th>
-								<th> Quantity </th>
+								<th style="text-align: right;"> Quantity </th>
 								<th> Unit </th>
-								<th> Price </th>
+								<th style="text-align: right;"> Price </th>
 								<th> Status </th>
 								<th colspan="2" width="1%"></th>
 							</tr>
@@ -214,9 +214,9 @@
 							<tr id="e{{ e.id }}">
 								<td width="20%"> {{e.service.name}} </td>
 								<td> {{e.description}} </td>
-								<td width="7%"> {{e.quantity}} </td>
+								<td width="7%" style="text-align: right;"> {{e.quantity}} </td>
 								<td width="10%"> {{e.um.name}} </td>
-								<td width="10%"> {{e.price}} {{order.currency.symbol}} </td>
+								<td width="10%" style="text-align: right;"> {{e.price}} {{order.currency.symbol}} </td>
 								<td width="10%">
 									<label class="badge badge-{{e.status.style}}"> {{e.status.name}} </label>
 								</td>
@@ -283,7 +283,7 @@
 							<tr>
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
-								<td> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
+								<td style="text-align: right;"> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
 								<td colspan="3"> </td>
 							</tr>
 						</tbody>

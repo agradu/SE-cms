@@ -58,7 +58,7 @@
 								<th> <a href="/providers/orders/?sort=registered">Registered</a> </th>
 								<th> <a href="/providers/orders/?sort=deadline">Due Date</a> </th>
 								<th> <a href="/providers/orders/?sort=status">Status</a> </th>
-								<th> <a href="/providers/orders/?sort=value">Value</a> </th>
+								<th style="text-align: right;"> <a href="/providers/orders/?sort=value">Value</a> </th>
 								<th> <a href="/providers/orders/?sort=invoiced">Invoiced</a> </th>
 								<th> <a href="/providers/orders/?sort=update">Last Update</a> </th>
 								<th></th>
@@ -82,7 +82,7 @@
 								<td>
 									<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 								</td>
-								<td> {{ o.order.value}} {{ o.order.currency.symbol }}</td>
+								<td style="text-align: right;"> {{ o.order.value}} {{ o.order.currency.symbol }}</td>
 								<td class="text-{% if o.invoiced == 100 %}success{% elif o.invoiced == 0 %}danger{% else %}info{% endif %}">
 									{{ o.invoiced}} %
 								</td>
