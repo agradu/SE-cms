@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-
-{% block title %}Sprachen Express - Orders form clients{% endblock %}
-
-{% block content %}
+{% block title %}Sprachen Express - Offers for clients{% endblock %} 
+{% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-star"></i>
+			<i class="mdi mdi-clipboard"></i>
 		</span> Offers for clients
 	</h3>
 </div>
@@ -16,105 +14,102 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table">
-					  <tbody>
-						<tr>
-						  <td width="50%">
-							<div class="input-group input-group-sm">
-							  <i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-							  <input type="text" class="form-control" placeholder="Search clients" aria-label="Search clients">
-							</div>
-						  </td>
-						  <td>
-							<div class="input-group input-group-sm">
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						  <td>
-							<div class="col input-group input-group-sm">
-							  <input type="date" class="form-control">
-							</div>
-						  </td>
-						</tr>
-					  </tbody>
-					</table>
+					<form method="post"> 
+						{% csrf_token %} 
+						<table class="table">
+							<tbody>
+								<tr>
+									<td width="50%">
+										<div class="input-group input-group-sm">
+											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+											<input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+										</div>
+									</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="">Offer</a> </th>
-								<th> <a href="">Client</a> </th>
+								<th><a href="/clients/offers/?sort=offer&search={{search}}">Offer</a></th>
+								<th><a href="/clients/offers/?sort=client&search={{search}}">Client</a></th>
 								<th> Description </th>
-								<th> <a href="">Assignee</a> </th>
-								<th> <a href="">Registered</a> </th>
-								<th> <a href="">Due Date</a> </th>
-								<th> <a href="">Status</a> </th>
-								<th> <a href="">Last Update</a> </th>
+								<th><a href="/clients/offers/?sort=assignee&search={{search}}">Assignee</a></th>
+								<th><a href="/clients/offers/?sort=registered&search={{search}}">Registered</a></th>
+								<th><a href="/clients/offers/?sort=deadline&search={{search}}">Due Date</a></th>
+								<th><a href="/clients/offers/?sort=status&search={{search}}">Status</a></th>
+								<th style="text-align: right;">Order</th>
+								<th style="text-align: right;"><a href="/clients/offers/?sort=value&search={{search}}">Value</a></th>
+								<th><a href="/clients/offers/?sort=update&search={{search}}">Last Update</a></th>
 							</tr>
 						</thead>
-						<tbody>
-							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
+						<tbody> {% for o in client_offers %} 
+							<tr title="{{ o.order.description}}">
 								<td>
-									<i class="mdi mdi-file-word-box mdi-18px"></i>
-									<i class="mdi mdi-google-translate mdi-18px"></i>
-									<i class="mdi mdi-seal mdi-18px"></i>
+									<a href="/clients/offer/{{ o.offer.id }}/{{ o.offer.person.id}}/"> {{ o.offer.id}} </a>
 								</td>
 								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
+									<a href="/persons/{{ o.offer.person.id}}/"> {{ o.offer.person.firstname}} {{ o.offer.person.lastname}} {% if o.offer.person.company_name != "" %}- {{ o.offer.person.company_name}} {% endif %}</a>
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 12.12.2012 - 16:30 </td>
+								<td> {% for e in o.elements %} <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {% endfor %} </td>
 								<td>
-									<label class="badge badge-success">Wartet</label>
+									<img src="{{ o.offer.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ o.offer.modified_by.first_name}} {{ o.offer.modified_by.last_name}}
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-							</tr>
-							<tr>
-								<td> <a href="">1234</a> </td>
-								<td> <a href="">Matei Georgescu</a> </td>
+								<td> {{ o.offer.created_at|date:"d.m.Y"}} - {{ o.offer.created_at|time:"H:i"}} </td>
+								<td> {{ o.offer.deadline|date:"d.m.Y"}} - {{ o.offer.deadline|time:"H:i"}} </td>
 								<td>
-									<i class="mdi mdi-file-word-box mdi-18px"></i>
-									<i class="mdi mdi-google-translate mdi-18px"></i>
-									<i class="mdi mdi-seal mdi-18px"></i>
+									<label class="badge badge-{{ o.offer.status.style}}">{{ o.offer.status.name}}</label>
 								</td>
-								<td>
-									<img src="{% static 'images/faces/face1.jpg' %}" class="me-2" alt="image"> Adrian G. Radu
+								<td style="text-align: right;"> {% if not o.order %}
+									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/orders/0/{{ o.offer.person.id}}/';">
+										<i class="mdi mdi-clipboard-outline"></i>
+									</button>
+									{% else %}
+									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a>
+									{% endif %}
 								</td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td> 12.12.2012 - 16:30 </td>
-								<td>
-									<label class="badge badge-success">Wartet</label>
-								</td>
-								<td> 12.12.2012 - 16:30 </td>
-							</tr>
+								<td style="text-align: right;"> {{ o.offer.value}} {{ o.offer.currency.symbol }}</td>
+								<td> {{ o.offer.modified_at|date:"d.m.Y"}} - {{ o.offer.modified_at|time:"H:i"}} </td>
+							</tr> {% endfor %} 
 						</tbody>
 					</table>
 				</div>
 				<div class="table-responsive">
 					<table class="table">
-					  <tbody>
-						<tr>
-							<td>
-							  <div class="btn-group btn-group-sm">
-								<button type="button" class="btn btn-primary">1</button>
-								<button type="button" class="btn btn-outline-secondary">2</button>
-								<button type="button" class="btn btn-outline-secondary">3</button>
-								<button type="button" class="btn btn-outline-secondary">4</button>
-							  </div>
-							</td>
-						  </tr>
-						  <tr>
-							<td>
-							  <div class="input-group input-group-sm">
-								<button type="button" class="btn btn-gradient-primary btn-icon-text">
-								  <i class="mdi mdi-star btn-icon-prepend"></i> Register a new offer</button>
-							  </div>
-							</td>
-						  </tr>
-					  </tbody>
+						<tbody> 
+							{% if client_orders.paginator.num_pages > 1 %} 
+							<tr>
+								<td>
+									<div class="btn-group btn-group-sm">
+										{% for pg in client_orders.paginator.page_range %}
+										{% if pg == client_orders.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% else %}
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% endif %}
+										{% endfor %} </div>
+								</td>
+							</tr> 
+							{% endif %}
+						</tbody>
 					</table>
 				</div>
 			</div>

@@ -7,6 +7,9 @@ urlpatterns = [
         "clients/order/<int:order_id>/<int:client_id>/", views.c_order, name="c_order"
     ),
     path("clients/offers/", views.c_offers, name="c_offers"),
+    path(
+        "clients/offer/<int:offer_id>/<int:client_id>/", views.c_offer, name="c_offer"
+    ),
     path("providers/orders/", views.p_orders, name="p_orders"),
     path(
         "providers/order/<int:order_id>/<int:provider_id>/",

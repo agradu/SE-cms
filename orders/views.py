@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Order, OrderElement
+from .models import Order, OrderElement, Offer, OfferElement
 from persons.models import Person
 from invoices.models import InvoiceElement
 from services.models import Currency, Status, Service, UM
@@ -109,7 +109,6 @@ def c_orders(request):
             "reg_end": reg_end,
         },
     )
-
 
 @login_required(login_url="/login/")
 def c_order(request, order_id, client_id):
@@ -262,7 +261,6 @@ def c_order(request, order_id, client_id):
         },
     )
 
-
 @login_required(login_url="/login/")
 def c_offers(request):
     # search elements
@@ -288,68 +286,53 @@ def c_offers(request):
             )
         else:
             search = ""
-    # CLIENT ORDERS
-    selected_orders = (
-        Order.objects.filter(is_client=True)
-        .filter(
+    # CLIENT OFFERS
+    selected_offers = (
+        Offer.objects.filter(
             Q(person__firstname__icontains=search)
             | Q(person__lastname__icontains=search)
             | Q(person__company_name__icontains=search)
         )
         .filter(created_at__gte=filter_start, created_at__lte=filter_end)
     )
-    client_orders = []
-    for o in selected_orders:
-        order_elements = OrderElement.objects.filter(order=o).order_by("id")
+    client_offers = []
+    for o in selected_offers:
+        offer_elements = OfferElement.objects.filter(offer=o).order_by("id")
         o_invoiced = 0
-        for e in order_elements:
-            try:
-                invoice_element = InvoiceElement.objects.get(element=e)
-                o_invoiced += (
-                    invoice_element.element.price * invoice_element.element.quantity
-                )
-            except:
-                invoice_element = None
-        if o.value > 0:
-            invoiced = int(o_invoiced / o.value * 100)
-        else:
-            invoiced = 0
-        client_orders.append(
-            {"order": o, "elements": order_elements, "invoiced": invoiced}
+        client_offers.append(
+            {"offer": o, "elements": offer_elements, "order": o.order}
         )
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
     def get_sort_key(x):
-        if sort == "order":
-            return x["order"].id
+        if sort == "offer":
+            return x["offer"].id
         elif sort == "client":
-            return x["order"].person.firstname
+            return x["offer"].person.firstname
         elif sort == "assignee":
-            return x["order"].modified_by.first_name
+            return x["offer"].modified_by.first_name
         elif sort == "registered":
-            return x["order"].created_at
+            return x["offer"].created_at
         elif sort == "deadline":
-            return x["order"].deadline
+            return x["offer"].deadline
         elif sort == "status":
-            return x["order"].status.id
+            return x["offer"].status.id
         elif sort == "value":
-            return x["order"].value
-        elif sort == "invoiced":
-            return x["invoiced"]
+            return x["offer"].value
         elif sort == "update":
-            return x["order"].modified_at
+            return x["offer"].modified_at
         else:
-            return x["order"].created_at
-    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client"))
-    paginator = Paginator(client_orders, 10)
-    orders_on_page = paginator.get_page(page)
+            return x["offer"].created_at
+    client_offers = sorted(client_offers, key=get_sort_key, reverse=(sort != "client"))
+    paginator = Paginator(client_offers, 10)
+    offers_on_page = paginator.get_page(page)
 
     return render(
         request,
         "clients/c_offers.html",
         {
-            "client_orders": orders_on_page,
+            "client_offers": offers_on_page,
             "sort": sort,
             "search": search,
             "reg_start": reg_start,
@@ -357,6 +340,138 @@ def c_offers(request):
         },
     )
 
+
+@login_required(login_url="/login/")
+def c_offer(request, offer_id, client_id):
+    # Default parts
+    statuses = Status.objects.all().order_by("id")
+    currencies = Currency.objects.all().order_by("id")
+    ums = UM.objects.all().order_by("id")
+    services = Service.objects.all().order_by("name")
+    search = ""
+    clients = []
+    elements = []
+    element = ""
+    date_now = timezone.now()
+    if offer_id != 0:  # if order exists
+        new = False
+        offer = get_object_or_404(Offer, id=offer_id)
+        client = offer.person
+        elements = OfferElement.objects.filter(offer=offer).order_by("id")
+        if request.method == "POST":
+            if "search" in request.POST:
+                search = request.POST.get("search")
+                if len(search) > 3:
+                    clients = Person.objects.filter(
+                        Q(firstname__icontains=search)
+                        | Q(lastname__icontains=search)
+                        | Q(company_name__icontains=search)
+                    )
+            if "new_client" in request.POST:
+                new_client = request.POST.get("new_client")
+                client = get_object_or_404(Person, id=new_client)
+                offer.person = client
+                offer.modified_at = date_now
+            if "offer_description" in request.POST:
+                offer.description = request.POST.get("offer_description")
+                offer.status = statuses[int(request.POST.get("offer_status")) - 1]
+                for e in elements:
+                    e.status = offer.status
+                    e.save()
+                offer.currency = currencies[int(request.POST.get("offer_currency")) - 1]
+                deadline_date = request.POST.get("deadline_date")
+                deadline_time = request.POST.get("deadline_time")
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    offer.deadline = timezone.make_aware(deadline_naive)
+                except:
+                    offer.deadline = date_now 
+            if "element_id" in request.POST:
+                element_id = int(request.POST.get("element_id"))
+                if element_id > 0:  # edit an element
+                    element = OfferElement.objects.get(id=element_id)
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
+                    element.description = request.POST.get("e_description")
+                    element.quantity = request.POST.get("e_quantity")
+                    element.um = ums[int(request.POST.get("e_um")) - 1]
+                    element.price = request.POST.get("e_price")
+                    element.save()
+                else:  # add an element to offer
+                    element = OfferElement(offer=offer)
+                    service_id = int(request.POST.get("e_service"))
+                    element.service = Service.objects.get(id=service_id)
+                    element.description = request.POST.get("e_description")
+                    element.quantity = request.POST.get("e_quantity")
+                    element.um = ums[int(request.POST.get("e_um")) - 1]
+                    element.price = request.POST.get("e_price")
+                    element.save()
+                element = ""  # clearing the active element
+            if "delete_element_id" in request.POST:  # delete en element
+                element_id = int(request.POST.get("delete_element_id"))
+                element = OfferElement.objects.get(id=element_id)
+                element.delete()
+            if "edit_element_id" in request.POST:  # set an element editable in template
+                element_id = int(request.POST.get("edit_element_id"))
+                element = OfferElement.objects.get(id=element_id)
+            # Setting the modiffied user and date
+            offer.modified_by = request.user
+            offer.modified_at = date_now
+            # Calculating the offer value
+            offer.value = 0
+            for e in elements:
+                offer.value += (e.price * e.quantity)
+            offer.save()
+
+    else:  # if offer is new
+        new = True
+        client = get_object_or_404(Person, id=client_id)
+        offer = ""
+        if request.method == "POST":
+            if "offer_description" in request.POST:
+                description = request.POST.get("offer_description")
+                status = statuses[int(request.POST.get("offer_status")) - 1]
+                currency = currencies[int(request.POST.get("offer_currency")) - 1]
+                deadline_date = request.POST.get("deadline_date")
+                deadline_time = request.POST.get("deadline_time")
+                try:
+                    deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
+                    deadline = timezone.make_aware(deadline_naive)
+                except:
+                    deadline = date_now 
+                offer = Offer(
+                    description = description,
+                    person=client,
+                    deadline=deadline,
+                    is_client=True,
+                    modified_by=request.user,
+                    created_by=request.user,
+                    currency=currency,
+                )
+                offer.save()
+                new = False
+                return redirect(
+                    "c_offer",
+                    offer_id = offer.id,
+                    client_id = client.id
+                )
+
+    return render(
+        request,
+        "clients/c_offer.html",
+        {
+            "clients": clients,
+            "offer": offer,
+            "client": client,
+            "elements": elements,
+            "currencies": currencies,
+            "statuses": statuses,
+            "ums": ums,
+            "services": services,
+            "new": new,
+            "element_selected": element,
+        },
+    )
 
 @login_required(login_url="/login/")
 def p_orders(request):
@@ -452,7 +567,6 @@ def p_orders(request):
             "reg_end": reg_end,
         },
     )
-
 
 @login_required(login_url="/login/")
 def p_order(request, order_id, provider_id):

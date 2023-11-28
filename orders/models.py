@@ -74,7 +74,7 @@ class Offer(models.Model):
         blank=True,
     )
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    is_client = models.BooleanField(default=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, default=None)
     deadline = models.DateTimeField(
         default=timezone.now,
     )
@@ -101,5 +101,5 @@ class OfferElement(models.Model):
     )
 
     def __str__(self):
-        return f"OferElm. #{self.offer.id} - {self.service.name} ({self.price}{self.order.currency.symbol} * {self.quantity})"
+        return f"OferElm. #{self.offer.id} - {self.service.name} ({self.price}{self.offer.currency.symbol} * {self.quantity})"
 
