@@ -146,8 +146,8 @@ def invoice(request, invoice_id, person_id, order_id):
     else:
         invoice =""
         new = True
-    all_orders_elements = OrderElement.objects.filter(order__person=person).order_by("id")
-    invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
+    all_orders_elements = OrderElement.objects.exclude(status__id='6').filter(order__person=person).order_by("id")
+    invoiced_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice__person=person).order_by("id")
     uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
@@ -159,7 +159,7 @@ def invoice(request, invoice_id, person_id, order_id):
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
-        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by('element__order__created_at')
+        invoice_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice=invoice).order_by('element__order__created_at')
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
@@ -260,7 +260,7 @@ def invoice(request, invoice_id, person_id, order_id):
 @login_required(login_url="/login/")
 def print_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+    invoice_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice=invoice).order_by("id")
     date1 = invoice.created_at.date()
     date2 = invoice.deadline
     day_left = (date2 - date1).days

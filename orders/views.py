@@ -202,7 +202,16 @@ def c_order(request, order_id, client_id):
             # Calculating the order value
             order.value = 0
             for e in elements:
-                order.value += (e.price * e.quantity)
+                if e.status.id < 6:
+                    order.value += (e.price * e.quantity)
+                    invoice_element = InvoiceElement.objects.get(element=e)
+                    invoice = invoice_element.invoice
+                    invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
+                    invoice.value = 0
+                    for ie in invoice_elements:
+                        if ie.element.status.id < 6:
+                            invoice.value += (ie.element.price * ie.element.quantity)
+                    invoice.save()
             order.save()
 
     else:  # if order is new
@@ -511,7 +520,7 @@ def p_order(request, order_id, provider_id):
 @login_required(login_url="/login/")
 def print_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    order_elements = OrderElement.objects.filter(order=order).order_by("id")
+    order_elements = OrderElement.objects.exclude(status__id='6').filter(order=order).order_by("id")
     leading_number = str(order_id).rjust(3,'0')
 
     # Open the logo image
