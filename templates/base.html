@@ -30,9 +30,9 @@
         <!-- partial -->
         <div class="main-panel">
           <div class="content-wrapper"
-            {% if '/clients/orders/' in request.path %}
+            {% if '/clients/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-clients.jpg' %});"
-            {% elif '/providers/orders/' in request.path %}
+            {% elif '/providers/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-providers.jpg' %});"
             {% elif '/appointments/' in request.path %}
             style="background-image: url({% static 'images/backgrounds/bg-appointments.jpg' %});"
