@@ -4,7 +4,7 @@
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-clipboard"></i>
+			<i class="mdi mdi-star"></i>
 		</span> Offers for clients
 	</h3>
 </div>
@@ -78,11 +78,7 @@
 								<td>
 									<label class="badge badge-{{ o.offer.status.style}}">{{ o.offer.status.name}}</label>
 								</td>
-								<td style="text-align: right;"> {% if not o.order %}
-									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/orders/0/{{ o.offer.person.id}}/';">
-										<i class="mdi mdi-clipboard-outline"></i>
-									</button>
-									{% else %}
+								<td style="text-align: right;"> {% if o.order %}
 									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a>
 									{% endif %}
 								</td>

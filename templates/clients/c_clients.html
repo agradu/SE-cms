@@ -42,7 +42,7 @@
 								<th> Orders </th>
 								<th> Registered </th>
 								<th> Last Update </th>
-								<th> </th>
+								<th colspan="2"> </th>
 							</tr>
 						</thead>
 						<tbody> {% for p in selected_clients %} 
@@ -65,6 +65,11 @@
 								<td>
 									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
 										<i class="mdi mdi-clipboard-outline"></i>
+									</button>
+								</td>
+								<td>
+									<button type="button" title="Create an offer" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/offer/0/{{ p.client.id}}/';">
+										<i class="mdi mdi-star"></i>
 									</button>
 								</td>
 							</tr>

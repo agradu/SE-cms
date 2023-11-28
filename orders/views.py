@@ -340,7 +340,6 @@ def c_offers(request):
         },
     )
 
-
 @login_required(login_url="/login/")
 def c_offer(request, offer_id, client_id):
     # Default parts
@@ -359,6 +358,28 @@ def c_offer(request, offer_id, client_id):
         client = offer.person
         elements = OfferElement.objects.filter(offer=offer).order_by("id")
         if request.method == "POST":
+            if "convert" in request.POST:
+                order = Order(
+                    description = offer.description,
+                    person=client,
+                    deadline=offer.deadline,
+                    is_client=True,
+                    modified_by=request.user,
+                    created_by=request.user,
+                    currency=offer.currency,
+                    value=offer.value,
+                )
+                order.save()
+                for e in elements:
+                    element = OrderElement(order=order)
+                    element.service = e.service
+                    element.description = e.description
+                    element.quantity = e.quantity
+                    element.um = e.um
+                    element.price = e.price
+                    element.save()
+                offer.order = order
+                offer.save()
             if "search" in request.POST:
                 search = request.POST.get("search")
                 if len(search) > 3:
@@ -732,4 +753,32 @@ def print_order(request, order_id):
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=order_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename=order_{order_id}.pdf'
+    return response
+
+@login_required(login_url="/login/")
+def print_offer(request, offer_id):
+    offer = get_object_or_404(Offer, id=offer_id)
+    offer_elements = OfferElement.objects.filter(offer=offer).order_by("id")
+    leading_number = str(offer_id).rjust(3,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        img_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(img_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        offer_content = f.read()
+
+    context = {
+        "offer": offer,
+        "leading_number": leading_number,
+        "offer_elements": offer_elements,
+        "logo_base64": logo_base64
+    }
+    html_content = render_to_string("clients/print_offer.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=offer_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=offer_{offer_id}.pdf'
     return response

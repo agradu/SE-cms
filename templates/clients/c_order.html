@@ -284,7 +284,10 @@
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
-								<td colspan="3"> </td>
+								<td colspan="3">
+									<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/clients/print_order/{{order.id}}/');">
+										<i class="mdi mdi-file-outline btn-icon-prepend"></i> Download </button>
+								</td>
 							</tr>
 						</tbody>
 					</table>

@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'css/invoice.css' %}" media="print" rel="stylesheet">
+    <title>Offer</title>
+    <meta name="description" content="Offer">
+  </head>
+  <body>
+    <div class="logo">
+        <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 250px;">
+    </div>
+    <div class="firma-address">
+        Sprachen Express | Ritterstraße 11b, 39124 Magdeburg
+    </div>
+    <div class="client">
+        <b>{% if offer.person.company_name != '' %}{{ offer.person.company_name }}<br>{% endif %}
+        {{ offer.person.firstname }} {{ offer.person.lastname }}</b>
+    </div>
+    <div class="client-address">
+        {{ offer.person.address }}
+    </div>
+    <div class="table invoice-daten">
+        <div class="tr">
+            <div class="right td" style="width: 75%;"><b>Angebotsdatum</b><br>
+                {{ offer.created_at|date:"d.m.Y"}} - {{ offer.created_at|time:"H:i"}}</div>
+            <div class="right td"><b>Frist</b><br>
+                {{ offer.deadline|date:"d.m.Y"}} - {{ offer.deadline|time:"H:i"}}</div>
+        </div>
+    </div>
+    <div class="invoice-title">
+        <b>Angebot Nr.</b> {{ leading_number }}
+    </div>
+    <div class="table">
+        <div class="tr bold">
+            <div class="td line-down">Beschreibung</div>
+            <div class="td right line-down pl">Menge</div>  
+            <div class="td right line-down pl">Einheit</div>
+            <div class="td right line-down pl">Einzelpreis</div>
+            <div class="td right line-down pl">Betrag</div>
+        </div>
+        {% for e in offer_elements %}
+        <div class="tr">
+            <div class="td">{{ e.service.name }} - {{ e.description }}</div>
+            <div class="td right pl">{{ e.quantity }}</div>  
+            <div class="td right pl">{{ e.um.name }}</div>
+            <div class="td right pl">{{ e.price }}&nbsp;{{ offer.currency.symbol }}</div>
+            <div class="td right pl">{{ e.price }}&nbsp;{{ offer.currency.symbol }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="table">
+        <div class="tr">
+            <div class="td2 line-up pt">Nicht umsatzsteuerpflichtig nach § 19 1 UStG.</div>
+            <div class="td2 line-up colspan1 bold text-small pt">Nettobetrag</div>
+            <div class="td2 line-up colspan2 right bold text-small pt">{{ offer.value }}&nbsp;{{ offer.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td2"></div>
+            <div class="td2 colspan1 text-small">USt. 0,00 %</div>
+            <div class="td2 colspan2 right text-small">0&nbsp;{{ offer.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td"></div>
+            <div class="td line-up colspan1 text-bigger">Gesamtsumme</div>
+            <div class="td line-up colspan2 right text-bigger pl">{{ offer.value }}&nbsp;{{ offer.currency.symbol }}</div>
+        </div>
+    </div>
+    <div class="footer">
+        <p><b class="text-bigger">Erwähnungen</b> <br>
+            {{ offer.description }}</p>
+        <p>Wenn Sie das Angebot akzeptiern und per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto 
+            <b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> 
+            und "<b>Offer Nr. {{ leading_number }}</b>" als Verwendungszweck.</p>
+        <p>Bitte fordern Sie auch die entsprechende Steuerrechnung für dieses Angebot an.</p>
+        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
+        <p class="line-up center" style="padding-top: 10pt">
+            <b>Sprachen Express</b> - Ritterstraße 11b, 39124 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
+            <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
+            <b>Bank</b> Postbank | <b>SWIFT/BIC</b> PBNKDEFF | <b>IBAN</b> DE91 8601 0090 0991 6239 01
+        </p>
+    </div>
+  </body>
+</html>

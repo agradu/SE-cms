@@ -14,7 +14,7 @@
                 Ritterstraße 11b, 39124 Magdeburg
             </div>
             <div class="td right top">
-                <b>{% if invoice.person.company_name != '' %}{{ invoice.person.company_name }}<br>{% endif %}
+                <b>{% if order.person.company_name != '' %}{{ order.person.company_name }}<br>{% endif %}
                     {{ order.person.firstname }} {{ order.person.lastname }}</b><br>
                     {{ order.person.address }}
             </div>
