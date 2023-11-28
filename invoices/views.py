@@ -20,7 +20,9 @@ import base64
 @login_required(login_url="/login/")
 def invoices(request):
     # search elements
-    search = ""
+    search = request.GET.get("search")
+    if search == None:
+        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
@@ -67,46 +69,30 @@ def invoices(request):
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
-    if sort == "type":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].is_client, reverse=True
-        )
-    elif sort == "invoice":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].id, reverse=True
-        )
-    elif sort == "person":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].person.firstname
-        )
-    elif sort == "assignee":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].modified_by.first_name
-        )
-    elif sort == "registered":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].created_at, reverse=True
-        )
-    elif sort == "deadline":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].deadline, reverse=True
-        )
-    elif sort == "status":
-        person_invoices = sorted(person_invoices, key=lambda x: x["invoice"].status.id)
-    elif sort == "value":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["value"], reverse=True
-        )
-    elif sort == "payed":
-        person_invoices = sorted(person_invoices, key=lambda x: x["payed"])
-    elif sort == "update":
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].modified_at, reverse=True
-        )
-    else:
-        person_invoices = sorted(
-            person_invoices, key=lambda x: x["invoice"].created_at, reverse=True
-        )
+    def get_sort_key(x):
+        if sort == "type":
+            return x["invoice"].is_client
+        elif sort == "invoice":
+            return x["invoice"].id
+        elif sort == "person":
+            return x["invoice"].person.firstname
+        elif sort == "assignee":
+            return x["invoice"].modified_by.first_name
+        elif sort == "registered":
+            return x["invoice"].created_at
+        elif sort == "deadline":
+            return x["invoice"].deadline
+        elif sort == "status":
+            return x["invoice"].status.id
+        elif sort == "value":
+            return x["value"]
+        elif sort == "payed":
+            return x["payed"]
+        elif sort == "update":
+            return x["invoice"].modified_at
+        else:
+            return x["invoice"].created_at
+    person_invoices = sorted(person_invoices, key=get_sort_key, reverse=(sort != "person" and sort != "payed"))
 
     paginator = Paginator(person_invoices, 10)
     invoices_on_page = paginator.get_page(page)
@@ -122,7 +108,6 @@ def invoices(request):
             "reg_end": reg_end,
         },
     )
-
 
 @login_required(login_url="/login/")
 def invoice(request, invoice_id, person_id, order_id):

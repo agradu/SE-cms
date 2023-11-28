@@ -19,7 +19,9 @@ import base64
 @login_required(login_url="/login/")
 def c_orders(request):
     # search elements
-    search = ""
+    search = request.GET.get("search")
+    if search == None:
+        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
@@ -71,37 +73,28 @@ def c_orders(request):
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
-    if sort == "order":
-        client_orders = sorted(client_orders, key=lambda x: x["order"].id, reverse=True)
-    elif sort == "client":
-        client_orders = sorted(client_orders, key=lambda x: x["order"].person.firstname)
-    elif sort == "assignee":
-        client_orders = sorted(
-            client_orders, key=lambda x: x["order"].modified_by.first_name
-        )
-    elif sort == "registered":
-        client_orders = sorted(
-            client_orders, key=lambda x: x["order"].created_at, reverse=True
-        )
-    elif sort == "deadline":
-        client_orders = sorted(
-            client_orders, key=lambda x: x["order"].deadline, reverse=True
-        )
-    elif sort == "status":
-        client_orders = sorted(client_orders, key=lambda x: x["order"].status.id)
-    elif sort == "value":
-        client_orders = sorted(client_orders, key=lambda x: x["order"].value, reverse=True)
-    elif sort == "invoiced":
-        client_orders = sorted(client_orders, key=lambda x: x["invoiced"])
-    elif sort == "update":
-        client_orders = sorted(
-            client_orders, key=lambda x: x["order"].modified_at, reverse=True
-        )
-    else:
-        client_orders = sorted(
-            client_orders, key=lambda x: x["order"].created_at, reverse=True
-        )
-
+    def get_sort_key(x):
+        if sort == "order":
+            return x["order"].id
+        elif sort == "client":
+            return x["order"].person.firstname
+        elif sort == "assignee":
+            return x["order"].modified_by.first_name
+        elif sort == "registered":
+            return x["order"].created_at
+        elif sort == "deadline":
+            return x["order"].deadline
+        elif sort == "status":
+            return x["order"].status.id
+        elif sort == "value":
+            return x["order"].value
+        elif sort == "invoiced":
+            return x["invoiced"]
+        elif sort == "update":
+            return x["order"].modified_at
+        else:
+            return x["order"].created_at
+    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client"))
     paginator = Paginator(client_orders, 10)
     orders_on_page = paginator.get_page(page)
 
@@ -204,14 +197,18 @@ def c_order(request, order_id, client_id):
             for e in elements:
                 if e.status.id < 6:
                     order.value += (e.price * e.quantity)
-                    invoice_element = InvoiceElement.objects.get(element=e)
-                    invoice = invoice_element.invoice
-                    invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
-                    invoice.value = 0
-                    for ie in invoice_elements:
-                        if ie.element.status.id < 6:
-                            invoice.value += (ie.element.price * ie.element.quantity)
-                    invoice.save()
+                    try:
+                        # Calculating the invoice value if element is invoiced
+                        invoice_element = InvoiceElement.objects.get(element=e)
+                        invoice = invoice_element.invoice
+                        invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
+                        invoice.value = 0
+                        for ie in invoice_elements:
+                            if ie.element.status.id < 6:
+                                invoice.value += (ie.element.price * ie.element.quantity)
+                        invoice.save()
+                    except:
+                        invoice = ""
             order.save()
 
     else:  # if order is new
@@ -268,13 +265,105 @@ def c_order(request, order_id, client_id):
 
 @login_required(login_url="/login/")
 def c_offers(request):
-    return render(request, "clients/c_offers.html")
+    # search elements
+    search = request.GET.get("search")
+    if search == None:
+        search = ""
+    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
+    date_before = date_now - timedelta(days=10)
+    reg_start = date_before.strftime("%Y-%m-%d")
+    filter_start = date_before
+    reg_end = date_now.strftime("%Y-%m-%d")
+    filter_end = date_now
+    if request.method == "POST":
+        search = request.POST.get("search")
+        if len(search) > 2:
+            reg_start = request.POST.get("reg_start")
+            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+            filter_start = timezone.make_aware(filter_start)
+            reg_end = request.POST.get("reg_end")
+            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+            filter_end = timezone.make_aware(filter_end).replace(
+                hour=23, minute=59, second=59, microsecond=0
+            )
+        else:
+            search = ""
+    # CLIENT ORDERS
+    selected_orders = (
+        Order.objects.filter(is_client=True)
+        .filter(
+            Q(person__firstname__icontains=search)
+            | Q(person__lastname__icontains=search)
+            | Q(person__company_name__icontains=search)
+        )
+        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    )
+    client_orders = []
+    for o in selected_orders:
+        order_elements = OrderElement.objects.filter(order=o).order_by("id")
+        o_invoiced = 0
+        for e in order_elements:
+            try:
+                invoice_element = InvoiceElement.objects.get(element=e)
+                o_invoiced += (
+                    invoice_element.element.price * invoice_element.element.quantity
+                )
+            except:
+                invoice_element = None
+        if o.value > 0:
+            invoiced = int(o_invoiced / o.value * 100)
+        else:
+            invoiced = 0
+        client_orders.append(
+            {"order": o, "elements": order_elements, "invoiced": invoiced}
+        )
+    # sorting types
+    page = request.GET.get("page")
+    sort = request.GET.get("sort")
+    def get_sort_key(x):
+        if sort == "order":
+            return x["order"].id
+        elif sort == "client":
+            return x["order"].person.firstname
+        elif sort == "assignee":
+            return x["order"].modified_by.first_name
+        elif sort == "registered":
+            return x["order"].created_at
+        elif sort == "deadline":
+            return x["order"].deadline
+        elif sort == "status":
+            return x["order"].status.id
+        elif sort == "value":
+            return x["order"].value
+        elif sort == "invoiced":
+            return x["invoiced"]
+        elif sort == "update":
+            return x["order"].modified_at
+        else:
+            return x["order"].created_at
+    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client"))
+    paginator = Paginator(client_orders, 10)
+    orders_on_page = paginator.get_page(page)
+
+    return render(
+        request,
+        "clients/c_offers.html",
+        {
+            "client_orders": orders_on_page,
+            "sort": sort,
+            "search": search,
+            "reg_start": reg_start,
+            "reg_end": reg_end,
+        },
+    )
 
 
 @login_required(login_url="/login/")
 def p_orders(request):
     # search elements
-    search = ""
+    search = request.GET.get("search")
+    if search == None:
+        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
@@ -326,42 +415,28 @@ def p_orders(request):
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
-    if sort == "order":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].id, reverse=True
-        )
-    elif sort == "provider":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].person.firstname
-        )
-    elif sort == "assignee":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].modified_by.first_name
-        )
-    elif sort == "registered":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].created_at, reverse=True
-        )
-    elif sort == "deadline":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].deadline, reverse=True
-        )
-    elif sort == "status":
-        provider_orders = sorted(provider_orders, key=lambda x: x["order"].status.id)
-    elif sort == "value":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].value, reverse=True
-        )
-    elif sort == "invoiced":
-        provider_orders = sorted(provider_orders, key=lambda x: x["invoiced"])
-    elif sort == "update":
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].modified_at, reverse=True
-        )
-    else:
-        provider_orders = sorted(
-            provider_orders, key=lambda x: x["order"].created_at, reverse=True
-        )
+    def get_sort_key(x):
+        if sort == "order":
+            return x["order"].id
+        elif sort == "provider":
+            return x["order"].person.firstname
+        elif sort == "assignee":
+            return x["order"].modified_by.first_name
+        elif sort == "registered":
+            return x["order"].created_at
+        elif sort == "deadline":
+            return x["order"].deadline
+        elif sort == "status":
+            return x["order"].status.id
+        elif sort == "value":
+            return x["order"].value
+        elif sort == "invoiced":
+            return x["invoiced"]
+        elif sort == "update":
+            return x["order"].modified_at
+        else:
+            return x["order"].created_at
+    provider_orders = sorted(provider_orders, key=get_sort_key, reverse=(sort != "provider"))
 
     paginator = Paginator(provider_orders, 10)
     orders_on_page = paginator.get_page(page)
