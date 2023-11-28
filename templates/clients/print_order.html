@@ -9,14 +9,14 @@
   <body>
     <div class="table">
         <div class="tr">
-            <div class="td">
+            <div class="td left top">
                 <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 250px;"> <br>
                 Ritterstraße 11b, 39124 Magdeburg
             </div>
-            <div class="right td">
-                <b>{{ order.person.company_name }}<br>
-                {{ order.person.firstname }} {{ order.person.lastname }}</b><br>
-                {{ order.person.address }}
+            <div class="td right top">
+                <b>{% if invoice.person.company_name != '' %}{{ invoice.person.company_name }}<br>{% endif %}
+                    {{ order.person.firstname }} {{ order.person.lastname }}</b><br>
+                    {{ order.person.address }}
             </div>
         </div>
     </div>

@@ -14,7 +14,7 @@
         Sprachen Express | Ritterstraße 11b, 39124 Magdeburg
     </div>
     <div class="client">
-        <b>{{ invoice.person.company_name }}<br>
+        <b>{% if invoice.person.company_name != '' %}{{ invoice.person.company_name }}<br>{% endif %}
         {{ invoice.person.firstname }} {{ invoice.person.lastname }}</b>
     </div>
     <div class="client-address">

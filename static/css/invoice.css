@@ -78,6 +78,9 @@ body {
 .center {
     text-align: center;
 }
+.top {
+    vertical-align: top;
+}
 .line-down {
     border-style: none none solid none; border-bottom-width: 2px;
 }
