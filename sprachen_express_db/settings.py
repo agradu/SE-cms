@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     "payments",
     "orders",
     "persons",
-    "receipts",
     "services",
     "users",
     "appointments",

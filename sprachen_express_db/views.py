@@ -20,7 +20,7 @@ def dashboard(request):
         recent_orders.append({"order": o, "elements": order_elements, "status": status})
 
     # last unfinished client orders
-    selected_orders = Order.objects.filter(is_client=True).order_by("deadline")[:6]
+    selected_orders = Order.objects.filter(is_client=True).order_by("deadline")[:8]
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
@@ -55,7 +55,7 @@ def dashboard(request):
                 }
             )
     # last unfinished provider orders
-    selected_orders = Order.objects.filter(is_client=False).order_by("deadline")[:6]
+    selected_orders = Order.objects.filter(is_client=False).order_by("deadline")[:8]
     provider_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")

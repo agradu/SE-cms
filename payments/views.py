@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import OrderElement
 from payments.models import Payment
-from .models import Receipt
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -43,7 +42,7 @@ def payments(request):
     ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
     client_payments = []
     for p in selected_payments:
-        client_payments.append({"payment": p, "payed": p.price})
+        client_payments.append({"payment": p, "payed": p.value})
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")

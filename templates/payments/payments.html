@@ -49,30 +49,29 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
+								<th> <a href="/payments/payments/?sort=type">Type</a> </th>
 								<th> <a href="/payments/payments/?sort=payment">Payment</a> </th>
 								<th> <a href="/payments/payments/?sort=person">Payer</a> </th>
 								<th> <a href="/payments/payments/?sort=invoice">Invoice</a> </th>
-								<th> <a href="/payments/payments/?sort=receipt">Receipt</a> </th>
 								<th> <a href="/payments/payments/?sort=assignee">Assignee</a> </th>
 								<th> <a href="/payments/payments/?sort=registered">Registered</a> </th>
 								<th style="text-align: right;"> <a href="/payments/payments/?sort=value">Value</a> </th>
-								<th> <a href="/payments/payments/?sort=type">Type</a> </th>
 								<th> <a href="/payments/payments/?sort=update">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for p in client_payments %} 
 							<tr>
+								<td> <i class="mdi mdi-{{ p.payment.type }} mdi-18px"></i> </td>
 								<td> <a href="/payments/payment/{{ p.payment.id}}">{{ p.payment.id}}</a> </td>
 								<td> <a href="/persons/{{ p.payment.person.id}}/"> {{ p.payment.person.firstname}} {{ p.payment.person.lastname}} {% if p.payment.person.company_name != "" %}- {{ p.payment.person.company_name}} {% endif %}</a> </td>
-								<td> <a href="/payments/invoice/{{ p.payment.invoice.id }}/">{{ p.payment.invoice.serial}} {{ p.payment.invoice.number}}</a> </td>
-								<td> <a href="/payments/receipt/{{ p.payment.receipt.id }}/">{{ p.payment.receipt.serial}} {{ p.payment.receipt.number}}</a> </td>
+								<td> <a href="/payments/invoice/{{ p.payment.invoice.id }}/{{ p.payment.invoice.person.id}}/0/">{{ p.payment.invoice.serial}} {{ p.payment.invoice.number}}</a> </td>
+								
 								<td>
 									<img src="{{ p.payment.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.payment.modified_by.first_name}} {{ p.payment.modified_by.last_name}}
 								</td>
 								<td> {{ p.payment.created_at|date:"d.m.Y"}} - {{ p.payment.created_at|time:"H:i"}} </td>
-								<td style="text-align: right;"> {{ p.payment.price }} {{ p.payment.currency.symbol}}</td>
-								<td> <i class="mdi mdi-{{ p.payment.type }} mdi-18px"></i> </td>
+								<td style="text-align: right;"> {{ p.payment.value }} {{ p.payment.currency.symbol}}</td>
 								<td> {{ p.payment.modified_at|date:"d.m.Y"}} - {{ p.payment.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}

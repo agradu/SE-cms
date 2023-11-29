@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
 from persons.models import Person
-from payments.models import PaymentInvoice
+from payments.models import Payment
 from .models import Invoice, InvoiceElement
 from services.models import Serial
 from django.core.paginator import Paginator
@@ -56,9 +56,9 @@ def invoices(request):
             if e.element.order not in i_orders:
                 i_orders.append(e.element.order)
         i_payed = 0
-        i_payments = PaymentInvoice.objects.filter(invoice=i)
+        i_payments = Payment.objects.filter(invoice=i)
         for p in i_payments:
-            i_payed += p.payment.value
+            i_payed += p.value
         if i.value > 0:
             payed = int(i_payed / i.value * 100)
         else:
@@ -116,7 +116,7 @@ def invoice(request, invoice_id, person_id, order_id):
     uninvoiced_elements = []
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
-    serials = Serial.objects.get(id='1')
+    serials = Serial.objects.get(id=1)
     invoice_serial = serials.invoice_serial
     invoice_number = serials.invoice_number
     if order_id > 0:
@@ -149,8 +149,10 @@ def invoice(request, invoice_id, person_id, order_id):
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
                 if invoice.is_client == False:
-                    invoice.serial = request.POST.get("invoice_serial")
-                    invoice.number = request.POST.get("invoice_number")
+                    invoice.serial = request.POST.get("invoice_serial").upper()
+                    invoice_serial =invoice.serial
+                    invoice.number = request.POST.get("invoice_number").upper()
+                    invoice_number = invoice.number
                 deadline_date = request.POST.get("deadline_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
@@ -186,8 +188,8 @@ def invoice(request, invoice_id, person_id, order_id):
             if "invoice_description" in request.POST:
                 invoice_description = request.POST.get("invoice_description")
                 if order.is_client == False:
-                    invoice_serial = request.POST.get("invoice_serial")
-                    invoice_number = request.POST.get("invoice_number")
+                    invoice_serial = request.POST.get("invoice_serial").upper()
+                    invoice_number = request.POST.get("invoice_number").upper()
                     if invoice_serial =="" and invoice_number =="":
                         invoice_serial = "??"
                         invoice_serial = "???"

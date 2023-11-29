@@ -69,7 +69,7 @@
 								<td>
 									<a href="/persons/{{ o.offer.person.id}}/"> {{ o.offer.person.firstname}} {{ o.offer.person.lastname}} {% if o.offer.person.company_name != "" %}- {{ o.offer.person.company_name}} {% endif %}</a>
 								</td>
-								<td> {% for e in o.elements %} <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {% endfor %} </td>
+								<td> {% for e in o.elements %} <i class="mdi {{ e.service.icon }} mdi-18px"></i> {% endfor %} </td>
 								<td>
 									<img src="{{ o.offer.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ o.offer.modified_by.first_name}} {{ o.offer.modified_by.last_name}}
 								</td>
