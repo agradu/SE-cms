@@ -343,7 +343,7 @@ def c_offers(request):
 @login_required(login_url="/login/")
 def c_offer(request, offer_id, client_id):
     # Default parts
-    statuses = Status.objects.all().order_by("id")
+    statuses = Status.objects.filter(id__range=(1,2)).order_by("id")
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
@@ -379,6 +379,7 @@ def c_offer(request, offer_id, client_id):
                     element.price = e.price
                     element.save()
                 offer.order = order
+                offer.status = statuses[1]
                 offer.save()
             if "search" in request.POST:
                 search = request.POST.get("search")
@@ -395,10 +396,6 @@ def c_offer(request, offer_id, client_id):
                 offer.modified_at = date_now
             if "offer_description" in request.POST:
                 offer.description = request.POST.get("offer_description")
-                offer.status = statuses[int(request.POST.get("offer_status")) - 1]
-                for e in elements:
-                    e.status = offer.status
-                    e.save()
                 offer.currency = currencies[int(request.POST.get("offer_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
@@ -464,7 +461,6 @@ def c_offer(request, offer_id, client_id):
                     description = description,
                     person=client,
                     deadline=deadline,
-                    is_client=True,
                     modified_by=request.user,
                     created_by=request.user,
                     currency=currency,
