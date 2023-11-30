@@ -129,6 +129,7 @@ def invoice(request, invoice_id, person_id, order_id):
         is_client = invoice.is_client
         new = False
     else:
+        is_client = True
         invoice =""
         new = True
     all_orders_elements = OrderElement.objects.exclude(status__id='6').filter(order__person=person).order_by("id")

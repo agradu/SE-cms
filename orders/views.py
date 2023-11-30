@@ -212,9 +212,28 @@ def c_order(request, order_id, client_id):
 
     else:  # if order is new
         new = True
-        client = get_object_or_404(Person, id=client_id)
+        if Person.objects.filter(id=client_id).exists():
+            client = Person.objects.get(id=client_id)
+        else:
+            client = ""
         order = ""
         if request.method == "POST":
+            if "search" in request.POST:
+                search = request.POST.get("search")
+                if len(search) > 3:
+                    clients = Person.objects.filter(
+                        Q(firstname__icontains=search)
+                        | Q(lastname__icontains=search)
+                        | Q(company_name__icontains=search)
+                    )
+            if "new_client" in request.POST:
+                new_client = request.POST.get("new_client")
+                client = get_object_or_404(Person, id=new_client)
+                return redirect(
+                    "c_order",
+                    order_id = 0,
+                    client_id = client.id
+                )
             if "order_description" in request.POST:
                 description = request.POST.get("order_description")
                 status = statuses[int(request.POST.get("order_status")) - 1]
@@ -240,7 +259,7 @@ def c_order(request, order_id, client_id):
                 new = False
                 return redirect(
                     "c_order",
-                    order_id = order.id,
+                    order_id = order_id,
                     client_id = client.id
                 )
 
@@ -674,9 +693,28 @@ def p_order(request, order_id, provider_id):
 
     else:  # if order is new
         new = True
-        provider = get_object_or_404(Person, id=provider_id)
+        if Person.objects.filter(id=provider_id).exists():
+            provider = Person.objects.get(id=provider_id)
+        else:
+            provider = ""
         order = ""
         if request.method == "POST":
+            if "search" in request.POST:
+                search = request.POST.get("search")
+                if len(search) > 3:
+                    providers = Person.objects.filter(
+                        Q(firstname__icontains=search)
+                        | Q(lastname__icontains=search)
+                        | Q(company_name__icontains=search)
+                    )
+            if "new_provider" in request.POST:
+                new_provider = request.POST.get("new_provider")
+                provider = get_object_or_404(Person, id=new_provider)
+                return redirect(
+                    "p_order",
+                    order_id = 0,
+                    provider_id = provider.id
+                )
             if "order_description" in request.POST:
                 description = request.POST.get("order_description")
                 status = statuses[int(request.POST.get("order_status")) - 1]
