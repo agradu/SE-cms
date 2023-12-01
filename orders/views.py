@@ -259,7 +259,7 @@ def c_order(request, order_id, client_id):
                 new = False
                 return redirect(
                     "c_order",
-                    order_id = order_id,
+                    order_id = order.id,
                     client_id = client.id
                 )
 
@@ -633,8 +633,11 @@ def p_order(request, order_id, provider_id):
             if "new_provider" in request.POST:
                 new_provider = request.POST.get("new_provider")
                 provider = get_object_or_404(Person, id=new_provider)
-                order.person = provider
-                order.modified_at = date_now
+                return redirect(
+                    "c_order",
+                    order_id = 0,
+                    client_id = provider.id
+                )
             if "order_description" in request.POST:
                 order.description = request.POST.get("order_description")
                 order.status = statuses[int(request.POST.get("order_status")) - 1]

@@ -77,7 +77,7 @@
 									<img src="{{ p.payment.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.payment.modified_by.first_name}} {{ p.payment.modified_by.last_name}}
 								</td>
 								<td> {{ p.payment.created_at|date:"d.m.Y"}} - {{ p.payment.created_at|time:"H:i"}} </td>
-								<td style="text-align: right;"> {{ p.payment.value }} {{ p.payment.currency.symbol}}</td>
+								<td style="text-align: right;"> {% if p.payment.is_client == False %}-{% endif %}{{ p.payment.value }} {{ p.payment.currency.symbol}}</td>
 								<td> {{ p.payment.modified_at|date:"d.m.Y"}} - {{ p.payment.modified_at|time:"H:i"}} </td>
 							</tr>
 							{% endfor %}

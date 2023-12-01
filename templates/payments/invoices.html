@@ -52,7 +52,7 @@
 							<tr>
 								<th> <a href="/payments/invoices/?sort=type&search={{search}}">Type</a> </th>
 								<th> <a href="/payments/invoices/?sort=invoice&search={{search}}">Invoice</a> </th>
-								<th> <a href="/payments/invoices/?sort=person&search={{search}}">Persons</a> </th>
+								<th> <a href="/payments/invoices/?sort=person&search={{search}}">Person</a> </th>
 								<th> Orders </th>
 								<th> <a href="/payments/invoices/?sort=assignee&search={{search}}">Assignee</a> </th>
 								<th> <a href="/payments/invoices/?sort=registered&search={{search}}">Registered</a> </th>
@@ -78,7 +78,7 @@
 								</td>
 								<td> {{ i.invoice.created_at|date:"d.m.Y"}} - {{ i.invoice.created_at|time:"H:i"}} </td>
 								<td> {{ i.invoice.deadline|date:"d.m.Y"}} </td>
-								<td style="text-align: right;"> {{ i.value}} {{ i.invoice.currency.symbol}}</td>
+								<td style="text-align: right;"> {% if i.invoice.is_client == False %}-{% endif %}{{ i.value}} {{ i.invoice.currency.symbol}}</td>
 								<td class="text-{% if i.payed == 100 %}success{% elif i.payed == 0 %}danger{% else %}info{% endif %}">
 									{{ i.payed}} %
 								</td>
