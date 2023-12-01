@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import OrderElement
-from payments.models import Payment
+from payments.models import Payment, PaymentElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -34,61 +34,48 @@ def payments(request):
             )
         else:
             search = ""
-    # CLIENT/PROVIDER INVOICES
+    # CLIENT/PROVIDER PAYMENTS
     selected_payments = Payment.objects.filter(
         Q(person__firstname__icontains=search)
         | Q(person__lastname__icontains=search)
         | Q(person__company_name__icontains=search)
     ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
-    client_payments = []
+    person_payments = []
     for p in selected_payments:
-        client_payments.append({"payment": p, "payed": p.value})
+        invoices = PaymentElement.objects.filter(payment=p)
+        person_payments.append({"payment": p, "payed": p.value, "invoices":invoices})
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
-    if sort == "payment":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].id, reverse=True
-        )
-    elif sort == "person":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].person.firstname
-        )
-    elif sort == "invoice":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].invoice.id, reverse=True
-        )
-    elif sort == "receipt":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].receipt.id, reverse=True
-        )
-    elif sort == "assignee":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].modified_by.first_name
-        )
-    elif sort == "value":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].price, reverse=True
-        )
-    elif sort == "type":
-        client_payments = sorted(client_payments, key=lambda x: x["payment"].type)
-    elif sort == "update":
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].modified_at, reverse=True
-        )
-    else:
-        client_payments = sorted(
-            client_payments, key=lambda x: x["payment"].created_at, reverse=True
-        )
+    def get_sort_key(x):
+        if sort == "type":
+            return x["payment"].type
+        elif sort == "payment":
+            return x["payment"].id
+        elif sort == "person":
+            return x["payment"].person.firstname
+        elif sort == "receipt":
+            return (x["payment"].serial, x["payment"].number)
+        elif sort == "assignee":
+            return x["payment"].modified_by.first_name
+        elif sort == "registered":
+            return x["payment"].created_at
+        elif sort == "value":
+            return x["payment"].value
+        elif sort == "update":
+            return x["payment"].modified_at
+        else:
+            return x["payment"].created_at
+    person_payments = sorted(person_payments, key=get_sort_key, reverse=(sort != "person"))
 
-    paginator = Paginator(client_payments, 10)
+    paginator = Paginator(person_payments, 10)
     payments_on_page = paginator.get_page(page)
 
     return render(
         request,
         "payments/payments.html",
         {
-            "client_payments": payments_on_page,
+            "person_payments": payments_on_page,
             "sort": sort,
             "search": search,
             "reg_start": reg_start,

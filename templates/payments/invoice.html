@@ -126,7 +126,7 @@
 							<tr id="e{{ e.id }}">
 								<td width="20%"> {{e.element.service.name}} </td>
 								<td> {{e.element.description}} </td>
-								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">O# {{ e.element.order.id }} from {{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}}</a> </td>
+								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">Order-{{ e.element.order.id }} ({{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}})</a> </td>
 								<td width="7%" style="text-align: right;"> {{e.element.quantity}} </td>
 								<td width="10%"> {{e.element.um.name}} </td>
 								<td width="10%" style="text-align: right;"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>

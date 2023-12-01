@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
 from persons.models import Person
-from payments.models import Payment
+from payments.models import Payment, PaymentElement
 from .models import Invoice, InvoiceElement
 from services.models import Serial
 from django.core.paginator import Paginator
@@ -56,13 +56,17 @@ def invoices(request):
             if e.element.order not in i_orders:
                 i_orders.append(e.element.order)
         i_payed = 0
-        i_payments = Payment.objects.filter(invoice=i)
+        i_payments = PaymentElement.objects.filter(invoice=i)
         for p in i_payments:
-            i_payed += p.value
+            if p.payment.value < p.invoice.value:
+                i_payed += p.payment.value
+            else:
+                i_payed += p.invoice.value
         if i.value > 0:
             payed = int(i_payed / i.value * 100)
         else:
             payed = 0
+        print('YYYY:',i_payed)
         person_invoices.append(
             {"invoice": i, "payed": payed, "value": i.value, "orders": i_orders}
         )
@@ -73,7 +77,7 @@ def invoices(request):
         if sort == "type":
             return x["invoice"].is_client
         elif sort == "invoice":
-            return x["invoice"].id
+            return (x["invoice"].serial, x["invoice"].number)
         elif sort == "person":
             return x["invoice"].person.firstname
         elif sort == "assignee":
@@ -129,9 +133,11 @@ def invoice(request, invoice_id, person_id, order_id):
         is_client = invoice.is_client
         new = False
     else:
-        is_client = True
         invoice =""
         new = True
+        if is_client == False:
+            invoice_serial = ""
+            invoice_number = ""
     all_orders_elements = OrderElement.objects.exclude(status__id='6').filter(order__person=person).order_by("id")
     invoiced_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice__person=person).order_by("id")
     uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
@@ -141,7 +147,6 @@ def invoice(request, invoice_id, person_id, order_id):
         for e in invoice_elements:
             invoice.value += (e.element.price * e.element.quantity)
         invoice.save()
-
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
@@ -189,11 +194,12 @@ def invoice(request, invoice_id, person_id, order_id):
             if "invoice_description" in request.POST:
                 invoice_description = request.POST.get("invoice_description")
                 if order.is_client == False:
-                    invoice_serial = request.POST.get("invoice_serial").upper()
-                    invoice_number = request.POST.get("invoice_number").upper()
+                    invoice_serial = request.POST.get("invoice_serial")
+                    invoice_number = request.POST.get("invoice_number")
                     if invoice_serial =="" and invoice_number =="":
                         invoice_serial = "??"
                         invoice_serial = "???"
+                    
                 deadline_date = request.POST.get("deadline_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
@@ -229,7 +235,7 @@ def invoice(request, invoice_id, person_id, order_id):
                     order_id = order.id,
                     person_id = person.id,
                 )
-
+        print(is_client)
     return render(
         request,
         "payments/invoice.html",
