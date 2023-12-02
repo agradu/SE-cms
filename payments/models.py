@@ -35,10 +35,11 @@ class Payment(models.Model):
     is_client = models.BooleanField(default=True)
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
-    value = models.DecimalField(max_digits=10, decimal_places=2)
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
     )
+    payment_date = models.DateField(default=timezone.now)
     description = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):

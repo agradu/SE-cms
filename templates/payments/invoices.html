@@ -60,6 +60,7 @@
 								<th style="text-align: right;"> <a href="/payments/invoices/?sort=value&search={{search}}">Value</a> </th>
 								<th> <a href="/payments/invoices/?sort=payed&search={{search}}">Payed</a> </th>
 								<th> <a href="/payments/invoices/?sort=update&search={{search}}">Last Update</a> </th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -83,6 +84,12 @@
 									{{ i.payed}} %
 								</td>
 								<td> {{ i.invoice.modified_at|date:"d.m.Y"}} - {{ i.invoice.modified_at|time:"H:i"}} </td>
+								<td> {% if i.payed < 100 %}
+									<button type="button" title="Create an payment" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/payment/0/{{ i.invoice.person.id }}/{{ i.invoice.id }}/';">
+									<i class="mdi mdi-file"></i>
+									</button>
+									{% endif %}
+								</td>
 							</tr>
 							{% endfor %}
 						</tbody>

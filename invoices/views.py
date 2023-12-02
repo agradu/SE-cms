@@ -156,7 +156,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 invoice.description = request.POST.get("invoice_description")
                 if invoice.is_client == False:
                     invoice.serial = request.POST.get("invoice_serial").upper()
-                    invoice_serial =invoice.serial
+                    invoice_serial = invoice.serial
                     invoice.number = request.POST.get("invoice_number").upper()
                     invoice_number = invoice.number
                 deadline_date = request.POST.get("deadline_date")
@@ -198,7 +198,7 @@ def invoice(request, invoice_id, person_id, order_id):
                     invoice_number = request.POST.get("invoice_number")
                     if invoice_serial =="" and invoice_number =="":
                         invoice_serial = "??"
-                        invoice_serial = "???"
+                        invoice_number = "???"
                     
                 deadline_date = request.POST.get("deadline_date")
                 try:

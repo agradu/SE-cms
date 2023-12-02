@@ -95,8 +95,8 @@ def payment(request, payment_id, person_id, invoice_id):
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
-    payment_serial = serials.receipt_serial
-    payment_number = serials.receipt_number
+    receipt_serial = serials.receipt_serial
+    receipt_number = serials.receipt_number
     if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
         is_client = invoice.is_client
@@ -110,117 +110,117 @@ def payment(request, payment_id, person_id, invoice_id):
         payment =""
         new = True
         if is_client == False:
-            payment_serial = ""
-            payment_number = ""
-    all_invoice_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
-    payment_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
-    unpayed_elements = all_invoice_elements.exclude(id__in=payment_elements.values_list('invoice__id', flat=True))      
-    def set_value(invoice): # calculate and save the value of the invoice
-        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
-        invoice.value = 0
-        for e in invoice_elements:
-            invoice.value += (e.element.price * e.element.quantity)
-        invoice.save()
-    if invoice_id > 0:  # if invoice exists
-        invoice_serial = invoice.serial
-        invoice_number = invoice.number
-        invoice_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice=invoice).order_by('element__order__created_at')
+            receipt_serial = ""
+            receipt_number = ""
+    all_invoices_elements = Invoice.objects.filter(person=person).order_by("id")
+    payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
+    unpayed_elements = all_invoices_elements.exclude(id__in=payed_elements.values_list('invoice__id', flat=True))      
+    def set_value(payment): # calculate and save the value of the payment
+        payment_elements = PaymentElement.objects.filter(payment=payment).order_by("id")
+        payment.value = 0
+        for e in payment_elements:
+            payment.value += e.invoice.value
+        payment.save()
+    if payment_id > 0:  # if payment exists
+        receipt_serial = payment.serial
+        receipt_number = payment.number
+        payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
         if request.method == "POST":
-            if "invoice_description" in request.POST:
-                invoice.description = request.POST.get("invoice_description")
-                if invoice.is_client == False:
-                    invoice.serial = request.POST.get("invoice_serial").upper()
-                    invoice_serial =invoice.serial
-                    invoice.number = request.POST.get("invoice_number").upper()
-                    invoice_number = invoice.number
-                deadline_date = request.POST.get("deadline_date")
+            if "payment_description" in request.POST:
+                payment.description = request.POST.get("payment_description")
+                if payment.is_client == False:
+                    payment.serial = request.POST.get("receipt_serial").upper()
+                    receipt_serial = payment.serial
+                    payment.number = request.POST.get("receipt_number").upper()
+                    receipt_number = payment.number
+                payment_date = request.POST.get("payment_date")
                 try:
-                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
-                    invoice.deadline = timezone.make_aware(deadline_naive)
+                    payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
+                    payment.payment_date = timezone.make_aware(payment_date_naive)
                 except:
-                    invoice.deadline = date_now  
-            if "invoice_element_id" in request.POST:
-                invoice_element_id = int(request.POST.get("invoice_element_id"))
+                    payment.payment_date = date_now
+            if "payment_element_id" in request.POST:
+                payment_element_id = int(request.POST.get("payment_element_id"))
                 try: # delete an element
-                    element = InvoiceElement.objects.get(id=invoice_element_id)
-                    if InvoiceElement.objects.filter(invoice=invoice).count() > 1:
+                    element = PaymentElement.objects.get(id=payment_element_id)
+                    if PaymentElement.objects.filter(payment=payment).count() > 1:
                         element.delete()
                 except:
-                    print("Element",invoice_element_id,"is missing!")
-            if "uninvoiced_element_id" in request.POST:
-                uninvoiced_element_id = int(request.POST.get("uninvoiced_element_id"))
+                    print("Element",payment_element_id,"is missing!")
+            if "unpayed_element_id" in request.POST:
+                unpayed_element_id = int(request.POST.get("unpayed_element_id"))
                 try: # add an element
-                    element = uninvoiced_elements.get(id=uninvoiced_element_id)
-                    InvoiceElement.objects.get_or_create(
-                        invoice=invoice,
-                        element=element
+                    element = unpayed_elements.get(id=unpayed_element_id)
+                    PaymentElement.objects.get_or_create(
+                        payment = payment,
+                        invoice = element
                     )
                 except:
-                    print("Element",uninvoiced_element_id,"is missing!")
+                    print("Element",unpayed_element_id,"is missing!")
             # Setting the modiffied user and date
-            invoice.modified_by = request.user
-            invoice.modified_at = date_now
+            payment.modified_by = request.user
+            payment.modified_at = date_now
             # Save the invoice value
-            set_value(invoice)
+            set_value(payment)
 
-    else:  # if invoice is new
+    else:  # if payment is new
         if request.method == "POST":
-            if "invoice_description" in request.POST:
-                invoice_description = request.POST.get("invoice_description")
-                if order.is_client == False:
-                    invoice_serial = request.POST.get("invoice_serial")
-                    invoice_number = request.POST.get("invoice_number")
-                    if invoice_serial =="" and invoice_number =="":
-                        invoice_serial = "??"
-                        invoice_serial = "???"
+            if "payment_description" in request.POST:
+                payment_description = request.POST.get("payment_description")
+                if invoice.is_client == False:
+                    receipt_serial = request.POST.get("receipt_serial")
+                    receipt_number = request.POST.get("receipt_number")
+                    if receipt_serial =="" and receipt_number =="":
+                        receipt_serial = "??"
+                        receipt_number = "???"
                     
-                deadline_date = request.POST.get("deadline_date")
+                payment_date = request.POST.get("payment_date")
                 try:
-                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
-                    invoice_deadline = timezone.make_aware(deadline_naive)
+                    payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
+                    payment_date = timezone.make_aware(payment_date_naive)
                 except:
-                    invoice_deadline = date_now
-                invoice = Invoice(
-                    description = invoice_description,
-                    serial = invoice_serial,
-                    number = invoice_number,
+                    payment_date = date_now
+                payment = Payment(
+                    description = payment_description,
+                    serial = receipt_serial,
+                    number = receipt_number,
                     person = person,
-                    deadline = invoice_deadline,
-                    is_client = order.is_client,
+                    payment_date = payment_date,
+                    is_client = invoice.is_client,
                     modified_by = request.user,
                     created_by = request.user,
-                    currency = order.currency,
+                    currency = invoice.currency,
                 )
-                invoice.save()
-                # Add all uninvoiced elements to this invoice
-                for element in uninvoiced_elements:
-                    InvoiceElement.objects.get_or_create(
-                        invoice=invoice,
-                        element=element
+                payment.save()
+                # Add all unpayed elements to this payment
+                for element in unpayed_elements:
+                    PaymentElement.objects.get_or_create(
+                        payment=payment,
+                        invoice=element.invoice
                     )
-                # Save the invoice value
-                set_value(invoice)
+                # Save the payment value
+                set_value(payment)
                 new = False
-                serials.invoice_number += 1
+                serials.receipt_number += 1
                 serials.save()
                 return redirect(
-                    "invoice",
+                    "payment",
+                    payment_id = payment.id,
                     invoice_id = invoice.id,
-                    order_id = order.id,
                     person_id = person.id,
                 )
         print(is_client)
     return render(
         request,
-        "payments/invoice.html",
+        "payments/payment.html",
         {
             "person": person,
-            "invoice": invoice,
-            "invoice_serial": invoice_serial,
-            "invoice_number": invoice_number,
+            "payment": payment,
+            "receipt_serial": receipt_serial,
+            "receipt_number": receipt_number,
             "is_client": is_client,
-            "invoice_elements": invoice_elements,
-            "uninvoiced_elements": uninvoiced_elements,
+            "payment_elements": payment_elements,
+            "unpayed_elements": unpayed_elements,
             "new": new
         },
     )

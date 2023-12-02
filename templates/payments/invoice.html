@@ -1,11 +1,11 @@
 {% extends "base.html" %} 
-{% block title %}Sprachen Express - Payment{% endblock %} 
+{% block title %}Sprachen Express - Invoice{% endblock %} 
 {% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-file"></i>
-		</span> Payment {{ payment.serial }}{{ payment.number }} {%if is_client %}to{% else %}from{% endif %} {{ person.firstname }} {{ person.lastname }}
+		</span> Invoice {{ invoice.serial }}{{ invoice.number }} {%if is_client %}to{% else %}from{% endif %} {{ person.firstname }} {{ person.lastname }}
 	</h3>
 </div> 
 {% load static %} 
@@ -53,8 +53,8 @@
 	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Payment details</h4>
-				<p>Payment created by <b class="text-primary">{{payment.created_by.first_name}} {{payment.created_by.last_name}}</b> and modified by <b class="text-success">{{payment.modified_by.first_name}} {{payment.modified_by.last_name}}</b>. </p>
+				<h4 class="card-title">Invoice details</h4>
+				<p>Invoice created by <b class="text-primary">{{invoice.created_by.first_name}} {{invoice.created_by.last_name}}</b> and modified by <b class="text-success">{{invoice.modified_by.first_name}} {{invoice.modified_by.last_name}}</b>. </p>
 				<div class="row">
 					<form method="post" class="col-md-12"> {% csrf_token %}
 						<div class="row">
@@ -90,7 +90,7 @@
 									</div>
 									<div class="col-sm-5">
 										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the payment </button>
+											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the invoice </button>
 									</div>
 								</div>
 							</div>
@@ -106,19 +106,23 @@
 	<div class="col-12 grid-margin">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Payment content</h4>
+				<h4 class="card-title">Invoice content</h4>
 				<div class="table-responsive mt-3">
 					<table class="table table-hover">
 						<thead>
 							<tr id="e_start">
-								<th> Invoice </th>
+								<th> Service </th>
 								<th> Description </th>
-								<th style="text-align: right;"> Value </th>
+								<th> Order </th>
+								<th style="text-align: right;"> Quantity </th>
+								<th> Unit </th>
+								<th style="text-align: right;"> Price </th>
+								<th> Status </th>
 								<th width="1%"></th>
 							</tr>
 						</thead>
 						<tbody> 
-							{% for e in payment_elements %}
+							{% for e in invoice_elements %}
 							<tr id="e{{ e.id }}">
 								<td width="20%"> {{e.element.service.name}} </td>
 								<td> {{e.element.description}} </td>
@@ -166,15 +170,19 @@
 					<table class="table table-hover">
 						<thead>
 							<tr id="e_start">
-								<th> Invoice </th>
+								<th> Service </th>
 								<th> Description </th>
-								<th style="text-align: right;"> Value </th>
+								<th> Order </th>
+								<th style="text-align: right;"> Quantity </th>
+								<th> Unit </th>
+								<th style="text-align: right;"> Price </th>
+								<th> Status </th>
 								<th width="1%"></th>
 							</tr>
 						</thead>
 						<tbody> 
 							{% for ue in uninvoiced_elements %}
-							<tr id="ue{{ e.id }}">
+							<tr id="ue{{ ue.id }}">
 								<td width="20%"> {{ue.service.name}} </td>
 								<td> {{ue.description}} </td>
 								<td> <a href="/{% if ue.order.is_client %}clients{% else %}providers{% endif %}/order/{{ ue.order.id }}/{{ ue.order.person.id}}/">O# {{ue.order.id}} from {{ ue.order.created_at|date:"d.m.Y"}} - {{ ue.order.created_at|time:"H:i"}}</a> </td>
