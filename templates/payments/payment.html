@@ -60,12 +60,19 @@
 						<div class="row">
 							<div class="col-md-12">
 								<div class="form-group row">
+									<label class="col-sm-2 col-form-label">Type</label>
+									<div class="col-sm-2">
+										<select class="form-select" name="payment_type">
+											<option value="bank" {% if payment.type == "bank" %} selected{% endif %}>Bank</option>
+											<option value="cash" {% if payment.type == "cash" %} selected{% endif %}>Cache</option>
+										</select>
+									</div>
 									<label class="col-sm-2 col-form-label">Serial</label>
-									<div class="col-sm-4">
+									<div class="col-sm-2">
 										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
-									<div class="col-sm-4">
+									<div class="col-sm-2">
 										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
 									</div>
 								</div>
@@ -114,8 +121,8 @@
 								<th> Invoice </th>
 								<th> Description </th>
 								<th> Date </th>
-								<th style="text-align: right;"> Value </th>
-								<th width="1%"></th>
+								<th style="text-align: right;" width="15%"> Value </th>
+								<th colspan="2" width="10%"></th>
 							</tr>
 						</thead>
 						<tbody> 
@@ -127,7 +134,7 @@
 								<td> {{e.invoice.description}} </td>
 								<td> {{ e.invoice.created_at|date:"d.m.Y"}} - {{ e.invoice.created_at|time:"H:i"}} </td>
 								<td style="text-align: right;"> {{e.invoice.value}} {{e.payment.currency.symbol}} </td>
-								<td>
+								<td style="text-align: right;" colspan="2">
 									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
 										<input type="hidden" name="payment_element_id" value="{{e.id}}">
 										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
@@ -137,16 +144,32 @@
 								</td>
 							</tr>
 							{% endfor %}
-							<tr>
-								<td> </td>
-								<td> </td>
-								<td> <h4>TOTAL:</h4> </td>
-								<td style="text-align: right;"> <h4>{{payment.value}} {{payment.currency.symbol}}</h4> </td>
-								<td colspan="3">
-									<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
-									<i class="mdi mdi-file-outline btn-icon-prepend"></i> Download </button>
-								</td>
-							</tr>
+							<form method="post"> {% csrf_token %}
+								<tr>
+									<td> </td>
+									<td> </td>
+									<td> <h4>TOTAL PAYED:</h4> </td>
+									<td style="text-align: right;">
+										{% if payment_elements|length < 2 %}
+										<input type="text" class="form-control" name="payment_value" value="{{payment.value}}">
+										{% else %}
+										<h4>{{payment.value}} {{payment.currency.symbol}}</h4>
+										{% endif %}
+									</td>
+									<td>
+										{% if payment_elements|length < 2 %}
+										<button class="btn btn-gradient-primary btn-text" type="submit">
+											Set a smaller payment
+										</button>
+										{% endif %}
+									</td>
+									<td style="text-align: right;">
+										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
+											<i class="mdi mdi-printer btn-icon-prepend"></i>
+										</button>
+									</td>
+								</tr>
+							</form>
 						</tbody>
 					</table>
 				</div>
@@ -167,8 +190,8 @@
 								<th> Invoice </th>
 								<th> Description </th>
 								<th> Date </th>
-								<th style="text-align: right;"> Value </th>
-								<th width="1%"></th>
+								<th style="text-align: right;" width="15%"> Value </th>
+								<th  colspan="2" width="10%"></th>
 							</tr>
 						</thead>
 						<tbody> 
@@ -178,7 +201,7 @@
 								<td> {{ue.description}} </td>
 								<td> {{ ue.created_at|date:"d.m.Y"}} - {{ ue.created_at|time:"H:i"}} </td>
 								<td style="text-align: right;"> {{ue.value}} {{ue.currency.symbol}} </td>
-								<td>
+								<td style="text-align: right;" colspan="2">
 									<form method="post" action="#ue{{ ue.id }}"> {% csrf_token %}
 										<input type="hidden" name="unpayed_element_id" value="{{ue.id}}">
 										<button class="btn btn-gradient-primary btn-icon" type="submit" title="Add to invoice">

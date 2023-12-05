@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, F
 from persons.models import Person
 from orders.models import Order, OrderElement
 from invoices.models import Invoice, InvoiceElement
@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
+from decimal import Decimal
 
 # Create your views here.
 
@@ -97,6 +98,7 @@ def payment(request, payment_id, person_id, invoice_id):
     serials = Serial.objects.get(id=1)
     receipt_serial = serials.receipt_serial
     receipt_number = serials.receipt_number
+    payment_value = 0
     if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
         is_client = invoice.is_client
@@ -112,14 +114,19 @@ def payment(request, payment_id, person_id, invoice_id):
         if is_client == False:
             receipt_serial = ""
             receipt_number = ""
-    all_invoices_elements = Invoice.objects.filter(person=person).order_by("id")
+    all_invoices = Invoice.objects.filter(person=person).order_by("id")
     payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
-    unpayed_elements = all_invoices_elements.exclude(id__in=payed_elements.values_list('invoice__id', flat=True))      
-    def set_value(payment): # calculate and save the value of the payment
-        payment_elements = PaymentElement.objects.filter(payment=payment).order_by("id")
-        payment.value = 0
+    unpayed_elements = all_invoices.exclude(
+            id__in=payed_elements.values_list('invoice__id', flat=True)
+        )
+    def set_value(payment, value = 0): # calculate and save the value of the payment
+        payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
+        to_pay = 0
         for e in payment_elements:
-            payment.value += e.invoice.value
+            to_pay += e.invoice.value
+        payment.value = to_pay
+        if len(payment_elements) < 2 and 0 < value < to_pay:
+            payment.value = value
         payment.save()
     if payment_id > 0:  # if payment exists
         receipt_serial = payment.serial
@@ -127,6 +134,7 @@ def payment(request, payment_id, person_id, invoice_id):
         payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
         if request.method == "POST":
             if "payment_description" in request.POST:
+                payment.type = request.POST.get("payment_type")
                 payment.description = request.POST.get("payment_description")
                 if payment.is_client == False:
                     payment.serial = request.POST.get("receipt_serial").upper()
@@ -157,11 +165,14 @@ def payment(request, payment_id, person_id, invoice_id):
                     )
                 except:
                     print("Element",unpayed_element_id,"is missing!")
+            if "payment_value" in request.POST:
+                payment_value = Decimal(request.POST.get("payment_value"))
+
             # Setting the modiffied user and date
             payment.modified_by = request.user
             payment.modified_at = date_now
             # Save the invoice value
-            set_value(payment)
+            set_value(payment, payment_value)
 
     else:  # if payment is new
         if request.method == "POST":
@@ -196,7 +207,7 @@ def payment(request, payment_id, person_id, invoice_id):
                 for element in unpayed_elements:
                     PaymentElement.objects.get_or_create(
                         payment=payment,
-                        invoice=element.invoice
+                        invoice=invoice
                     )
                 # Save the payment value
                 set_value(payment)
