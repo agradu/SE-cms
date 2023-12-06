@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'css/invoice.css' %}" media="print" rel="stylesheet">
+    <title>Receipt</title>
+    <meta name="description" content="Invoice">
+  </head>
+  <body>
+    <div class="table pb">
+        <div class="tr">
+            <div class="td left top invoice-title">
+                <b>Quittung Nr.</b><br>{{ payment.serial}}-{{ leading_number }}<br>
+            </div>
+            <div class="td right top" style="width: 40%;">
+                <div class="table">
+                    <div class="tr">
+                        <div class="td2 colspan1 bold text-small line-up">Nettowert</div>
+                        <div class="td2 colspan2 right bold text-small line-up">{{ payment.value }}&nbsp;{{ payment.currency.symbol }}</div>
+                    </div>
+                    <div class="tr bold">
+                        <div class="td2 colspan1 text-small">+ MwSt. 0,00 %</div>
+                        <div class="td2 colspan2 right text-small">0.00&nbsp;{{ payment.currency.symbol }}</div>
+                    </div>
+                    <div class="tr bold">
+                        <div class="td colspan1 text-bigger line-up">Gesamtbetrag</div>
+                        <div class="td colspan2 right text-bigger line-up">{{ payment.value }}&nbsp;{{ payment.currency.symbol }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="subtitle right">
+        <b>Gesamtbetrag in Worten:</b> {{value_in_words}} {{payment.currency.name}}
+    </div>
+    <div class="subtitle2">
+        <b>Für die folgenden</b> Rechnungen/Dienstleistungen:
+    </div>
+    <div class="table line-up">
+        {% for e in payment_elements %}
+        <div class="tr">
+            <div class="td">Rechnung Nr. {{ e.invoice.serial }}-{{ e.invoice.number }}</div>
+            <div class="td pl">({{ e.invoice.description }})</div>
+            <div class="td right pl"> von {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
+            <div class="td right pl">{{ e.invoice.value }} {{ e.invoice.currency.symbol }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="table line-up" style="padding-top: 20pt;">
+        <div class="tr">
+            <div class="td pb">
+                <b>Buchungsvermerke:</b><br>
+                {{ payment.description }}
+            </div>
+        </div>
+    </div>
+    <div class="table" style="padding-top: 20pt;">
+        <div class="tr">
+            <div class="td">
+                <b>Bezahlt von:</b><br><br>
+                <b class="text-bigger">{% if payment.person.company_name != '' %}{{ payment.person.company_name }}<br>{% endif %}
+                    {{ payment.person.firstname }} {{ payment.person.lastname }}</b><br>
+                    {{ payment.person.address }}
+            </div>
+            <div class="td right">
+                <b>Bezahlt an:</b><br><br>
+            <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 200px;"> <br>
+                Ritterstraße 11b, 39124 Magdeburg
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="table pb">
+            <div class="tr">
+                <div class="td"><b>Ort, Datum</b><br>
+                    Magdeburg, {{ payment.payment_date|date:"d.m.Y"}}</div>
+                <div class="td right"><b>Stempel/Unterschrift des Empfängers</b><br>
+                    {{ payment.modified_by.first_name}} {{ payment.modified_by.last_name}}</div>
+            </div>
+        </div>
+        <p class="line-up center" style="padding-top: 10pt">
+            <b>Sprachen Express</b> - Ritterstraße 11b, 39124 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
+            <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
+            <b>Bank</b> Postbank | <b>SWIFT/BIC</b> PBNKDEFF | <b>IBAN</b> DE91 8601 0090 0991 6239 01
+        </p>
+    </div>
+  </body>
+</html>

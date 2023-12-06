@@ -69,11 +69,11 @@
 									</div>
 									<label class="col-sm-2 col-form-label">Serial</label>
 									<div class="col-sm-2">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
+										<input type="text"{% if is_client or payment.type == 'bank' %}disabled=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
 									<div class="col-sm-2">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
+										<input type="text"{% if is_client or payment.type == 'bank' %}disabled=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
 									</div>
 								</div>
 							</div>
@@ -164,9 +164,11 @@
 										{% endif %}
 									</td>
 									<td style="text-align: right;">
-										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
+										{% if payment.is_client %}
+										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_receipt/{{payment.id}}/');">
 											<i class="mdi mdi-printer btn-icon-prepend"></i>
 										</button>
+										{% endif %}
 									</td>
 								</tr>
 							</form>

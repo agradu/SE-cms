@@ -49,6 +49,10 @@ body {
     font-size: 9pt;
     margin-bottom: 30pt;
 }
+.subtitle2 {
+    font-size: 9pt;
+    margin-bottom: 10pt;
+}
 
 .table {
     display: table;
@@ -71,6 +75,9 @@ body {
 }
 .pt {
     padding-top: 10pt;
+}
+.pb {
+    padding-bottom: 30pt;
 }
 .right {
     text-align: right;

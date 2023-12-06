@@ -155,9 +155,13 @@ def invoice(request, invoice_id, person_id, order_id):
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
                 if invoice.is_client == False:
-                    invoice.serial = request.POST.get("invoice_serial").upper()
+                    i_serial = request.POST.get("receipt_serial")
+                    if i_serial != None:
+                        invoice.serial = i_serial.upper()
                     invoice_serial = invoice.serial
-                    invoice.number = request.POST.get("invoice_number").upper()
+                    i_number = request.POST.get("receipt_number")
+                    if i_number != None:
+                        invoice.number = i_number.upper()
                     invoice_number = invoice.number
                 deadline_date = request.POST.get("deadline_date")
                 try:

@@ -148,9 +148,9 @@
 								<td> <h4>INVOICE</h4> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{invoice.value}} {{invoice.currency.symbol}}</h4> </td>
-								<td colspan="3">
-									<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
-									<i class="mdi mdi-file-outline btn-icon-prepend"></i> Download </button>
+								<td colspan="3" style="text-align: right;">
+									<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_invoice/{{invoice.id}}/');">
+									<i class="mdi mdi-printer btn-icon-prepend"></i></button>
 								</td>
 							</tr>
 						</tbody>

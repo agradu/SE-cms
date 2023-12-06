@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, F
 from persons.models import Person
@@ -12,9 +14,9 @@ from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
 from decimal import Decimal
+from num2words import num2words
 
 # Create your views here.
-
 
 @login_required(login_url="/login/")
 def payments(request):
@@ -137,9 +139,13 @@ def payment(request, payment_id, person_id, invoice_id):
                 payment.type = request.POST.get("payment_type")
                 payment.description = request.POST.get("payment_description")
                 if payment.is_client == False:
-                    payment.serial = request.POST.get("receipt_serial").upper()
+                    p_serial = request.POST.get("receipt_serial")
+                    if p_serial != None:
+                        payment.serial = p_serial.upper()
                     receipt_serial = payment.serial
-                    payment.number = request.POST.get("receipt_number").upper()
+                    p_number = request.POST.get("receipt_number")
+                    if p_number != None:
+                        payment.number = p_number.upper()
                     receipt_number = payment.number
                 payment_date = request.POST.get("payment_date")
                 try:
@@ -153,6 +159,8 @@ def payment(request, payment_id, person_id, invoice_id):
                     element = PaymentElement.objects.get(id=payment_element_id)
                     if PaymentElement.objects.filter(payment=payment).count() > 1:
                         element.delete()
+                        # Save the invoice value
+                        set_value(payment, payment_value)
                 except:
                     print("Element",payment_element_id,"is missing!")
             if "unpayed_element_id" in request.POST:
@@ -163,16 +171,20 @@ def payment(request, payment_id, person_id, invoice_id):
                         payment = payment,
                         invoice = element
                     )
+                    # Save the invoice value
+                    set_value(payment, payment_value)
                 except:
-                    print("Element",unpayed_element_id,"is missing!")
+                    print("Element",unpayed_element_id,"is missing!")    
             if "payment_value" in request.POST:
                 payment_value = Decimal(request.POST.get("payment_value"))
+                # Save the invoice value
+                set_value(payment, payment_value)
 
             # Setting the modiffied user and date
             payment.modified_by = request.user
             payment.modified_at = date_now
-            # Save the invoice value
-            set_value(payment, payment_value)
+            # Save the payment infos
+            payment.save()
 
     else:  # if payment is new
         if request.method == "POST":
@@ -235,3 +247,32 @@ def payment(request, payment_id, person_id, invoice_id):
             "new": new
         },
     )
+
+@login_required(login_url="/login/")
+def print_receipt(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    payment_elements = PaymentElement.objects.filter(payment=payment).order_by("id")
+    leading_number = payment.number.rjust(3,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        svg_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(svg_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        invoice_content = f.read()
+
+    context = {
+        "payment": payment,
+        "leading_number": leading_number,
+        "payment_elements": payment_elements,
+        "logo_base64": logo_base64,
+        "value_in_words": num2words(payment.value, lang='de').capitalize()
+    }
+    html_content = render_to_string("payments/print_receipt.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=receipt-{payment.serial}-{payment.number}.pdf'
+    return response
