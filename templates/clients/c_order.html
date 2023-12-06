@@ -54,16 +54,19 @@
 		<div class="card bg-light">
 			<div class="card-body">
 				<h4 class="card-title">Modify the client</h4>
-				<p>(Only if is needed)</p>
+				<p>(Only if is needed and no invoice is created)</p>
 				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
-							<div class="col-sm-8">
-								<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
+					<form method="post" class="col-md-12"> {% csrf_token %}
+						<fieldset{% if is_invoiced %} disabled{% endif %}>
+							<div class="form-group row" >
+								<div class="col-sm-8">
+									<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
+								</div>
+								<div class="col-sm-4">
+									<button type="submit" class="btn btn-gradient-primary">Search</button>
+								</div>
 							</div>
-							<div class="col-sm-4">
-								<button type="submit" class="btn btn-gradient-primary">Search</button>
-							</div>
-						</div>
+						</fieldset>
 					</form>
 				</div>
 				<div class="row">

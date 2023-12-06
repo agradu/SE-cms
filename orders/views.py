@@ -121,12 +121,14 @@ def c_order(request, order_id, client_id):
     clients = []
     elements = []
     element = ""
+    is_invoiced = False
     date_now = timezone.now()
     if order_id != 0:  # if order exists
         new = False
         order = get_object_or_404(Order, id=order_id)
         client = order.person
         elements = OrderElement.objects.filter(order=order).order_by("id")
+        is_invoiced = InvoiceElement.objects.filter(element__order=order).exists()
         if request.method == "POST":
             if "search" in request.POST:
                 search = request.POST.get("search")
@@ -136,7 +138,7 @@ def c_order(request, order_id, client_id):
                         | Q(lastname__icontains=search)
                         | Q(company_name__icontains=search)
                     )
-            if "new_client" in request.POST:
+            if "new_client" in request.POST and is_invoiced == False:
                 new_client = request.POST.get("new_client")
                 client = get_object_or_404(Person, id=new_client)
                 order.person = client
@@ -277,6 +279,7 @@ def c_order(request, order_id, client_id):
             "services": services,
             "new": new,
             "element_selected": element,
+            "is_invoiced": is_invoiced,
         },
     )
 
