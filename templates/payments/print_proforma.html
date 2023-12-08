@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'css/invoice.css' %}" media="print" rel="stylesheet">
+    <title>Proforma</title>
+    <meta name="description" content="Proforma">
+  </head>
+  <body>
+    <div class="logo">
+        <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 250px;">
+    </div>
+    <div class="firma-address">
+        Sprachen Express | Ritterstraße 11b, 39124 Magdeburg
+    </div>
+    <div class="client">
+        <b>{% if proforma.person.company_name != '' %}{{ proforma.person.company_name }}<br>{% endif %}
+        {{ proforma.person.firstname }} {{ proforma.person.lastname }}</b>
+    </div>
+    <div class="client-address">
+        {{ proforma.person.address }}
+    </div>
+    <div class="invoice-daten">
+        <table>
+            <tr>
+                <td class="right"><b>Proformasdatum</b><br>
+                    {{ proforma.created_at|date:"d.m.Y"}}</td>
+                <td class="right">&nbsp;&nbsp;&nbsp;<b>Fälligkeitsdatum</b><br>
+                    {{ proforma.deadline|date:"d.m.Y"}}</td>
+                <td class="right">&nbsp;&nbsp;&nbsp;<b>Zahlungsbedinungen</b><br>
+                    {{ day_left}} Tage</td>
+            </tr>
+        </table>
+    </div>
+    <div class="invoice-title">
+        <b>Proforma Nr.</b> {{ proforma.serial}}-{{ leading_number }}
+    </div>
+    <div class="subtitle">
+        Wir bedanken uns für die gute Zusammenarbeit und stellen Ihnen vereinbarungsgemäß folgende <br>
+        Leistungen in Rechnung:
+    </div>
+    <div class="table">
+        <div class="tr bold">
+            <div class="td line-down">Beschreibung</div>
+            <div class="td right line-down pl">Datum</div>
+            <div class="td right line-down pl">Menge</div>  
+            <div class="td right line-down pl">Einheit</div>
+            <div class="td right line-down pl">Einzelpreis</div>
+            <div class="td right line-down pl">Betrag</div>
+        </div>
+        {% for e in proforma_elements %}
+        <div class="tr">
+            <div class="td">{{ e.element.service.name }} - {{ e.element.description }}</div>
+            <div class="td right pl">{{ e.element.order.created_at|date:"d.m.Y"}}</div>
+            <div class="td right pl">{{ e.element.quantity }}</div>  
+            <div class="td right pl">{{ e.element.um.name }}</div>
+            <div class="td right pl">{{ e.element.price }}&nbsp;{{ proforma.currency.symbol }}</div>
+            <div class="td right pl">{{ e.element.price }}&nbsp;{{ proforma.currency.symbol }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="table">
+        <div class="tr">
+            <div class="td2 line-up pt">Nicht umsatzsteuerpflichtig nach § 19 1 UStG.</div>
+            <div class="td2 line-up colspan1 bold text-small pt">Nettobetrag</div>
+            <div class="td2 line-up colspan2 right bold text-small pt">{{ proforma.value }}&nbsp;{{ proforma.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td2"></div>
+            <div class="td2 colspan1 text-small">USt. 0,00 %</div>
+            <div class="td2 colspan2 right text-small">0&nbsp;{{ proforma.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td"></div>
+            <div class="td line-up colspan1 text-bigger">Gesamtsumme</div>
+            <div class="td line-up colspan2 right text-bigger pl">{{ proforma.value }}&nbsp;{{ proforma.currency.symbol }}</div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> und "<b>Proforma Nr. {{ proforma.serial }}-{{ leading_number }}</b>" als Verwendungszweck.</p>
+        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
+        <p class="line-up center" style="padding-top: 10pt">
+            <b>Sprachen Express</b> - Ritterstraße 11b, 39124 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
+            <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
+            <b>Bank</b> Postbank | <b>SWIFT/BIC</b> PBNKDEFF | <b>IBAN</b> DE91 8601 0090 0991 6239 01
+        </p>
+    </div>
+  </body>
+</html>

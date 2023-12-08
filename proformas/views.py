@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
 from persons.models import Person
-from payments.models import Payment, PaymentElement
 from .models import Proforma, ProformaElement
 from services.models import Serial
 from django.core.paginator import Paginator
@@ -55,27 +54,14 @@ def proformas(request):
         for e in proforma_elements:
             if e.element.order not in p_orders:
                 p_orders.append(e.element.order)
-        p_payed = 0
-        p_payments = PaymentElement.objects.filter(proforma=p)
-        for p in p_payments:
-            if p.payment.value < p.proforma.value:
-                i_payed += p.payment.value
-            else:
-                i_payed += p.proforma.value
-        if p.value > 0:
-            payed = int(p_payed / p.value * 100)
-        else:
-            payed = 0
         person_proformas.append(
-            {"proforma": p, "payed": payed, "value": p.value, "orders": p_orders}
+            {"proforma": p, "value": p.value, "orders": p_orders}
         )
     # sorting types
     page = request.GET.get("page")
     sort = request.GET.get("sort")
     def get_sort_key(x):
-        if sort == "type":
-            return x["proforma"].is_client
-        elif sort == "proforma":
+        if sort == "proforma":
             return (x["proforma"].serial, x["proforma"].number)
         elif sort == "person":
             return x["proforma"].person.firstname
@@ -89,8 +75,6 @@ def proformas(request):
             return x["proforma"].status.id
         elif sort == "value":
             return x["value"]
-        elif sort == "payed":
-            return x["payed"]
         elif sort == "update":
             return x["proforma"].modified_at
         else:
@@ -124,22 +108,17 @@ def proforma(request, proforma_id, person_id, order_id):
     proforma_number = serials.proforma_number
     if order_id > 0:
         order = get_object_or_404(Order, id=order_id)
-        is_client = order.is_client
     else:
         order = ""
     if proforma_id > 0:
-        invoice = get_object_or_404(Proforma, id=proforma_id)
-        is_client = proforma.is_client
+        proforma = get_object_or_404(Proforma, id=proforma_id)
         new = False
     else:
         proforma =""
         new = True
-        if is_client == False:
-            proforma_serial = ""
-            proforma_number = ""
     all_orders_elements = OrderElement.objects.exclude(status__id='6').filter(order__person=person).order_by("id")
     proformed_elements = ProformaElement.objects.exclude(element__status__id='6').filter(proforma__person=person).order_by("id")
-    unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True))      
+    unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True))
     def set_value(proforma): # calculate and save the value of the proforma
         proforma_elements = ProformaElement.objects.filter(proforma=proforma).order_by("id")
         proforma.value = 0
@@ -153,15 +132,6 @@ def proforma(request, proforma_id, person_id, order_id):
         if request.method == "POST":
             if "proforma_description" in request.POST:
                 proforma.description = request.POST.get("proforma_description")
-                if proforma.is_client == False:
-                    i_serial = request.POST.get("receipt_serial")
-                    if i_serial != None:
-                        proforma.serial = i_serial.upper()
-                    proforma_serial = proforma.serial
-                    i_number = request.POST.get("receipt_number")
-                    if i_number != None:
-                        proforma.number = i_number.upper()
-                    proforma_number = proforma.number
                 deadline_date = request.POST.get("deadline_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
@@ -195,14 +165,7 @@ def proforma(request, proforma_id, person_id, order_id):
     else:  # if proforma is new
         if request.method == "POST":
             if "proforma_description" in request.POST:
-                proforma_description = request.POST.get("proforma_description")
-                if order.is_client == False:
-                    proforma_serial = request.POST.get("proforma_serial")
-                    proforma_number = request.POST.get("proforma_number")
-                    if proforma_serial =="" and proforma_number =="":
-                        proforma_serial = "??"
-                        proforma_number = "???"
-                    
+                proforma_description = request.POST.get("proforma_description")     
                 deadline_date = request.POST.get("deadline_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
@@ -246,7 +209,6 @@ def proforma(request, proforma_id, person_id, order_id):
             "proforma": proforma,
             "proforma_serial": proforma_serial,
             "proforma_number": proforma_number,
-            "is_client": is_client,
             "proforma_elements": proforma_elements,
             "unproformed_elements": unproformed_elements,
             "new": new

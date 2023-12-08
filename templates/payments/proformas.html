@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Sprachen Express - Proformas{% endblock %}
+{% block content %}
+{% load static %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-file-hidden"></i>
+		</span> Proformas
+	</h3>
+</div>
+{% load static %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="table-responsive">
+					<form method="post"> 
+						{% csrf_token %} 
+						<table class="table">
+							<tbody>
+								<tr>
+									<td width="50%">
+										<div class="input-group input-group-sm">
+											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+											<input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+										</div>
+									</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th> <a href="/payments/proformas/?sort=proforma&search={{search}}">Proforma</a> </th>
+								<th> <a href="/payments/proformas/?sort=person&search={{search}}">Person</a> </th>
+								<th> Orders </th>
+								<th> <a href="/payments/proformas/?sort=assignee&search={{search}}">Assignee</a> </th>
+								<th> <a href="/payments/proformas/?sort=registered&search={{search}}">Registered</a> </th>
+								<th> <a href="/payments/proformas/?sort=deadline&search={{search}}">Due Date</a> </th>
+								<th style="text-align: right;"> <a href="/payments/proformas/?sort=value&search={{search}}">Value</a> </th>
+								<th> <a href="/payments/proformas/?sort=update&search={{search}}">Last Update</a> </th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for i in person_proformas %} 
+							<tr>
+								<td title="{{ invoice.description }}"> <a href="/payments/proforma/{{ i.proforma.id}}/{{ i.proforma.person.id}}/0/">{{ i.proforma.serial}}-{{ i.proforma.number}}</a> </td>
+								<td> <a href="/persons/{{ i.proforma.person.id}}/"> {{ i.proforma.person.firstname}} {{ i.proforma.person.lastname}} {% if i.proforma.person.company_name != "" %}- {{ i.proforma.person.company_name}} {% endif %}</a> </td>
+								<td> 
+									{% for o in i.orders %}
+									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.id}}</a>
+									{% endfor %}
+								</td>
+								<td>
+									<img src="{{ i.proforma.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.proforma.modified_by.first_name}} {{ i.proforma.modified_by.last_name}}
+								</td>
+								<td> {{ i.proforma.created_at|date:"d.m.Y"}} - {{ i.proforma.created_at|time:"H:i"}} </td>
+								<td> {{ i.proforma.deadline|date:"d.m.Y"}} </td>
+								<td style="text-align: right;"> {% if i.proforma.is_client == False %}-{% endif %}{{ i.value}} {{ i.invoice.currency.symbol}}</td>
+								<td> {{ i.proforma.modified_at|date:"d.m.Y"}} - {{ i.proforma.modified_at|time:"H:i"}} </td>
+								<td> 
+									<button type="button" title="Convert in invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/convert/{{ i.proforma.id }}/';">
+									<i class="mdi mdi-file-export"></i>
+									</button>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+					  <tbody>
+						{% if client_invoices.paginator.num_pages > 1 %} 
+							<tr>
+								<td>
+									<div class="btn-group btn-group-sm">
+										{% for pg in client_invoices.paginator.page_range %}
+										{% if pg == client_invoices.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% else %}
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+										{% endif %}
+										{% endfor %} </div>
+								</td>
+							</tr> 
+							{% endif %}
+					  </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

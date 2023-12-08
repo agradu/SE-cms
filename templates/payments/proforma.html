@@ -1,0 +1,214 @@
+{% extends "base.html" %} 
+{% block title %}Sprachen Express - Proforma{% endblock %} 
+{% block content %} 
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-file-hidden"></i>
+		</span> Proforma {{ proforma.serial }}{{ proforma.number }} to {{ person.firstname }} {{ person.lastname }}
+	</h3>
+</div> 
+{% load static %} 
+<div class="row">
+	<div class="col-md-6 grid-margin stretch-card">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Person details</h4>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Name:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ person.firstname }} {{ person.lastname }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Company:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ person.company_name }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Contact:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p><a href="mailto:{{ person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ person.email }} / <a href="https://wa.me/{{ person.phone | slice:'2:' }}">
+							<i class="mdi mdi-whatsapp"></i></a> {{ person.phone }}<br>Address - {{ person.address }}</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<p><b>Services:</b></p>
+					</div>
+					<div class="col-md-9">
+						<p>{{ person.services }}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6 grid-margin stretch-card">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Proforma details</h4>
+				<p>Proforma created by <b class="text-primary">{{proforma.created_by.first_name}} {{proforma.created_by.last_name}}</b> and modified by <b class="text-success">{{proforma.modified_by.first_name}} {{proforma.modified_by.last_name}}</b>. </p>
+				<div class="row">
+					<form method="post" class="col-md-12"> {% csrf_token %}
+						<div class="row">
+							<div class="col-md-12">
+								<div class="form-group row">
+									<label class="col-sm-2 col-form-label">Serial</label>
+									<div class="col-sm-4">
+										<input type="text" disabled="" class="form-control" name="proforma_serial" value="{{ proforma_serial }}">
+									</div>
+									<label class="col-sm-2 col-form-label">Number</label>
+									<div class="col-sm-4">
+										<input type="text" disabled="" class="form-control" name="proforma_number" value="{{ proforma_number }}">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div class="form-group row">
+									<label class="col-sm-2 col-form-label">Description</label>
+									<div class="col-sm-10">
+										<input type="text" class="form-control" name="proforma_description" value="{{ proforma.description }}">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div class="form-group row">
+									<label class="col-sm-2 col-form-label">Due date</label>
+									<div class="col-sm-5">
+										<input type="date" class="form-control" name="deadline_date" value="{{ proforma.deadline|date:'Y-m-d' }}">
+									</div>
+									<div class="col-sm-5">
+										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the proforma </button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div> 
+{% if new == False %} 
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Proforma content</h4>
+				<div class="table-responsive mt-3">
+					<table class="table table-hover">
+						<thead>
+							<tr id="e_start">
+								<th> Service </th>
+								<th> Description </th>
+								<th> Order </th>
+								<th style="text-align: right;"> Quantity </th>
+								<th> Unit </th>
+								<th style="text-align: right;"> Price </th>
+								<th> Status </th>
+								<th width="1%"></th>
+							</tr>
+						</thead>
+						<tbody> 
+							{% for e in proforma_elements %}
+							<tr id="e{{ e.id }}">
+								<td width="20%"> {{e.element.service.name}} </td>
+								<td> {{e.element.description}} </td>
+								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.proforma.person.id}}/">Order-{{ e.element.order.id }} ({{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}})</a> </td>
+								<td width="7%" style="text-align: right;"> {{e.element.quantity}} </td>
+								<td width="10%"> {{e.element.um.name}} </td>
+								<td width="10%" style="text-align: right;"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>
+								<td width="10%">
+									<label class="badge badge-{{e.element.status.style}}"> {{e.element.status.name}} </label>
+								</td>
+								<td>
+									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
+										<input type="hidden" name="proforma_element_id" value="{{e.id}}">
+										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
+											<i class="mdi mdi-minus btn-icon-prepend"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							{% endfor %}
+							<tr>
+								<td colspan="3"> </td>
+								<td> <h4>PROFORMA</h4> </td>
+								<td> <h4>TOTAL:</h4> </td>
+								<td style="text-align: right;"> <h4>{{proforma.value}} {{proforma.currency.symbol}}</h4> </td>
+								<td colspan="3" style="text-align: right;">
+									<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_proforma/{{proforma.id}}/');">
+									<i class="mdi mdi-printer btn-icon-prepend"></i></button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% if unproformed_elements %}
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Services without proforma</h4>
+				<div class="table-responsive mt-3">
+					<table class="table table-hover">
+						<thead>
+							<tr id="e_start">
+								<th> Service </th>
+								<th> Description </th>
+								<th> Order </th>
+								<th style="text-align: right;"> Quantity </th>
+								<th> Unit </th>
+								<th style="text-align: right;"> Price </th>
+								<th> Status </th>
+								<th width="1%"></th>
+							</tr>
+						</thead>
+						<tbody> 
+							{% for ue in unproformed_elements %}
+							<tr id="ue{{ ue.id }}">
+								<td width="20%"> {{ue.service.name}} </td>
+								<td> {{ue.description}} </td>
+								<td> <a href="/{% if ue.order.is_client %}clients{% else %}providers{% endif %}/order/{{ ue.order.id }}/{{ ue.order.person.id}}/">O# {{ue.order.id}} from {{ ue.order.created_at|date:"d.m.Y"}} - {{ ue.order.created_at|time:"H:i"}}</a> </td>
+								<td width="7%" style="text-align: right;"> {{ue.quantity}} </td>
+								<td width="10%"> {{ue.um.name}} </td>
+								<td width="10%" style="text-align: right;"> {{ue.price}} {{ue.order.currency.symbol}} </td>
+								<td width="10%">
+									<label class="badge badge-{{ue.status.style}}"> {{ue.status.name}} </label>
+								</td>
+								<td>
+									<form method="post" action="#ue{{ ue.id }}"> {% csrf_token %}
+										<input type="hidden" name="unproformed_element_id" value="{{ue.id}}">
+										<button class="btn btn-gradient-primary btn-icon" type="submit" title="Add to proforma">
+											<i class="mdi mdi-plus btn-icon-prepend"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

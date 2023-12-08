@@ -81,6 +81,9 @@
 			<div class="collapse{% if 'payments/' in request.path %} show{% endif %}" id="payments">
 				<ul class="nav flex-column sub-menu">
 					<li class="nav-item">
+						<a class="nav-link{% if 'payments/proformas/' in request.path %} active{% endif %}" href="/payments/proformas/">Proformas</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link{% if 'payments/invoices/' in request.path %} active{% endif %}" href="/payments/invoices/">Invoices</a>
 					</li>
 					<li class="nav-item">

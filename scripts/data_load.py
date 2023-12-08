@@ -26,9 +26,15 @@ def run():
     um = UM.objects.filter(name="pieces").first()
 
     Serial.objects.get_or_create(
-        invoice_serial='SER',
+        offer_serial='A',
+        offer_number=1,
+        order_serial='B',
+        order_number=1,
+        proforma_serial='PRO',
+        proforma_number=1,
+        invoice_serial='RE',
         invoice_number=1,
-        receipt_serial='SEQ',
+        receipt_serial='BE',
         receipt_number=1,
     )
 
@@ -38,10 +44,10 @@ def run():
     currency = Currency.objects.filter(name="Euro").first()
 
     services = [
-        ("mdi-google-translate", "Translation", 20, 30),
-        ("mdi-file-word-box", "Editing service", 20, 30),
-        ("mdi-seal", "Mediation of notarial services", 20, 30),
-        ("mdi-star-circle", "Mediation of apostille services", 20, 30),
+        ("mdi-google-translate", "Übersetzung", 20, 30),
+        ("mdi-file-word-box", "Redaktionsservice", 20, 30),
+        ("mdi-seal", "Vermitlung Notar", 20, 30),
+        ("mdi-star-circle", "Vermitlung Apostille", 20, 30),
     ]
     for service in services:
         Service.objects.get_or_create(
