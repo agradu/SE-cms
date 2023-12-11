@@ -66,7 +66,6 @@ def invoices(request):
             payed = int(i_payed / i.value * 100)
         else:
             payed = 0
-        print('YYYY:',i_payed)
         person_invoices.append(
             {"invoice": i, "payed": payed, "value": i.value, "orders": i_orders}
         )

@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from orders.models import Order, OrderElement
+from invoices.models import Invoice, InvoiceElement
 from persons.models import Person
 from .models import Proforma, ProformaElement
 from services.models import Serial
@@ -246,3 +247,44 @@ def print_proforma(request, proforma_id):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename=proforma-{proforma.serial}-{proforma.number}.pdf'
     return response
+
+@login_required(login_url="/login/")
+def convert_proforma(request, proforma_id):
+    proforma = get_object_or_404(Proforma, id=proforma_id)
+    proforma_elements = ProformaElement.objects.exclude(element__status__id='6').filter(proforma=proforma).order_by("id")
+    serials = get_object_or_404(Serial, id=1)
+    def set_value(invoice): # calculate and save the value of the invoice
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
+        invoice.value = 0
+        for e in invoice_elements:
+            invoice.value += (e.element.price * e.element.quantity)
+        invoice.save()
+
+    invoice = Invoice(
+        description = proforma.description,
+        serial = serials.invoice_serial,
+        number = serials.invoice_number,
+        person = proforma.person,
+        deadline = proforma.deadline,
+        is_client = True,
+        modified_by = request.user,
+        created_by = request.user,
+        currency = proforma.currency,
+        proforma = proforma,
+    )
+    invoice.save()
+    serials.invoice_number += 1
+    serials.save()
+    for e in proforma_elements:
+        element = InvoiceElement(
+            invoice = invoice,
+            element = e.element,
+        )
+        element.save()
+    set_value(invoice)
+    proforma.is_invoiced = True
+    proforma.save()
+
+    return redirect(
+        "invoices",
+    )

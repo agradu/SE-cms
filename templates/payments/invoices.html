@@ -52,6 +52,7 @@
 							<tr>
 								<th> <a href="/payments/invoices/?sort=type&search={{search}}">Type</a> </th>
 								<th> <a href="/payments/invoices/?sort=invoice&search={{search}}">Invoice</a> </th>
+								<th> <a href="/payments/invoices/?sort=proforma&search={{search}}">Proforma</a> </th>
 								<th> <a href="/payments/invoices/?sort=person&search={{search}}">Person</a> </th>
 								<th> Orders </th>
 								<th> <a href="/payments/invoices/?sort=assignee&search={{search}}">Assignee</a> </th>
@@ -68,6 +69,7 @@
 							<tr>
 								<td> <i class="mdi {% if i.invoice.is_client %}mdi-clipboard-outline{% else %}mdi-cart-outline{% endif %} mdi-18px"></i> </td>
 								<td title="{{ invoice.description }}"> <a href="/payments/invoice/{{ i.invoice.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.serial}}-{{ i.invoice.number}}</a> </td>
+								<td> {% if i.invoice.proforma %}<a href="/payments/proforma/{{ i.invoice.proforma.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.proforma.serial}}-{{ i.invoice.proforma.number}}</a>{% endif %} </td>
 								<td> <a href="/persons/{{ i.invoice.person.id}}/"> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
 								<td> 
 									{% for o in i.orders %}

@@ -79,9 +79,11 @@
 								<td style="text-align: right;"> {% if i.proforma.is_client == False %}-{% endif %}{{ i.value}} {{ i.invoice.currency.symbol}}</td>
 								<td> {{ i.proforma.modified_at|date:"d.m.Y"}} - {{ i.proforma.modified_at|time:"H:i"}} </td>
 								<td> 
+									{% if i.proforma.is_invoiced == False %}
 									<button type="button" title="Convert in invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/convert/{{ i.proforma.id }}/';">
 									<i class="mdi mdi-file-export"></i>
 									</button>
+									{% endif %}
 								</td>
 							</tr>
 							{% endfor %}
@@ -91,12 +93,12 @@
 				<div class="table-responsive">
 					<table class="table">
 					  <tbody>
-						{% if client_invoices.paginator.num_pages > 1 %} 
+						{% if person_proformas.paginator.num_pages > 1 %} 
 							<tr>
 								<td>
 									<div class="btn-group btn-group-sm">
-										{% for pg in client_invoices.paginator.page_range %}
-										{% if pg == client_invoices.number %}
+										{% for pg in person_proformas.paginator.page_range %}
+										{% if pg == person_proformas.number %}
 										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 										{% else %}
 										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>

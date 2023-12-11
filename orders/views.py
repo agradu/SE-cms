@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Order, OrderElement, Offer, OfferElement
 from persons.models import Person
 from invoices.models import InvoiceElement
+from proformas.models import ProformaElement
 from services.models import Currency, Status, Service, UM
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -55,6 +56,7 @@ def c_orders(request):
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
         o_invoiced = 0
+        proformed = False
         for e in order_elements:
             try:
                 invoice_element = InvoiceElement.objects.get(element=e)
@@ -63,12 +65,17 @@ def c_orders(request):
                 )
             except:
                 invoice_element = None
+            try:
+                proforma_element = ProformaElement.objects.get(element=e)
+                proformed = True
+            except:
+                proformed = proformed
         if o.value > 0:
             invoiced = int(o_invoiced / o.value * 100)
         else:
             invoiced = 0
         client_orders.append(
-            {"order": o, "elements": order_elements, "invoiced": invoiced}
+            {"order": o, "elements": order_elements, "invoiced": invoiced, "proformed": proformed}
         )
     # sorting types
     page = request.GET.get("page")

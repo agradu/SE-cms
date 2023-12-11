@@ -55,6 +55,7 @@
 			<div class="card-body">
 				<h4 class="card-title">Invoice details</h4>
 				<p>Invoice created by <b class="text-primary">{{invoice.created_by.first_name}} {{invoice.created_by.last_name}}</b> and modified by <b class="text-success">{{invoice.modified_by.first_name}} {{invoice.modified_by.last_name}}</b>. </p>
+				{% if invoice.proforma %}<p>This invoice corresponds to proforma <b>{{invoice.proforma.serial}}{{invoice.proforma.number}}</b></p>{% endif %}
 				<div class="row">
 					<form method="post" class="col-md-12"> {% csrf_token %}
 						<div class="row">

@@ -1,6 +1,7 @@
 from django.db import models
 from persons.models import Person
 from orders.models import Order, OrderElement
+from proformas.models import Proforma
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
@@ -28,6 +29,7 @@ class Invoice(models.Model):
     )
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
+    proforma = models.ForeignKey(Proforma, on_delete=models.SET_NULL, default=None, null=True, blank=True)
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
     deadline = models.DateField(default=timezone.now)
