@@ -44,11 +44,11 @@ class Payment(models.Model):
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
-        return f"Paymant ({self.type}) from {self.person} - {formatted_created_at} ({self.value}{self.currency.symbol})"
+        return f"Paymant {self.serial}{self.number} ({self.type}) from {self.person} - {formatted_created_at} ({self.value}{self.currency.symbol})"
     
 class PaymentElement(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Invoice #{self.invoice.id} from payment #{self.payment.id} ({self.payment.value}{self.payment.value})"
+        return f"Inv. {self.invoice.serial}{self.invoice.number} from payment #{self.payment.id} ({self.payment.value}{self.payment.value})"

@@ -40,7 +40,7 @@ class Order(models.Model):
 
     def __str__(self):
         formatted_deadline = self.deadline.strftime("%d.%m.%Y %H:%M")
-        return f"Order - {self.person} - {formatted_deadline} - {self.description} ({self.value}{self.currency.symbol})"
+        return f"Order {self.serial}{self.number} - {self.person} - {formatted_deadline} - {self.description} ({self.value}{self.currency.symbol})"
 
 
 class OrderElement(models.Model):
@@ -91,7 +91,7 @@ class Offer(models.Model):
 
     def __str__(self):
         formatted_deadline = self.deadline.strftime("%d.%m.%Y %H:%M")
-        return f"Offer - {self.person} - {formatted_deadline} - {self.description} ({self.value}{self.currency.symbol})"
+        return f"Offer {self.serial}{self.number} - {self.person} - {formatted_deadline} - {self.description} ({self.value}{self.currency.symbol})"
 
 
 class OfferElement(models.Model):

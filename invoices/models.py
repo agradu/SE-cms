@@ -47,7 +47,7 @@ class InvoiceElement(models.Model):
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Element #{self.invoice.id} from invoice {self.invoice.serial}{self.invoice.number} / {self.element}"
+        return f"Invoice element {self.element} from invoice {self.invoice.serial}{self.invoice.number}"
 
 class Proforma(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
@@ -88,4 +88,4 @@ class ProformaElement(models.Model):
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Element #{self.proforma.id} from proforma {self.proforma.serial}{self.proforma.number} / {self.element}"
+        return f"Proforma {self.element} from proforma {self.proforma.serial}{self.proforma.number}"
