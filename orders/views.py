@@ -269,7 +269,6 @@ def c_order(request, order_id, client_id):
                 order.save()
                 serials.order_number += 1
                 serials.save()
-                print("SERIALS ORDER:",serials.order_number)
                 new = False
                 return redirect(
                     "c_order",
@@ -652,6 +651,7 @@ def p_order(request, order_id, provider_id):
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
+    serials = Serial.objects.get(id=1)
     search = ""
     providers = []
     elements = []
@@ -772,6 +772,8 @@ def p_order(request, order_id, provider_id):
                     deadline = date_now 
                 order = Order(
                     description = description,
+                    serial = serials.p_order_serial,
+                    number = serials.p_order_number,
                     person=provider,
                     deadline=deadline,
                     is_client=False,
@@ -781,6 +783,8 @@ def p_order(request, order_id, provider_id):
                     currency=currency,
                 )
                 order.save()
+                serials.p_order_number += 1
+                serials.save()
                 new = False
                 return redirect(
                     "p_order",

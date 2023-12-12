@@ -76,7 +76,7 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Description</label>
 									<div class="col-sm-10">
-										<input type="text" class="form-control" name="proforma_description" value="{{ proforma.description }}">
+										<input type="text" {% if proforma.invoice %}disabled=""{% endif %} class="form-control" name="proforma_description" value="{{ proforma.description }}">
 									</div>
 								</div>
 							</div>
@@ -86,10 +86,10 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Due date</label>
 									<div class="col-sm-5">
-										<input type="date" class="form-control" name="deadline_date" value="{{ proforma.deadline|date:'Y-m-d' }}">
+										<input type="date" {% if proforma.invoice %}disabled=""{% endif %} class="form-control" name="deadline_date" value="{{ proforma.deadline|date:'Y-m-d' }}">
 									</div>
 									<div class="col-sm-5">
-										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+										<button class="btn btn-gradient-primary btn-icon-text" type="submit" {% if proforma.invoice %}disabled=""{% endif %}>
 											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the proforma </button>
 									</div>
 								</div>
@@ -136,7 +136,7 @@
 								<td>
 									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
 										<input type="hidden" name="proforma_element_id" value="{{e.id}}">
-										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
+										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out" {% if proforma.invoice %}disabled=""{% endif %}>
 											<i class="mdi mdi-minus btn-icon-prepend"></i>
 										</button>
 									</form>
@@ -160,7 +160,7 @@
 		</div>
 	</div>
 </div>
-{% if unproformed_elements %}
+{% if unproformed_elements and proforma.invoice == None %}
 <div class="row">
 	<div class="col-12 grid-margin">
 		<div class="card">
