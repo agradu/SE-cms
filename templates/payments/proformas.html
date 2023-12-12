@@ -64,11 +64,11 @@
 						<tbody>
 							{% for i in person_proformas %} 
 							<tr>
-								<td title="{{ invoice.description }}"> <a href="/payments/proforma/{{ i.proforma.id}}/{{ i.proforma.person.id}}/0/">{{ i.proforma.serial}}-{{ i.proforma.number}}</a> </td>
+								<td title="{{ invoice.description }}"> <a href="/payments/proforma/{{ i.proforma.id}}/{{ i.proforma.person.id}}/0/">{{ i.proforma.serial}}{{ i.proforma.number}}</a> </td>
 								<td> <a href="/persons/{{ i.proforma.person.id}}/"> {{ i.proforma.person.firstname}} {{ i.proforma.person.lastname}} {% if i.proforma.person.company_name != "" %}- {{ i.proforma.person.company_name}} {% endif %}</a> </td>
 								<td> 
 									{% for o in i.orders %}
-									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.id}}</a>
+									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.serial }}{{ o.number }}</a>
 									{% endfor %}
 								</td>
 								<td>
@@ -79,10 +79,12 @@
 								<td style="text-align: right;"> {% if i.proforma.is_client == False %}-{% endif %}{{ i.value}} {{ i.invoice.currency.symbol}}</td>
 								<td> {{ i.proforma.modified_at|date:"d.m.Y"}} - {{ i.proforma.modified_at|time:"H:i"}} </td>
 								<td> 
-									{% if i.proforma.is_invoiced == False %}
+									{% if i.proforma.invoice == None %}
 									<button type="button" title="Convert in invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/convert/{{ i.proforma.id }}/';">
 									<i class="mdi mdi-file-export"></i>
 									</button>
+									{% else %}
+									<a href="/payments/invoice/{{ i.proforma.invoice.id }}/{{ i.proforma.person.id }}/0/">{{ i.proforma.invoice.serial }}{{ i.proforma.invoice.number }}</a>
 									{% endif %}
 								</td>
 							</tr>

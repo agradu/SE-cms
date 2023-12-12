@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "invoices",
-    "proformas",
     "payments",
     "orders",
     "persons",

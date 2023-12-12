@@ -30,6 +30,8 @@ class Order(models.Model):
         default=timezone.now,
     )
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)
+    serial = models.CharField(max_length=10, blank=True)
+    number = models.CharField(max_length=20, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
@@ -79,6 +81,8 @@ class Offer(models.Model):
         default=timezone.now,
     )
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)
+    serial = models.CharField(max_length=10, blank=True)
+    number = models.CharField(max_length=20, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None

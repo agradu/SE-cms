@@ -59,12 +59,13 @@
 								<th style="text-align: right;">Order</th>
 								<th style="text-align: right;"><a href="/clients/offers/?sort=value&search={{search}}">Value</a></th>
 								<th><a href="/clients/offers/?sort=update&search={{search}}">Last Update</a></th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody> {% for o in client_offers %} 
 							<tr title="{{ o.order.description}}">
 								<td>
-									<a href="/clients/offer/{{ o.offer.id }}/{{ o.offer.person.id}}/"> Offer-{{ o.offer.id}} </a>
+									<a href="/clients/offer/{{ o.offer.id }}/{{ o.offer.person.id}}/"> {{ o.offer.serial}}{{ o.offer.number}} </a>
 								</td>
 								<td>
 									<a href="/persons/{{ o.offer.person.id}}/"> {{ o.offer.person.firstname}} {{ o.offer.person.lastname}} {% if o.offer.person.company_name != "" %}- {{ o.offer.person.company_name}} {% endif %}</a>
@@ -84,6 +85,13 @@
 								</td>
 								<td style="text-align: right;"> {{ o.offer.value}} {{ o.offer.currency.symbol }}</td>
 								<td> {{ o.offer.modified_at|date:"d.m.Y"}} - {{ o.offer.modified_at|time:"H:i"}} </td>
+								<td> 
+									{% if o.offer.order == None %}
+									<button type="button" title="Convert in order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/convert_offer/{{ o.offer.id }}/';">
+									<i class="mdi mdi-clipboard-outline"></i>
+									</button>
+									{% endif %}
+								</td>
 							</tr> {% endfor %} 
 						</tbody>
 					</table>

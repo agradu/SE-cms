@@ -43,6 +43,8 @@ class Serial(models.Model):
     offer_number = models.PositiveIntegerField(default=0)
     order_serial = models.CharField(max_length=10, blank=True)
     order_number = models.PositiveIntegerField(default=0)
+    p_order_serial = models.CharField(max_length=10, blank=True)
+    p_order_number = models.PositiveIntegerField(default=0)
     proforma_serial = models.CharField(max_length=10, blank=True)
     proforma_number = models.PositiveIntegerField(default=0)
     invoice_serial = models.CharField(max_length=10, blank=True)

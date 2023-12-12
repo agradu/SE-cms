@@ -18,4 +18,5 @@ urlpatterns = [
     ),
     path("clients/print_order/<int:order_id>/", views.print_order, name="print_order"),
     path("clients/print_offer/<int:offer_id>/", views.print_offer, name="print_offer"),
+    path("clients/convert_offer/<int:offer_id>/", views.convert_offer, name="convert_offer"),
 ]

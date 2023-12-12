@@ -5,7 +5,7 @@
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-clipboard"></i>
-		</span> Order #{{ order.id }} from {{ client.firstname }} {{ client.lastname }}
+		</span> Order {{ order.serial }}{{ order.number }} from {{ client.firstname }} {{ client.lastname }}
 	</h3>
 </div> 
 {% load static %}
@@ -91,11 +91,20 @@
 			<div class="card-body">
 				<h4 class="card-title">Order details</h4>
 				<p>Order created by <b class="text-primary">{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b class="text-success">{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>. </p>
-				<form method="post" action="/clients/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ client.id }}/"> {% csrf_token %} <div class="row">
+				<form method="post" action="/clients/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ client.id }}/"> {% csrf_token %} 
+					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group row">
-								<label class="col-sm-1 col-form-label">Description</label>
-								<div class="col-sm-11">
+								<label class="col-sm-1 col-form-label">Serial</label>
+								<div class="col-sm-1">
+									<input type="text"{% if order.is_client %}disabled=""{% endif %} class="form-control" name="order_serial" value="{{ order.serial }}">
+								</div>
+								<label class="col-sm-1 col-form-label">Number</label>
+								<div class="col-sm-2">
+									<input type="text"{% if order.is_client %}disabled=""{% endif %} class="form-control" name="order_number" value="{{ order.number }}">
+								</div>
+								<label class="col-sm-2 col-form-label">Description</label>
+								<div class="col-sm-5">
 									<input type="text" class="form-control" name="order_description" value="{{ order.description }}">
 								</div>
 							</div>

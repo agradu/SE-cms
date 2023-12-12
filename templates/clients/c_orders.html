@@ -65,7 +65,7 @@
 						<tbody> {% for o in client_orders %} 
 							<tr title="{{ o.order.description}}">
 								<td>
-									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> Order-{{ o.order.id}} </a>
+									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.serial}}{{ o.order.number}}</a>
 								</td>
 								<td>
 									<a href="/persons/{{ o.order.person.id}}/"> {{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>

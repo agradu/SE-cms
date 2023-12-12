@@ -5,9 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import Order, OrderElement, Offer, OfferElement
 from persons.models import Person
-from invoices.models import InvoiceElement
-from proformas.models import ProformaElement
-from services.models import Currency, Status, Service, UM
+from invoices.models import InvoiceElement, ProformaElement
+from services.models import Currency, Status, Service, UM, Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -124,6 +123,7 @@ def c_order(request, order_id, client_id):
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
+    serials = Serial.objects.get(id=1)
     search = ""
     clients = []
     elements = []
@@ -256,6 +256,8 @@ def c_order(request, order_id, client_id):
                     deadline = date_now 
                 order = Order(
                     description = description,
+                    serial = serials.order_serial,
+                    number = serials.order_number,
                     person=client,
                     deadline=deadline,
                     is_client=True,
@@ -265,6 +267,9 @@ def c_order(request, order_id, client_id):
                     currency=currency,
                 )
                 order.save()
+                serials.order_number += 1
+                serials.save()
+                print("SERIALS ORDER:",serials.order_number)
                 new = False
                 return redirect(
                     "c_order",
@@ -376,6 +381,7 @@ def c_offer(request, offer_id, client_id):
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
+    serials = Serial.objects.get(id=1)
     search = ""
     clients = []
     elements = []
@@ -388,28 +394,10 @@ def c_offer(request, offer_id, client_id):
         elements = OfferElement.objects.filter(offer=offer).order_by("id")
         if request.method == "POST":
             if "convert" in request.POST:
-                order = Order(
-                    description = offer.description,
-                    person=client,
-                    deadline=offer.deadline,
-                    is_client=True,
-                    modified_by=request.user,
-                    created_by=request.user,
-                    currency=offer.currency,
-                    value=offer.value,
+                return redirect(
+                    "convert_offer",
+                    offer_id = offer.id
                 )
-                order.save()
-                for e in elements:
-                    element = OrderElement(order=order)
-                    element.service = e.service
-                    element.description = e.description
-                    element.quantity = e.quantity
-                    element.um = e.um
-                    element.price = e.price
-                    element.save()
-                offer.order = order
-                offer.status = statuses[1]
-                offer.save()
             if "search" in request.POST:
                 search = request.POST.get("search")
                 if len(search) > 3:
@@ -488,6 +476,8 @@ def c_offer(request, offer_id, client_id):
                     deadline = date_now 
                 offer = Offer(
                     description = description,
+                    serial = serials.offer_serial,
+                    number = serials.offer_number,
                     person=client,
                     deadline=deadline,
                     modified_by=request.user,
@@ -495,6 +485,8 @@ def c_offer(request, offer_id, client_id):
                     currency=currency,
                 )
                 offer.save()
+                serials.offer_number += 1
+                serials.save()
                 new = False
                 return redirect(
                     "c_offer",
@@ -517,6 +509,45 @@ def c_offer(request, offer_id, client_id):
             "new": new,
             "element_selected": element,
         },
+    )
+
+@login_required(login_url="/login/")
+def convert_offer(request, offer_id):
+    offer = get_object_or_404(Offer, id=offer_id)
+    offer_elements = OfferElement.objects.filter(offer=offer).order_by("id")
+    serials = get_object_or_404(Serial, id=1)
+    statuses = Status.objects.filter(id__range=(1,2)).order_by("id")
+    order = Order(
+        description = offer.description,
+        serial = serials.order_serial,
+        number = serials.order_number,
+        person= offer.person,
+        deadline= offer.deadline,
+        is_client=True,
+        modified_by= request.user,
+        created_by= request.user,
+        currency= offer.currency,
+        value= offer.value,
+    )
+    order.save()
+    for e in offer_elements:
+        element = OrderElement(
+            order=order,
+            service = e.service,
+            description = e.description,
+            quantity = e.quantity,
+            um = e.um,
+            price = e.price
+        )
+        element.save()
+    offer.order = order
+    offer.status = statuses[1]
+    offer.save()
+    serials.order_number += 1
+    serials.save()
+
+    return redirect(
+        "c_orders",
     )
 
 @login_required(login_url="/login/")
@@ -778,7 +809,7 @@ def p_order(request, order_id, provider_id):
 def print_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     order_elements = OrderElement.objects.exclude(status__id='6').filter(order=order).order_by("id")
-    leading_number = str(order_id).rjust(3,'0')
+    leading_number = str(order.number).rjust(3,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
@@ -806,7 +837,7 @@ def print_order(request, order_id):
 def print_offer(request, offer_id):
     offer = get_object_or_404(Offer, id=offer_id)
     offer_elements = OfferElement.objects.filter(offer=offer).order_by("id")
-    leading_number = str(offer_id).rjust(3,'0')
+    leading_number = str(offer.number).rjust(3,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:

@@ -30,6 +30,8 @@ def run():
         offer_number=1,
         order_serial='B',
         order_number=1,
+        p_order_serial='P',
+        p_order_number=1,
         proforma_serial='PRO',
         proforma_number=1,
         invoice_serial='RE',

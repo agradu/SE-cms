@@ -68,12 +68,12 @@
 							{% for i in person_invoices %} 
 							<tr>
 								<td> <i class="mdi {% if i.invoice.is_client %}mdi-clipboard-outline{% else %}mdi-cart-outline{% endif %} mdi-18px"></i> </td>
-								<td title="{{ invoice.description }}"> <a href="/payments/invoice/{{ i.invoice.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.serial}}-{{ i.invoice.number}}</a> </td>
-								<td> {% if i.invoice.proforma %}<a href="/payments/proforma/{{ i.invoice.proforma.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.proforma.serial}}-{{ i.invoice.proforma.number}}</a>{% endif %} </td>
+								<td title="{{ invoice.description }}"> <a href="/payments/invoice/{{ i.invoice.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.serial}}{{ i.invoice.number}}</a> </td>
+								<td> {% if i.proforma %}<a href="/payments/proforma/{{ i.proforma.id}}/{{ i.invoice.person.id}}/0/">{{ i.proforma.serial}}{{ i.proforma.number}}</a>{% endif %} </td>
 								<td> <a href="/persons/{{ i.invoice.person.id}}/"> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
 								<td> 
 									{% for o in i.orders %}
-									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.id}}</a>
+									<a href="/{% if o.is_client %}clients{% else %}providers{% endif %}/order/{{ o.id }}/{{ o.person.id}}/" title="{{ o.description }}">{{ o.serial}}{{ o.number}}</a>
 									{% endfor %}
 								</td>
 								<td>
