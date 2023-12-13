@@ -51,4 +51,4 @@ class PaymentElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Inv. {self.invoice.serial}{self.invoice.number} from payment #{self.payment.id} ({self.payment.value}{self.payment.value})"
+        return f"Inv. {self.invoice.serial}{self.invoice.number} from payment #{self.payment.id} ({self.payment.value}{self.payment.currency.symbol})"

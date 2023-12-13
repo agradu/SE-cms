@@ -88,7 +88,7 @@
 								<td> {{ i.invoice.modified_at|date:"d.m.Y"}} - {{ i.invoice.modified_at|time:"H:i"}} </td>
 								<td> {% if i.payed < 100 %}
 									<button type="button" title="Create an payment" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/payment/0/{{ i.invoice.person.id }}/{{ i.invoice.id }}/';">
-									<i class="mdi mdi-file"></i>
+									<i class="mdi mdi-cash"></i>
 									</button>
 									{% endif %}
 								</td>
