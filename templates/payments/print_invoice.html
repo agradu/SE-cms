@@ -33,7 +33,7 @@
         </table>
     </div>
     <div class="invoice-title">
-        <b>Rechnung Nr.</b> {{ invoice.serial}}-{{ leading_number }}
+        <b>Rechnung Nr.</b> {{ invoice.serial}}-{{ leading_invoice }}
     </div>
     <div class="subtitle">
         Wir bedanken uns für die gute Zusammenarbeit und stellen Ihnen vereinbarungsgemäß folgende <br>
@@ -77,7 +77,11 @@
         </div>
     </div>
     <div class="footer">
-        <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> und "<b>Rechnung Nr. {{ invoice.serial }}-{{ leading_number }}</b>" als Verwendungszweck.</p>
+        {% if proforma != "" %}
+        <p>Rechnung gemäß dem <b>Proforma Nr. {{proforma.serial}}-{{ leading_proforma }}</b> ausgestellt.</p>
+        {% else %}
+        <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> und "<b>Rechnung Nr. {{ invoice.serial }}-{{ leading_invoice }}</b>" als Verwendungszweck.</p>
+        {% endif %}
         <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
         <p class="line-up center" style="padding-top: 10pt">
             <b>Sprachen Express</b> - Ritterstraße 11b, 39124 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>

@@ -159,11 +159,11 @@ def invoice(request, invoice_id, person_id, order_id):
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
                 if invoice.is_client == False:
-                    i_serial = request.POST.get("receipt_serial")
+                    i_serial = request.POST.get("invoice_serial")
                     if i_serial != None:
                         invoice.serial = i_serial.upper()
                     invoice_serial = invoice.serial
-                    i_number = request.POST.get("receipt_number")
+                    i_number = request.POST.get("invoice_number")
                     if i_number != None:
                         invoice.number = i_number.upper()
                     invoice_number = invoice.number
@@ -207,6 +207,9 @@ def invoice(request, invoice_id, person_id, order_id):
                     if invoice_serial =="" and invoice_number =="":
                         invoice_serial = "??"
                         invoice_number = "???"
+                else:
+                    serials.invoice_number += 1
+                    serials.save()
                     
                 deadline_date = request.POST.get("deadline_date")
                 try:
@@ -235,8 +238,6 @@ def invoice(request, invoice_id, person_id, order_id):
                 # Save the invoice value
                 set_value(invoice)
                 new = False
-                serials.invoice_number += 1
-                serials.save()
                 return redirect(
                     "invoice",
                     invoice_id = invoice.id,
@@ -266,7 +267,14 @@ def print_invoice(request, invoice_id):
     date1 = invoice.created_at.date()
     date2 = invoice.deadline
     day_left = (date2 - date1).days
-    leading_number = invoice.number.rjust(3,'0')
+    leading_invoice = invoice.number.rjust(3,'0')
+    try:
+        proforma = Proforma.objects.get(invoice=invoice)
+        proforma_number = proforma.number
+    except:
+        proforma = ""
+        proforma_number = ""
+    leading_proforma = proforma_number.rjust(3,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
@@ -279,8 +287,10 @@ def print_invoice(request, invoice_id):
 
     context = {
         "invoice": invoice,
+        "proforma": proforma,
         "day_left": day_left,
-        "leading_number": leading_number,
+        "leading_invoice": leading_invoice,
+        "leading_proforma": leading_proforma,
         "invoice_elements": invoice_elements,
         "logo_base64": logo_base64
     }
