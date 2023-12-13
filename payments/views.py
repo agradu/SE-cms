@@ -118,7 +118,7 @@ def payment(request, payment_id, person_id, invoice_id):
     payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
     unpayed_elements = all_invoices.exclude(
             id__in=payed_elements.values_list('invoice__id', flat=True)
-        )
+        ).filter(is_client=is_client)
     def set_value(payment, value = 0): # calculate and save the value of the payment
         payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
         to_pay = 0
