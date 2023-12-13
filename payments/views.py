@@ -98,8 +98,6 @@ def payment(request, payment_id, person_id, invoice_id):
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
-    receipt_serial = serials.receipt_serial
-    receipt_number = serials.receipt_number
     payment_value = 0
     if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
@@ -136,17 +134,23 @@ def payment(request, payment_id, person_id, invoice_id):
         payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
         if request.method == "POST":
             if "payment_description" in request.POST:
-                payment.type = request.POST.get("payment_type")
                 payment.description = request.POST.get("payment_description")
-                if payment.is_client == False:
-                    p_serial = request.POST.get("receipt_serial")
-                    if p_serial != None:
-                        payment.serial = p_serial.upper()
-                    receipt_serial = payment.serial
-                    p_number = request.POST.get("receipt_number")
-                    if p_number != None:
-                        payment.number = p_number.upper()
-                    receipt_number = payment.number
+                payment.type = request.POST.get("payment_type")
+                if payment.is_client and payment.type == "cash":
+                    receipt_serial = serials.receipt_serial
+                    receipt_number = serials.receipt_number-1
+                elif payment.is_client and payment.type == "bank":
+                    receipt_serial = ""
+                    receipt_number = ""
+                else:
+                    receipt_serial = request.POST.get("receipt_serial")
+                    receipt_number = request.POST.get("receipt_number")
+                    if receipt_serial == None:
+                        receipt_serial = payment.serial
+                    if receipt_number == None:
+                        receipt_number = payment.number
+                payment.serial = receipt_serial
+                payment.number = receipt_number
                 payment_date = request.POST.get("payment_date")
                 try:
                     payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
@@ -187,16 +191,24 @@ def payment(request, payment_id, person_id, invoice_id):
             payment.save()
 
     else:  # if payment is new
+        receipt_serial = ""
+        receipt_number = ""
         if request.method == "POST":
             if "payment_description" in request.POST:
                 payment_description = request.POST.get("payment_description")
-                if invoice.is_client == False:
+                payment_type = request.POST.get("payment_type")
+                if invoice.is_client and payment_type == "cash":
+                    receipt_serial = serials.receipt_serial
+                    receipt_number = serials.receipt_number
+                    serials.receipt_number += 1
+                    serials.save() 
+                else:
                     receipt_serial = request.POST.get("receipt_serial")
                     receipt_number = request.POST.get("receipt_number")
-                    if receipt_serial =="" and receipt_number =="":
-                        receipt_serial = "??"
-                        receipt_number = "???"
-                    
+                    if receipt_serial == None:
+                        receipt_serial = ""
+                    if receipt_number == None:
+                        receipt_number = ""  
                 payment_date = request.POST.get("payment_date")
                 try:
                     payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
@@ -205,6 +217,7 @@ def payment(request, payment_id, person_id, invoice_id):
                     payment_date = date_now
                 payment = Payment(
                     description = payment_description,
+                    type = payment_type,
                     serial = receipt_serial,
                     number = receipt_number,
                     person = person,
@@ -224,8 +237,6 @@ def payment(request, payment_id, person_id, invoice_id):
                 # Save the payment value
                 set_value(payment)
                 new = False
-                serials.receipt_number += 1
-                serials.save()
                 return redirect(
                     "payment",
                     payment_id = payment.id,
