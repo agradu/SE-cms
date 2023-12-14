@@ -1,7 +1,190 @@
 {% load static %}
 <div class="card">
-    <div class="card-body"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
-      <h4 class="card-title">Monthly statistics</h4>
-      <canvas id="areaChart" style="width: 200px; height: 1000px; display: block;" width="1000" height="200" class="chartjs-render-monitor"></canvas>
+  <div class="card-body"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+    <div class="clearfix">
+      <h4 class="card-title float-left">Orders statistics this month</h4>
+      <div class="rounded-legend legend-horizontal legend-top-right float-right">
+        <ul>
+        <li><span class="legend-dots bg-info"></span>Clients</li>
+        <li><span class="legend-dots bg-danger"></span>Providers</li>
+        </ul>
+      </div>
+      <style type="text/css">
+        .statistics {
+          margin-top: 10px;
+          display: flex;
+          flex-wrap: wrap;
+        }
+        .bar-group {
+          margin: 10px;
+          display: flex;
+          flex: 1;
+        }
+
+        .progress-bar-vertical {
+        min-height: 150px;
+        display: flex;
+        flex: 1;
+        align-items: flex-end;
+        float: left;
+        background-color: white;
+        margin: 2px;
+        }
+
+        .progress-bar-vertical .progress-bar {
+        width: 100%;
+        height: 0;
+        -webkit-transition: height 0.6s ease;
+        -o-transition: height 0.6s ease;
+        transition: height 0.6s ease;
+        }
+      </style>
+      <div class="statistics">
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 10%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">634€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">33€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">300€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">600€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 10%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">634€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">33€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">300€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">600€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 10%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">634€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">33€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">30€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">6€</span>
+          </div>
+          </div>
+        </div>
+        <div class="bar-group">
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-info" role="progressbar" style="height: 30%;">
+            <span class="sr-only">300€</span>
+          </div>
+          </div>
+          <div class="progress progress-bar-vertical">
+          <div class="progress-bar bg-danger" role="progressbar" style="height: 60%;">
+            <span class="sr-only">600€</span>
+          </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

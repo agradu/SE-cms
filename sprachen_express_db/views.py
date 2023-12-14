@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum
 from orders.models import Order, OrderElement
-from payments.models import Payment
+from payments.models import Payment, PaymentElement
 from invoices.models import Invoice, InvoiceElement
 from datetime import datetime, timezone
 
@@ -54,6 +54,7 @@ def dashboard(request):
                     "alert": alert
                 }
             )
+
     # last unfinished provider orders
     selected_orders = Order.objects.filter(is_client=False).order_by("deadline")[:8]
     provider_orders = []
@@ -91,6 +92,66 @@ def dashboard(request):
                 }
             )
 
+    # last unpayed client invoices
+    selected_invoices = Invoice.objects.filter(is_client=True).order_by("deadline")[:8]
+    client_invoices = []
+    for i in selected_invoices:
+        i_payed = 0
+        i_payments = PaymentElement.objects.filter(invoice=i)
+        for p in i_payments:
+            if p.payment.value < p.invoice.value:
+                i_payed += p.payment.value
+            else:
+                i_payed += p.invoice.value
+        if i.value > 0:
+            payed = int(i_payed / i.value * 100)
+        else:
+            payed = 0
+
+        if o.deadline < datetime.now(timezone.utc):
+            alert = "text-danger"
+        else:
+            alert = ""
+
+        if payed < 100:
+            client_invoices.append(
+                {
+                    "invoice": i,
+                    "payed": payed,
+                    "alert": alert
+                }
+            )
+
+    # last unpayed provider invoices
+    selected_invoices = Invoice.objects.filter(is_client=False).order_by("deadline")[:8]
+    provider_invoices = []
+    for i in selected_invoices:
+        i_payed = 0
+        i_payments = PaymentElement.objects.filter(invoice=i)
+        for p in i_payments:
+            if p.payment.value < p.invoice.value:
+                i_payed += p.payment.value
+            else:
+                i_payed += p.invoice.value
+        if i.value > 0:
+            payed = int(i_payed / i.value * 100)
+        else:
+            payed = 0
+
+        if o.deadline < datetime.now(timezone.utc):
+            alert = "text-danger"
+        else:
+            alert = ""
+
+        if payed < 100:
+            provider_invoices.append(
+                {
+                    "invoice": i,
+                    "payed": payed,
+                    "alert": alert
+                }
+            )
+
     return render(
         request,
         "dashboard.html",
@@ -98,6 +159,8 @@ def dashboard(request):
             "recent_orders": recent_orders,
             "client_orders": client_orders,
             "provider_orders": provider_orders,
+            "client_invoices": client_invoices,
+            "provider_invoices": provider_invoices,
         },
     )
 

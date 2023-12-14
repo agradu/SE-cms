@@ -68,7 +68,6 @@ def invoices(request):
             payed = 0
         try:
             proforma = Proforma.objects.get(invoice=i)
-            print ("AM GASIT PROFORMA:",proforma)
         except Proforma.DoesNotExist:
             proforma = None
         person_invoices.append(

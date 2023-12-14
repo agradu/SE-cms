@@ -1,0 +1,36 @@
+<div class="card">
+	<div class="card-body">
+		<h4 class="card-title">Clients Payments</h4>
+		<div class="table-responsive">
+			<table class="table">
+				<thead>
+					<tr>
+						<th> Invoice to</th>
+						<th> Due Date </th>
+						<th> Payed </th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for i in client_invoices %}
+					<tr  onclick="window.location='/payments/invoice/{{ i.invoice.id }}/{{ i.invoice.person.id}}/0';" title="{{ i.invoice.description}}">
+						<td> 
+							<a href="/payments/invoice/{{ i.invoice.id }}/{{ i.invoice.person.id}}/0">{{ i.invoice.serial}}{{ i.invoice.number}} - {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a>
+						</td>
+						<td class="{{ i.alert }}"> {{ i.invoice.deadline|date:"d.m.Y"}} </td>
+						<td class="text-{% if i.payed == 100 %}success{% elif i.payed == 0 %}danger{% else %}info{% endif %}">
+							{{ i.payed }} %
+						</td>
+						<td> {% if i.payed < 100 %}
+							<a href="/payments/payment/0/{{ i.invoice.person.id }}/{{ i.invoice.id }}/" title="Create a payment">
+							<i class="mdi mdi-cash mdi-18px"></i>
+							</a>
+							{% endif %}
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
