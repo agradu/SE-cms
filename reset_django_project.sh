@@ -4,7 +4,7 @@ find . -type f -name "0*.py" -exec rm -f {} \; -print
 find . -type f -name "0*.pyc" -exec rm -f {} \; -print
 echo "All migrations in apps are cleaned!"
 find "./media/profile_pictures" -type f ! -name "my-profile-default.jpg" -exec rm {} \; -print
-echo "All pictures are clened!"
+echo "All pictures are cleaned!"
 echo ""
 
 
