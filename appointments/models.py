@@ -2,7 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from persons.models import Person
-from orders.models import OrderElement
+from orders.models import Order
+from services.models import Status
 
 # Create your models here.
 
@@ -31,8 +32,9 @@ class Appointment(models.Model):
     with_person = models.ForeignKey(
         Person, related_name="with_person_%(class)s", on_delete=models.CASCADE
     )
-    order_element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
     description = models.CharField(max_length=255, blank=True)
+    status = status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=2)
 
     def __str__(self):
         formatted_schedule = self.schedule.strftime("%d.%m.%Y %H:%M")
