@@ -26,15 +26,19 @@ class Appointment(models.Model):
         blank=True,
     )
     person = models.ForeignKey(
-        Person, related_name="person_%(class)s", on_delete=models.CASCADE
+        Person, related_name="person_%(class)s", on_delete=models.SET_NULL, null=True, blank=True, default=None
     )
     schedule = models.DateTimeField(default=timezone.now)
     with_person = models.ForeignKey(
-        Person, related_name="with_person_%(class)s", on_delete=models.CASCADE
+        Person, related_name="with_person_%(class)s", on_delete=models.SET_NULL, null=True, blank=True, default=None
     )
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order, on_delete=models.SET_NULL, null=True, blank=True, default=None
+    )
     description = models.CharField(max_length=255, blank=True)
-    status = status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=2)
+    status = status = models.ForeignKey(
+        Status, on_delete=models.SET_DEFAULT, default=2
+    )
 
     def __str__(self):
         formatted_schedule = self.schedule.strftime("%d.%m.%Y %H:%M")

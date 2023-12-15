@@ -15,54 +15,14 @@
 	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Client details</h4>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Name:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p><a href="/persons/{{ client.id }}/">{{ client.firstname }} {{ client.lastname }}</a></p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Company:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p>{{ client.company_name }}</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Contact:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p><a href="mailto:{{ client.email }}"><i class="mdi mdi-email-outline"></i></a> {{ client.email }} / <a href="https://wa.me/{{ client.phone | slice:'2:' }}">
-							<i class="mdi mdi-whatsapp"></i></a> {{ client.phone }}<br>Address - {{ client.address }}</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Services:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p>{{ client.services }}</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-6 grid-margin stretch-card">
-		<div class="card bg-light">
-			<div class="card-body">
-				<h4 class="card-title">Modify the client</h4>
-				<p>(Only if is needed and no invoice is created)</p>
+				<h4 class="card-title">Client: {{ appointment.person.firstname }} {{ appointment.person.lastname }}</h4>
+				<p>Phone: {{ appointment.person.phone }} / E-mail: {{ appointment.person.email }}</p>
 				<div class="row">
 					<form method="post" class="col-md-12"> {% csrf_token %}
 						<fieldset{% if is_invoiced %} disabled{% endif %}>
 							<div class="form-group row" >
 								<div class="col-sm-8">
-									<input type="text" class="form-control" placeholder="Search a new client" name="search" value="{{ search }}" aria-label="Search a new client">
+									<input type="text" class="form-control" placeholder="Search a new client" name="c_search" value="{{ c_search }}" aria-label="Search a new client">
 								</div>
 								<div class="col-sm-4">
 									<button type="submit" class="btn btn-gradient-primary">Search</button>
@@ -74,11 +34,53 @@
 				<div class="row">
 					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
 							<div class="col-sm-7">
-								<select class="form-select" name="new_client"> {% for c in clients %} <option value="{{ c.id }}" {% if c.id == order.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option> {% endfor %} </select>
+								<select class="form-select" name="new_client"> 
+									{% for c in clients %} 
+									<option value="{{ c.id }}" {% if c.id == appointment.person.id %} selected{% endif %}>{{ c.firstname }} {{ c.lastname }} - {{ c.company_name }}</option> 
+									{% endfor %} 
+								</select>
 							</div>
 							<div class="col-sm-5">
 								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
 									<i class="mdi mdi-account btn-icon-prepend"></i> Select the client </button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6 grid-margin stretch-card">
+		<div class="card">
+			<div class="card-body">
+				<h4 class="card-title">Provider: {{ appointment.with_person.firstname }} {{ appointment.with_person.lastname }}</h4>
+				<p>Phone: {{ appointment.with_person.phone }} / E-mail: {{ appointment.with_person.email }}</p>
+				<div class="row">
+					<form method="post" class="col-md-12"> {% csrf_token %}
+						<fieldset{% if is_invoiced %} disabled{% endif %}>
+							<div class="form-group row" >
+								<div class="col-sm-8">
+									<input type="text" class="form-control" placeholder="Search a new provider" name="p_search" value="{{ p_search }}" aria-label="Search a new provider">
+								</div>
+								<div class="col-sm-4">
+									<button type="submit" class="btn btn-gradient-primary">Search</button>
+								</div>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+				<div class="row">
+					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
+							<div class="col-sm-7">
+								<select class="form-select" name="new_provider"> 
+									{% for p in providers %} 
+									<option value="{{ p.id }}" {% if p.id == appointment.with_person.id %} selected{% endif %}>{{ p.firstname }} {{ p.lastname }} - {{ p.company_name }}</option> 
+									{% endfor %} 
+								</select>
+							</div>
+							<div class="col-sm-5">
+								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
+									<i class="mdi mdi-account btn-icon-prepend"></i> Select the provider </button>
 							</div>
 						</div>
 					</form>
@@ -91,41 +93,33 @@
 	<div class="col-12 grid-margin">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Order details</h4>
-				<p>Order created by <b class="text-primary">{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b class="text-success">{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>. </p>
-				<form method="post" action="/clients/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ client.id }}/"> {% csrf_token %} 
+				<h4 class="card-title">Appointment details</h4>
+				<p>Appointment created by <b class="text-primary">{{appointment.created_by.first_name}} {{appointment.created_by.last_name}}</b> and modified by <b class="text-success">{{appointment.modified_by.first_name}} {{appointment.modified_by.last_name}}</b>. </p>
+				<form method="post" action="/appointments/{% if appointment.id %}{{ appointment.id }}{% else %}0{% endif %}/"> {% csrf_token %} 
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group row">
-								<label class="col-sm-1 col-form-label">Serial</label>
-								<div class="col-sm-1">
-									<input type="text"{% if order.is_client %}disabled=""{% endif %} class="form-control" name="order_serial" value="{{ order.serial }}">
-								</div>
-								<label class="col-sm-1 col-form-label">Number</label>
-								<div class="col-sm-2">
-									<input type="text"{% if order.is_client %}disabled=""{% endif %} class="form-control" name="order_number" value="{{ order.number }}">
-								</div>
 								<label class="col-sm-2 col-form-label">Description</label>
-								<div class="col-sm-5">
-									<input type="text" class="form-control" name="order_description" value="{{ order.description }}">
+								<div class="col-sm-10">
+									<input type="text" class="form-control" name="description" value="{{ appointment.description }}">
 								</div>
 							</div>
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-md-6">
+						<div class="col-md-8">
 							<div class="form-group row">
-								<label class="col-sm-2 col-form-label">Currency</label>
+								<label class="col-sm-2 col-form-label">For order</label>
 								<div class="col-sm-10">
-									<select class="form-select" name="order_currency"> {% for c in currencies %} <option value="{{ c.id }}" {% if c.id == order.currency.id %} selected{% endif %}>{{ c.name }} - {{ c.symbol }}</option> {% endfor %} </select>
+									<select class="form-select" name="order"> {% for o in orders %} <option value="{{ o.id }}" {% if o.id == appointment.order.id %} selected{% endif %}>{{ o.serial }}{{ o.number }} - {{ o.description }}</option> {% endfor %} </select>
 								</div>
 							</div>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-4">
 							<div class="form-group row">
 								<label class="col-sm-2 col-form-label">Status</label>
 								<div class="col-sm-10">
-									<select class="form-select" name="order_status"> {% for s in statuses %} <option value="{{ s.id }}" {% if s.id == order.status.id %} selected{% endif %}>{{ s.name }}</option> {% endfor %} </select>
+									<select class="form-select" name="status"> {% for s in statuses %} <option value="{{ s.id }}" {% if s.id == appointment.status.id %} selected{% endif %}>{{ s.name }}</option> {% endfor %} </select>
 								</div>
 							</div>
 						</div>
@@ -133,25 +127,25 @@
 					<div class="row">
 						<div class="col-md-5">
 							<div class="form-group row">
-								<label class="col-sm-3 col-form-label">Deadline (date)</label>
+								<label class="col-sm-3 col-form-label">Scheduled date</label>
 								<div class="col-sm-9">
-									<input type="date" class="form-control" name="deadline_date" value="{{ order.deadline|date:'Y-m-d' }}">
+									<input type="date" class="form-control" name="scheduled_date" value="{{ appointment.schedule|date:'Y-m-d' }}">
 								</div>
 							</div>
 						</div>
-						<div class="col-md-5">
+						<div class="col-md-4">
 							<div class="form-group row">
-								<label class="col-sm-3 col-form-label">Deadline (time)</label>
-								<div class="col-sm-9">
-									<input type="time" class="form-control" name="deadline_time" value="{{ order.deadline|time:'H:i' }}">
+								<label class="col-sm-4 col-form-label">Scheduled time</label>
+								<div class="col-sm-8">
+									<input type="time" class="form-control" name="scheduled_time" value="{{ appointment.schedule|time:'H:i' }}">
 								</div>
 							</div>
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-3">
 							<div class="form-group row">
 								<div class="col-sm-12">
 									<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-										<i class="mdi mdi-clipboard-outline btn-icon-prepend"></i> Save the order </button>
+										<i class="mdi mdi mdi-calendar-check btn-icon-prepend"></i> Save the appointment </button>
 								</div>
 							</div>
 						</div>
@@ -160,153 +154,5 @@
 			</div>
 		</div>
 	</div>
-</div> {% if new == False %} 
-<div class="row">
-	<div class="col-12 grid-margin">
-		<div class="card">
-			<div class="card-body">
-				<h4 class="card-title">Order elements</h4>
-				<div class="table-responsive mt-3">
-					<table class="table table-hover">
-						<thead>
-							<tr id="e_start">
-								<th> Service </th>
-								<th> Description </th>
-								<th style="text-align: right;"> Quantity </th>
-								<th> Unit </th>
-								<th style="text-align: right;"> Price </th>
-								<th> Status </th>
-								<th colspan="2" width="1%"></th>
-							</tr>
-						</thead>
-						<tbody> 
-							{% for e in elements %}
-							{% if element_selected.id == e.id %}
-							<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
-								<tr id="e{{ e.id }}">
-									<td width="20%">
-										<input type="hidden" name="element_id" value="{{ e.id }}">
-										<select class="form-select" name="e_service">
-											{% for s in services %}
-											<option value="{{ s.id }}" {% if s.id == e.service.id %} selected{% endif %}>{{ s.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td>
-										<input type="text" class="form-control" name="e_description" value="{{ e.description }}">
-									</td>
-									<td width="7%">
-										<input type="text" class="form-control" name="e_quantity" value="{{ e.quantity }}">
-									</td>
-									<td width="10%">
-										<select class="form-select" name="e_um">
-											{% for u in ums %}
-											<option value="{{ u.id }}" {% if u.id == e.um.id %} selected{% endif %}>{{ u.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td width="10%">
-										<input type="text" class="form-control" name="e_price" value="{{ e.price }}" title="{{ e.service.price_min }} ~ {{ e.service.price_max }} {{order.currency.symbol}}">
-									</td>
-									<td width="10%">
-										<select class="form-select" name="e_status">
-											{% for s in statuses %}
-											<option value="{{ s.id }}" {% if s.id == e.status.id %} selected{% endif %}>{{ s.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td colspan="2" width="1%">
-										<button class="btn btn-gradient-primary btn-icon" type="submit">
-											<i class="mdi mdi-check btn-icon-prepend"></i>
-										</button>
-									</td>
-								</tr>
-							</form>
-							{% else %}
-							<tr id="e{{ e.id }}">
-								<td width="20%"> {{e.service.name}} </td>
-								<td> {{e.description}} </td>
-								<td width="7%" style="text-align: right;"> {{e.quantity}} </td>
-								<td width="10%"> {{e.um.name}} </td>
-								<td width="10%" style="text-align: right;"> {{e.price}} {{order.currency.symbol}} </td>
-								<td width="10%">
-									<label class="badge badge-{{e.status.style}}"> {{e.status.name}} </label>
-								</td>
-								<td>
-									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
-										<input type="hidden" name="edit_element_id" value="{{e.id}}">
-										<button class="btn btn-gradient-primary btn-icon" type="submit">
-											<i class="mdi mdi-lead-pencil btn-icon-prepend"></i>
-										</button>
-								</td>
-								<td>
-									</form>
-									<form method="post" action="#e_start"> {% csrf_token %}
-										<input type="hidden" name="delete_element_id" value="{{e.id}}">
-										<button class="btn btn-gradient-danger btn-icon" type="submit">
-											<i class="mdi mdi-delete-forever btn-icon-prepend"></i>
-										</button>
-									</form>
-								</td>
-							</tr>
-							{% endif %}
-							{% endfor %}
-							<form method="post">
-								{% csrf_token %}
-								<tr>
-									<td width="20%">
-										<input type="hidden" name="element_id" value="0">
-										<select class="form-select" name="e_service">
-											{% for s in services %}
-											<option value="{{ s.id }}">{{ s.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td>
-										<input type="text" class="form-control" name="e_description" value="">
-									</td>
-									<td width="7%">
-										<input type="text" class="form-control" name="e_quantity" value="">
-									</td>
-									<td width="10%">
-										<select class="form-select" name="e_um">
-											{% for u in ums %}
-											<option value="{{ u.id }}">{{ u.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td width="10%">
-										<input type="text" class="form-control" name="e_price" value="">
-									</td>
-									<td width="10%">
-										<select class="form-select" name="e_status">
-											{% for s in statuses %}
-											<option value="{{ s.id }}">{{ s.name }}</option>
-											{% endfor %}
-										</select>
-									</td>
-									<td colspan="2" width="1%">
-										<button class="btn btn-gradient-primary btn-icon" type="submit">
-											<i class="mdi mdi-plus btn-icon-prepend"></i>
-										</button>
-									</td>
-								</tr>
-							</form>
-							<tr>
-								<td colspan="3"> </td>
-								<td> <h4>TOTAL:</h4> </td>
-								<td style="text-align: right;"> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
-								<td colspan="3" style="text-align: right;">
-									<button class="btn btn-gradient-primary btn-icon
-									" type="button" onclick="window.open('/clients/print_order/{{order.id}}/');">
-										<i class="mdi mdi-printer btn-icon-prepend"></i>
-									</button>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-</div> {% endif %} {% endblock %}
+</div>
+{% endblock %}

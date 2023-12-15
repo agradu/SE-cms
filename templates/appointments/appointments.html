@@ -47,10 +47,10 @@
 						<tbody> {% for a in selected_appointments %} 
 							<tr>
 								<td>
-									<a href="/persons/{{ a.person.id}}/">{{ a.person.firstname}} {{ a.person.lastname}} {% if a.person.company_name != "" %}- {{ a.person.company_name}} {% endif %}</a>
+									{% if a.person %}<a href="/persons/{{ a.person.id}}/">{{ a.person.firstname}} {{ a.person.lastname}} {% if a.person.company_name != "" %}- {{ a.person.company_name}} {% endif %}</a>{% endif %}
 								</td>
 								<td>
-									<a href="/persons/{{ a.with_person.id}}/">{{ a.with_person.firstname}} {{ a.with_person.lastname}} {% if a.with_person.company_name != "" %}- {{ a.with_person.company_name}} {% endif %}</a>
+									{% if a.with_person %}<a href="/persons/{{ a.with_person.id}}/">{{ a.with_person.firstname}} {{ a.with_person.lastname}} {% if a.with_person.company_name != "" %}- {{ a.with_person.company_name}} {% endif %}</a>{% endif %}
 								</td>
 								<td> 
 									<a href="/appointments/{{ a.id}}/"> {{ a.schedule|date:"d.m.Y"}} - {{ a.schedule|time:"H:i"}} </a>
