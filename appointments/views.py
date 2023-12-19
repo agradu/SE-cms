@@ -16,8 +16,35 @@ from django.utils import timezone
 def appointments(request):
     # search elements
     search = ""
+    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
+    date_before = date_now - timedelta(days=10)
+    reg_start = date_before.strftime("%Y-%m-%d")
+    filter_start = date_before
+    reg_end = date_now.strftime("%Y-%m-%d")
+    filter_end = date_now
+    if request.method == "POST":
+        search = request.POST.get("search")
+        if len(search) > 2:
+            reg_start = request.POST.get("reg_start")
+            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+            filter_start = timezone.make_aware(filter_start)
+            reg_end = request.POST.get("reg_end")
+            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+            filter_end = timezone.make_aware(filter_end).replace(
+                hour=23, minute=59, second=59, microsecond=0
+            )
+        else:
+            search = ""
     # APPOINTMENTS
-    filtered_appointments = Appointment.objects.order_by("schedule")[:30]
+    filtered_appointments = (
+        Appointment.objects.filter(
+            Q(person__firstname__icontains=search)
+            | Q(person__lastname__icontains=search)
+            | Q(person__company_name__icontains=search)
+        )
+        .filter(schedule__gte=filter_start, schedule__lte=filter_end)
+        .order_by("schedule")
+    )
     if request.method == "POST":
         search = request.POST.get("search")
         if len(search) > 2:
@@ -25,7 +52,7 @@ def appointments(request):
                 Q(person__firstname__icontains=search)
                 | Q(person__lastname__icontains=search)
                 | Q(person__company_name__icontains=search)
-            ).order_by("schedule")[:30]
+            ).order_by("schedule")
 
     """
     # sorting types
@@ -54,7 +81,12 @@ def appointments(request):
     return render(
         request,
         "appointments/appointments.html",
-        {"selected_appointments": appointments_on_page, "search": search},
+        {
+            "selected_appointments": appointments_on_page,
+            "search": search,
+            "reg_start": reg_start,
+            "reg_end": reg_end,
+        },
     )
 
 @login_required(login_url="/login/")
