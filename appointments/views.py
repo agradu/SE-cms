@@ -16,7 +16,7 @@ from django.utils import timezone
 def appointments(request):
     # search elements
     search = ""
-    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
+    date_now = timezone.now() + timedelta(days=5)
     date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
@@ -24,7 +24,7 @@ def appointments(request):
     filter_end = date_now
     if request.method == "POST":
         search = request.POST.get("search")
-        if len(search) > 2:
+        if len(search) > 3:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)

@@ -95,6 +95,7 @@ def payment(request, payment_id, person_id, invoice_id):
     # Default parts
     payment_elements = []
     unpayed_elements = []
+    partially_paid_elements = []
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
@@ -116,6 +117,9 @@ def payment(request, payment_id, person_id, invoice_id):
             receipt_number = ""
     all_invoices = Invoice.objects.filter(person=person).order_by("id")
     payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
+    for elm in payed_elements:
+        if elm.invoice.value > elm.payment.value:
+            partially_paid_elements.append(elm)
     unpayed_elements = all_invoices.exclude(
             id__in=payed_elements.values_list('invoice__id', flat=True)
         ).filter(is_client=is_client)
@@ -236,6 +240,21 @@ def payment(request, payment_id, person_id, invoice_id):
                     )
                 # Save the payment value
                 set_value(payment)
+
+                # Add the partial payed element if it exists
+                if len(payed_elements) == 1:
+                    invoice_test_value = payed_elements.all().first().invoice.value
+                    payment_test_value = payed_elements.all().first().payment.value
+                    rest_value = invoice_test_value - payment_test_value
+                    if rest_value > 0:
+                        rest_value = invoice_test_value - payment_test_value
+                    PaymentElement.objects.get_or_create(
+                        payment=payment,
+                        invoice=invoice
+                    )
+                    # Save the payment value
+                    set_value(payment, rest_value)
+                
                 new = False
                 return redirect(
                     "payment",
@@ -243,7 +262,6 @@ def payment(request, payment_id, person_id, invoice_id):
                     invoice_id = invoice.id,
                     person_id = person.id,
                 )
-        print(is_client)
     return render(
         request,
         "payments/payment.html",
