@@ -168,24 +168,24 @@ def c_order(request, order_id, client_id):
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
                     element = OrderElement.objects.get(id=element_id)
-                    service_id = int(request.POST.get("e_service"))
-                    element.service = Service.objects.get(id=service_id)
-                    element.description = request.POST.get("e_description")
-                    element.quantity = request.POST.get("e_quantity")
-                    element.um = ums[int(request.POST.get("e_um")) - 1]
-                    element.price = request.POST.get("e_price")
-                    element.status = statuses[int(request.POST.get("e_status")) - 1]
-                    element.save()
                 else:  # add an element to order
                     element = OrderElement(order=order)
-                    service_id = int(request.POST.get("e_service"))
-                    element.service = Service.objects.get(id=service_id)
-                    element.description = request.POST.get("e_description")
-                    element.quantity = request.POST.get("e_quantity")
-                    element.um = ums[int(request.POST.get("e_um")) - 1]
-                    element.price = request.POST.get("e_price")
-                    element.status = statuses[int(request.POST.get("e_status")) - 1]
-                    element.save()
+                service_id = int(request.POST.get("e_service"))
+                element.service = Service.objects.get(id=service_id)
+                element.description = request.POST.get("e_description")
+                e_quantity = request.POST.get("e_quantity")
+                if e_quantity and e_quantity.replace(".", "").isdigit():
+                    element.quantity = float(e_quantity)
+                else:
+                    element.quantity = float(1.0)
+                element.um = ums[int(request.POST.get("e_um")) - 1]
+                e_price = request.POST.get("e_price")
+                if e_price and e_price.replace(".", "").isdigit():
+                    element.price = float(e_price)
+                else:
+                    element.price = float(1.0)
+                element.status = statuses[int(request.POST.get("e_status")) - 1]
+                element.save()
                 # setting order status to minimum form elements
                 status_elements = sorted(elements, key=lambda x: x.status.id)
                 order.status = status_elements[0].status
