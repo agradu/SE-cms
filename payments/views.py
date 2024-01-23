@@ -95,7 +95,6 @@ def payment(request, payment_id, person_id, invoice_id):
     # Default parts
     payment_elements = []
     unpayed_elements = []
-    partially_paid_elements = []
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
@@ -117,9 +116,6 @@ def payment(request, payment_id, person_id, invoice_id):
             receipt_number = ""
     all_invoices = Invoice.objects.filter(person=person).order_by("id")
     payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
-    for elm in payed_elements:
-        if elm.invoice.value > elm.payment.value:
-            partially_paid_elements.append(elm)
     unpayed_elements = all_invoices.exclude(
             id__in=payed_elements.values_list('invoice__id', flat=True)
         ).filter(is_client=is_client)
@@ -167,7 +163,7 @@ def payment(request, payment_id, person_id, invoice_id):
                     element = PaymentElement.objects.get(id=payment_element_id)
                     if PaymentElement.objects.filter(payment=payment).count() > 1:
                         element.delete()
-                        # Save the invoice value
+                        # Save the payment value
                         set_value(payment, payment_value)
                 except:
                     print("Element",payment_element_id,"is missing!")
@@ -179,13 +175,13 @@ def payment(request, payment_id, person_id, invoice_id):
                         payment = payment,
                         invoice = element
                     )
-                    # Save the invoice value
+                    # Save the payment value
                     set_value(payment, payment_value)
                 except:
                     print("Element",unpayed_element_id,"is missing!")    
             if "payment_value" in request.POST:
                 payment_value = Decimal(request.POST.get("payment_value"))
-                # Save the invoice value
+                # Save the payment value
                 set_value(payment, payment_value)
 
             # Setting the modiffied user and date
@@ -197,6 +193,7 @@ def payment(request, payment_id, person_id, invoice_id):
     else:  # if payment is new
         receipt_serial = ""
         receipt_number = ""
+        invoice_value = invoice.value
         if request.method == "POST":
             if "payment_description" in request.POST:
                 payment_description = request.POST.get("payment_description")
@@ -242,18 +239,19 @@ def payment(request, payment_id, person_id, invoice_id):
                 set_value(payment)
 
                 # Add the partial payed element if it exists
-                if len(payed_elements) == 1:
-                    invoice_test_value = payed_elements.all().first().invoice.value
-                    payment_test_value = payed_elements.all().first().payment.value
-                    rest_value = invoice_test_value - payment_test_value
-                    if rest_value > 0:
-                        rest_value = invoice_test_value - payment_test_value
+                invoice_payment_elements = PaymentElement.objects.filter(invoice=invoice)
+                print("invoice_payment_elements:",invoice_payment_elements)
+                already_paid = 0
+                for element in invoice_payment_elements:
+                    already_paid += element.payment.value
+                rest_value = invoice.value - already_paid
+                if rest_value > 0:
                     PaymentElement.objects.get_or_create(
                         payment=payment,
                         invoice=invoice
                     )
-                    # Save the payment value
-                    set_value(payment, rest_value)
+                # Save the payment value
+                set_value(payment, rest_value)
                 
                 new = False
                 return redirect(
