@@ -243,7 +243,6 @@ def invoice(request, invoice_id, person_id, order_id):
                     order_id = order.id,
                     person_id = person.id,
                 )
-        print(is_client)
     return render(
         request,
         "payments/invoice.html",
