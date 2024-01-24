@@ -139,6 +139,8 @@ def payment(request, payment_id, person_id, invoice_id):
                 if payment.is_client and payment.type == "cash":
                     receipt_serial = serials.receipt_serial
                     receipt_number = serials.receipt_number-1
+                    if receipt_number == 0:
+                        receipt_number = 1
                 elif payment.is_client and payment.type == "bank":
                     receipt_serial = ""
                     receipt_number = ""
