@@ -1,15 +1,11 @@
 {% extends "base.html" %} 
-{% block title %}Sprachen Express - Invoice{% endblock %} 
+{% block title %}Sprachen Express - Cancellation Invoice{% endblock %} 
 {% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-file"></i>
-		</span> {% if invoice.cancellation_to %}
-		Cancellation invoice {{ invoice.serial }}{{ invoice.number }} for invoice {{ invoice.cancellation_to.serial }}{{ invoice.cancellation_to.number }}
-		{% else %}
-		Invoice {{ invoice.serial }}{{ invoice.number }} {% if is_client %}to{% else %}from{% endif %} {{ person.firstname }} {{ person.lastname }}
-		{% endif %}
+		</span> Cancellation Invoice {{ invoice.serial }}{{ invoice.number }} {%if is_client %}to{% else %}from{% endif %} {{ person.firstname }} {{ person.lastname }}
 	</h3>
 </div> 
 {% load static %} 
@@ -57,50 +53,24 @@
 	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card">
 			<div class="card-body">
-				<h4 class="card-title">Invoice details</h4>
+				<h4 class="card-title">Cancellation invoice details</h4>
 				<p>Invoice created by <b class="text-primary">{{invoice.created_by.first_name}} {{invoice.created_by.last_name}}</b> and modified by <b class="text-success">{{invoice.modified_by.first_name}} {{invoice.modified_by.last_name}}</b>. </p>
-				{% if invoice.proforma %}<p class="text-success">This invoice corresponds to proforma <b>{{invoice.proforma.serial}}{{invoice.proforma.number}}</b></p>{% endif %}
+				{% if invoice.proforma %}<p class="text-success">This cancellation invoice corresponds to invoice <b>{{invoice.proforma.serial}}{{invoice.proforma.number}}</b></p>{% endif %}
 				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %}
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-2 col-form-label">Serial</label>
-									<div class="col-sm-4">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_serial" value="{{ invoice_serial }}">
-									</div>
-									<label class="col-sm-2 col-form-label">Number</label>
-									<div class="col-sm-4">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_number" value="{{ invoice_number }}">
-									</div>
+					<div class="row">
+						<div class="col-md-12">
+							<div class="form-group row">
+								<label class="col-sm-2 col-form-label">Serial</label>
+								<div class="col-sm-4">
+									{{ invoice_serial }}
+								</div>
+								<label class="col-sm-2 col-form-label">Number</label>
+								<div class="col-sm-4">
+									{{ invoice_number }}
 								</div>
 							</div>
 						</div>
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-2 col-form-label">Description</label>
-									<div class="col-sm-10">
-										<input type="text" class="form-control" name="invoice_description" value="{{ invoice.description }}">
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-2 col-form-label">Due date</label>
-									<div class="col-sm-5">
-										<input type="date" class="form-control" name="deadline_date" value="{{ invoice.deadline|date:'Y-m-d' }}">
-									</div>
-									<div class="col-sm-5">
-										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the invoice </button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</form>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -134,18 +104,17 @@
 								<td> <a href="/{% if e.order.is_client %}clients{% else %}providers{% endif %}/order/{{ e.element.order.id }}/{{ e.invoice.person.id}}/">{{ e.element.order.serial }}{{ e.element.order.number }} from {{ e.element.order.created_at|date:"d.m.Y"}} - {{ e.element.order.created_at|time:"H:i"}}</a> </td>
 								<td width="7%" style="text-align: right;"> {{e.element.quantity}} </td>
 								<td width="10%"> {{e.element.um.name}} </td>
-								<td width="10%" style="text-align: right;"> {% if invoice.cancellation_to %}-{% endif %}{{e.element.price}} {{e.element.order.currency.symbol}} </td>
+								<td width="10%" style="text-align: right;"> {{e.element.price}} {{e.element.order.currency.symbol}} </td>
 								<td width="10%">
 									<label class="badge badge-{{e.element.status.style}}"> {{e.element.status.name}} </label>
 								</td>
-								<td>{% if invoice.cancellation_to == None %}
+								<td>
 									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
 										<input type="hidden" name="invoice_element_id" value="{{e.id}}">
 										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
 											<i class="mdi mdi-minus btn-icon-prepend"></i>
 										</button>
 									</form>
-									{% endif %}
 								</td>
 							</tr>
 							{% endfor %}

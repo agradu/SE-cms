@@ -62,7 +62,7 @@ def invoices(request):
                 i_payed += p.payment.value
             else:
                 i_payed += p.invoice.value
-        if i.value > 0:
+        if i.value != 0:
             payed = int(i_payed / i.value * 100)
         else:
             payed = 0
@@ -117,6 +117,77 @@ def invoices(request):
     )
 
 @login_required(login_url="/login/")
+def cancellation_invoice(request, invoice_id):
+    # Default parts
+    cancelled_invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice_elements = InvoiceElement.objects.filter(invoice=cancelled_invoice).order_by("id")
+    serials = Serial.objects.get(id=1)
+    
+    cancellation_invoice = Invoice(
+        serial = serials.invoice_serial,
+        number = serials.invoice_number,
+        person = cancelled_invoice.person,
+        is_client = cancelled_invoice.is_client,
+        modified_by = request.user,
+        created_by = request.user,
+        currency = cancelled_invoice.currency,
+        cancellation_to = cancelled_invoice,
+        value = 0 - cancelled_invoice.value
+    )
+    cancellation_invoice.save()
+
+    test_payment = PaymentElement.objects.filter(invoice=cancelled_invoice)
+    p_value = 0
+    for p in test_payment:
+        p_value += p.payment.value
+
+    cancelled_payment = Payment(
+        person = cancelled_invoice.person,
+        is_client = cancelled_invoice.is_client,
+        modified_by = request.user,
+        created_by = request.user,
+        currency = cancelled_invoice.currency,
+        value = cancelled_invoice.value - p_value,
+        description = "Cancelled payment"
+    )
+    cancelled_payment.save()
+
+    cancellation_payment = Payment(
+        person = cancellation_invoice.person,
+        is_client = cancellation_invoice.is_client,
+        modified_by = request.user,
+        created_by = request.user,
+        currency = cancellation_invoice.currency,
+        value = cancellation_invoice.value + p_value,
+        description = "Cancellation payment"
+    )
+    cancellation_payment.save()
+
+    cancelled_payment_element = PaymentElement(
+        payment = cancelled_payment,
+        invoice = cancelled_invoice
+    )
+    cancelled_payment_element.save()
+
+    cancellation_payment_element = PaymentElement(
+        payment = cancellation_payment,
+        invoice = cancellation_invoice
+    )
+    cancellation_payment_element.save()
+    
+    serials.invoice_number += 1
+    serials.save()
+    for element in invoice_elements:
+        c_element = InvoiceElement(
+            invoice = cancellation_invoice,
+            element = element.element
+        )
+        c_element.save()
+    return redirect(
+        "invoices",
+    )
+
+@login_required(login_url="/login/")
 def invoice(request, invoice_id, person_id, order_id):
     # Default parts
     invoice_elements = []
@@ -141,8 +212,8 @@ def invoice(request, invoice_id, person_id, order_id):
         if is_client == False:
             invoice_serial = ""
             invoice_number = ""
-    all_orders_elements = OrderElement.objects.exclude(status__id='6').filter(order__person=person).order_by("id")
-    invoiced_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice__person=person).order_by("id")
+    all_orders_elements = OrderElement.objects.exclude(status__id='0').filter(order__person=person).order_by("id")
+    invoiced_elements = InvoiceElement.objects.exclude(element__status__id='0').filter(invoice__person=person).order_by("id")
     uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
@@ -153,7 +224,7 @@ def invoice(request, invoice_id, person_id, order_id):
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
-        invoice_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice=invoice).order_by('element__order__created_at')
+        invoice_elements = InvoiceElement.objects.exclude(element__status__id='0').filter(invoice=invoice).order_by('element__order__created_at')
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")

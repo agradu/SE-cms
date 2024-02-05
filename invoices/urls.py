@@ -9,4 +9,5 @@ urlpatterns = [
     path("payments/proforma/<int:proforma_id>/<int:person_id>/<int:order_id>/", views.proforma, name="proforma"),
     path("payments/print_proforma/<int:proforma_id>/", views.print_proforma, name="print_proforma"),
     path("payments/convert/<int:proforma_id>/", views.convert_proforma, name="convert_proforma"),
+    path("payments/cancellation_invoice/<int:invoice_id>/", views.cancellation_invoice, name="cancellation_invoice"),
 ]

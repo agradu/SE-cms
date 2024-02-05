@@ -103,7 +103,7 @@ def dashboard(request):
                 i_payed += p.payment.value
             else:
                 i_payed += p.invoice.value
-        if i.value > 0:
+        if i.value != 0:
             payed = int(i_payed / i.value * 100)
         else:
             payed = 0
