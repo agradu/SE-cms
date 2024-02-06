@@ -62,6 +62,7 @@
 								<th> <a href="/payments/invoices/?sort=payed&search={{search}}">Payed</a> </th>
 								<th> <a href="/payments/invoices/?sort=update&search={{search}}">Last Update</a> </th>
 								<th></th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -89,6 +90,12 @@
 								<td> {% if i.payed < 100 %}
 									<button type="button" title="Create an payment" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/payment/0/{{ i.invoice.person.id }}/{{ i.invoice.id }}/';">
 									<i class="mdi mdi-cash"></i>
+									</button>
+									{% endif %}
+								</td>
+								<td> {% if i.invoice.cancellation_to == None and i.invoice.cancelled_from == None %}
+									<button type="button" title="Create an payment" class="btn btn-gradient-danger btn-rounded btn-icon" onclick="location.href='/payments/cancellation_invoice/{{ i.invoice.id }}/';">
+									<i class="mdi mdi-close"></i>
 									</button>
 									{% endif %}
 								</td>

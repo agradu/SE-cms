@@ -132,9 +132,13 @@ def cancellation_invoice(request, invoice_id):
         created_by = request.user,
         currency = cancelled_invoice.currency,
         cancellation_to = cancelled_invoice,
-        value = 0 - cancelled_invoice.value
+        value = 0 - cancelled_invoice.value,
+        description = "Cancellation invoice"
     )
     cancellation_invoice.save()
+
+    cancelled_invoice.cancelled_from = cancellation_invoice
+    cancelled_invoice.save()
 
     test_payment = PaymentElement.objects.filter(invoice=cancelled_invoice)
     p_value = 0

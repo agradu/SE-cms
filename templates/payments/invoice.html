@@ -168,6 +168,7 @@
 		</div>
 	</div>
 </div>
+{% if invoice.cancelled_from is None and invoice.cancellation_to is None %}
 {% if uninvoiced_elements %}
 <div class="row">
 	<div class="col-12 grid-margin">
@@ -217,6 +218,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 {% endif %}
 {% endif %}
 {% endblock %}
