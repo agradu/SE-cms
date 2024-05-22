@@ -10,20 +10,34 @@ import os
 def run():
     default_image = "media/profile_pictures/my-profile-default.jpg"
     username = os.environ.get("DJANGO_USER")
-    statuses = [
-        ["Waiting", "danger", 20],
-        ["Confirmed", "primary", 40],
-        ["In progress", "info", 60],
-        ["In verification", "warning", 80],
-        ["Delivered", "success", 100],
-        ["Canceled", "dark", 100],
-    ]
+    language = input("Language (1-English, 2-German)")
+    if language == "2":
+        statuses = [
+            ["Warten", "danger", 20],
+            ["Bestätigt", "primary", 40],
+            ["In Bearbeitung", "info", 60],
+            ["In Überprüfung", "warning", 80],
+            ["Geliefert", "success", 100],
+            ["Abgebrochen", "dark", 100],
+        ]
+        ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
+        um = UM.objects.filter(name="Stücke").first()
+    else:
+        statuses = [
+            ["Waiting", "danger", 20],
+            ["Confirmed", "primary", 40],
+            ["In progress", "info", 60],
+            ["In verification", "warning", 80],
+            ["Delivered", "success", 100],
+            ["Canceled", "dark", 100],
+        ]
+        ums = ["pcs", "pgs", "lns", "d", "h", "min"]
+        um = UM.objects.filter(name="pcs").first()
+            
     for status in statuses:
         Status.objects.get_or_create(name=status[0], style=status[1], percent=status[2])
-    ums = ["pieces", "pages", "lines", "days", "hours", "minutes"]
     for um in ums:
         UM.objects.get_or_create(name=um)
-    um = UM.objects.filter(name="pieces").first()
 
     Serial.objects.get_or_create(
         offer_serial='A',
@@ -45,12 +59,20 @@ def run():
         Currency.objects.get_or_create(symbol=currency[0], name=currency[1])
     currency = Currency.objects.filter(name="Euro").first()
 
-    services = [
-        ("mdi-google-translate", "Übersetzung", 20, 30),
-        ("mdi-file-word-box", "Redaktionsservice", 20, 30),
-        ("mdi-seal", "Vermitlung Notar", 20, 30),
-        ("mdi-star-circle", "Vermitlung Apostille", 20, 30),
-    ]
+    if language == "2":
+        services = [
+            ("mdi-google-translate", "Übersetzung", 20, 30),
+            ("mdi-file-word-box", "Redaktionsservice", 20, 30),
+            ("mdi-seal", "Vermitlung Notar", 20, 30),
+            ("mdi-star-circle", "Vermitlung Apostille", 20, 30),
+        ]
+    else:
+        services = [
+            ("mdi-google-translate", "Translation", 20, 30),
+            ("mdi-file-word-box", "Editorial Service", 20, 30),
+            ("mdi-seal", "Notary Mediation", 20, 30),
+            ("mdi-star-circle", "Apostille Mediation", 20, 30),
+        ]
     for service in services:
         Service.objects.get_or_create(
             icon=service[0],
