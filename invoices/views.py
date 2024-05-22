@@ -244,9 +244,10 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
+                    clock = datetime.strptime(f"{timezone.now()}", "%H:%i")
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
-                    isued_naive = datetime.strptime(f"{invoice_date}", "%Y-%m-%d")
+                    isued_naive = datetime.strptime(f"{invoice_date}", f"%Y-%m-%d {clock}")
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now
