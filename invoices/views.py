@@ -197,7 +197,7 @@ def invoice(request, invoice_id, person_id, order_id):
     invoice_elements = []
     uninvoiced_elements = []
     date_now = timezone.now()
-    clock = datetime.strptime(f"{date_now}", "%H:%M")
+    clock = datetime.strptime(date_now, "%H:%M")
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
     invoice_serial = serials.invoice_serial
