@@ -197,6 +197,7 @@ def invoice(request, invoice_id, person_id, order_id):
     invoice_elements = []
     uninvoiced_elements = []
     date_now = timezone.now()
+    clock = datetime.strptime(f"{date_now}", "%H:%i")
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
     invoice_serial = serials.invoice_serial
@@ -244,7 +245,6 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
-                    clock = datetime.strptime(f"{timezone.now()}", "%H:%i")
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
                     isued_naive = datetime.strptime(f"{invoice_date}", f"%Y-%m-%d {clock}")
@@ -297,7 +297,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
-                    isued_naive = datetime.strptime(f"{invoice_date}", "%Y-%m-%d")
+                    isued_naive = datetime.strptime(f"{invoice_date}", f"%Y-%m-%d {clock}")
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now
