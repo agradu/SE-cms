@@ -91,7 +91,7 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Isue date</label>
 									<div class="col-sm-4">
-										<input type="date" class="form-control" name="invoice_date" value="{% now "Y-m-d" %}">
+										<input type="date" class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Due date</label>
 									<div class="col-sm-4">
