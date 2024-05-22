@@ -242,11 +242,15 @@ def invoice(request, invoice_id, person_id, order_id):
                         invoice.number = i_number.upper()
                     invoice_number = invoice.number
                 deadline_date = request.POST.get("deadline_date")
+                invoice_date = request.POST.get("invoice_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
-                    invoice.deadline = timezone.make_aware(deadline_naive)
+                    invoice_deadline = timezone.make_aware(deadline_naive)
+                    isued_naive = datetime.strptime(f"{invoice_date}", "%Y-%m-%d")
+                    invoice_date = timezone.make_aware(isued_naive)
                 except:
-                    invoice.deadline = date_now  
+                    invoice_deadline = date_now
+                    invoice_date = date_now
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
                 try: # delete an element
@@ -286,12 +290,17 @@ def invoice(request, invoice_id, person_id, order_id):
                     serials.save()
                     
                 deadline_date = request.POST.get("deadline_date")
+                invoice_date = request.POST.get("invoice_date")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
+                    isued_naive = datetime.strptime(f"{invoice_date}", "%Y-%m-%d")
+                    invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now
+                    invoice_date = date_now
                 invoice = Invoice(
+                    created_at = invoice_date,
                     description = invoice_description,
                     serial = invoice_serial,
                     number = invoice_number,
