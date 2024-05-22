@@ -50,7 +50,7 @@ def user_detail(request, user_id):
             else:
                 user.is_active = False
             date_of_birth = request.POST.get("date_of_birth")
-            user.date_of_birth = datetime.strptime(date_of_birth, "%d.%m.%Y")
+            user.date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
             profile_picture = request.FILES.get("profile_picture")
             if profile_picture:
                 if user.profile_picture:
