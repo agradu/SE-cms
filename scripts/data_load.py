@@ -22,6 +22,7 @@ def run():
         ]
         ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
         um = UM.objects.filter(name="Stk.").first()
+        print("German:",um)
     else:
         statuses = [
             ["Waiting", "danger", 20],
@@ -33,6 +34,7 @@ def run():
         ]
         ums = ["pcs", "pgs", "lns", "d", "h", "min"]
         um = UM.objects.filter(name="pcs").first()
+        print("English:",um)
             
     for s in statuses:
         Status.objects.get_or_create(name=s[0], style=s[1], percent=s[2])
