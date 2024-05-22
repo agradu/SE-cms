@@ -245,9 +245,9 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
-                    deadline_naive = datetime.strptime(f"{deadline_date}, "%Y-%m-%d")
+                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
-                    isued_naive = datetime.combine(datetime.strptime(f"{invoice_date}, "%Y-%m-%d"), clock.time())
+                    isued_naive = datetime.combine(datetime.strptime(f"{invoice_date}", "%Y-%m-%d"), clock.time())
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now
@@ -285,7 +285,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 if order.is_client == False:
                     invoice_serial = request.POST.get("invoice_serial")
                     invoice_number = request.POST.get("invoice_number")
-                    if invoice_serial =="" and invoice_number =="":
+                    if invoice_serial == "" and invoice_number == "":
                         invoice_serial = "??"
                         invoice_number = "???"
                 else:
@@ -296,9 +296,9 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
-                    deadline_naive = datetime.strptime(f"{deadline_date}, "%Y-%m-%d")
+                    deadline_naive = datetime.strptime(f"{deadline_date}", "%Y-%m-%d")
                     invoice_deadline = timezone.make_aware(deadline_naive)
-                    isued_naive = datetime.combine(datetime.strptime(f"{invoice_date}, "%Y-%m-%d"), clock.time())
+                    isued_naive = datetime.combine(datetime.strptime(f"{invoice_date}", "%Y-%m-%d"), clock.time())
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now
