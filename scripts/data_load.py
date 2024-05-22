@@ -20,9 +20,6 @@ def run():
             ["Geliefert", "success", 100],
             ["Abgebrochen", "dark", 100],
         ]
-        ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
-        um = UM.objects.filter(name="Stk.").first()
-        print("German:",um)
     else:
         statuses = [
             ["Waiting", "danger", 20],
@@ -31,13 +28,16 @@ def run():
             ["In verification", "warning", 80],
             ["Delivered", "success", 100],
             ["Canceled", "dark", 100],
-        ]
-        ums = ["pcs", "pgs", "lns", "d", "h", "min"]
-        um = UM.objects.filter(name="pcs").first()
-        print("English:",um)
-            
+        ]            
     for s in statuses:
         Status.objects.get_or_create(name=s[0], style=s[1], percent=s[2])
+
+    if language == "2":
+        ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
+        um = UM.objects.filter(name="Stk.").first()
+    else:
+        ums = ["pcs", "pgs", "lns", "d", "h", "min"]
+        um = UM.objects.filter(name="pcs").first()
     for u in ums:
         UM.objects.get_or_create(name=u)
 
