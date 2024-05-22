@@ -291,7 +291,8 @@ def invoice(request, invoice_id, person_id, order_id):
                 else:
                     serials.invoice_number += 1
                     serials.save()
-                    
+                
+                
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
