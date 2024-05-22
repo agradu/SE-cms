@@ -274,6 +274,7 @@ def invoice(request, invoice_id, person_id, order_id):
             invoice.modified_by = request.user
             invoice.modified_at = date_now
             invoice.created_at = invoice_date
+            invoice.deadline = invoice_deadline
             # Save the invoice value
             set_value(invoice)
 
