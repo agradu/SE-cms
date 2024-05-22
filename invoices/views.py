@@ -271,7 +271,8 @@ def invoice(request, invoice_id, person_id, order_id):
                     print("Element",uninvoiced_element_id,"is missing!")
             # Setting the modiffied user and date
             invoice.modified_by = request.user
-            invoice.modified_at = invoice_date
+            invoice.modified_at = date_now
+            invoice.created_at = invoice_date
             # Save the invoice value
             set_value(invoice)
 
