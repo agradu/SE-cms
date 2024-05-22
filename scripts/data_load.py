@@ -34,12 +34,12 @@ def run():
 
     if language == "2":
         ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
-        um = UM.objects.filter(name="Stk.").first()
     else:
         ums = ["pcs", "pgs", "lns", "d", "h", "min"]
-        um = UM.objects.filter(name="pcs").first()
+        
     for u in ums:
         UM.objects.get_or_create(name=u)
+    um = UM.objects.first()
 
     Serial.objects.get_or_create(
         offer_serial='A',
