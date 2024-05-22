@@ -108,7 +108,7 @@ def user_detail(request, user_id):
                     is_staff=is_staff,
                     is_superuser=is_superuser,
                     is_active=is_active,
-                    date_of_birth=datetime.strptime(date_of_birth, "%d.%m.%Y"),
+                    date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d"),
                     phone=request.POST.get("phone"),
                     address=request.POST.get("address"),
                     profile_picture=profile_picture,
