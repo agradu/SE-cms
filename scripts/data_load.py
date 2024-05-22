@@ -34,10 +34,10 @@ def run():
         ums = ["pcs", "pgs", "lns", "d", "h", "min"]
         um = UM.objects.filter(name="pcs").first()
             
-    for status in statuses:
-        Status.objects.get_or_create(name=status[0], style=status[1], percent=status[2])
-    for um in ums:
-        UM.objects.get_or_create(name=um)
+    for s in statuses:
+        Status.objects.get_or_create(name=s[0], style=s[1], percent=s[2])
+    for u in ums:
+        UM.objects.get_or_create(name=u)
 
     Serial.objects.get_or_create(
         offer_serial='A',
@@ -55,8 +55,8 @@ def run():
     )
 
     currencies = [("€", "Euro"), ("$", "Dollar"), ("ron", "Leu")]
-    for currency in currencies:
-        Currency.objects.get_or_create(symbol=currency[0], name=currency[1])
+    for c in currencies:
+        Currency.objects.get_or_create(symbol=c[0], name=c[1])
     currency = Currency.objects.filter(name="Euro").first()
 
     if language == "2":
@@ -73,12 +73,12 @@ def run():
             ("mdi-seal", "Notary Mediation", 20, 30),
             ("mdi-star-circle", "Apostille Mediation", 20, 30),
         ]
-    for service in services:
+    for s in services:
         Service.objects.get_or_create(
-            icon=service[0],
-            name=service[1],
-            price_min=service[2],
-            price_max=service[3],
+            icon=s[0],
+            name=s[1],
+            price_min=s[2],
+            price_max=s[3],
             currency=currency,
             um=um,
         )
