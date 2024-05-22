@@ -19,7 +19,7 @@ echo ""  # New line after password input
 DATABASE_TO_DELETE="se_cms"
 DATABASE_TO_CREATE="se_cms"
 # Backup the existing database
-pg_dump --username="$PGUSER" --host="$PGHOST" --port="$PGPORT" --dbname="$DATABASE_TO_DELETE" --password="$PGPASSWORD" > backup.sql
+pg_dump --username="$PGUSER" --host="$PGHOST" --port="$PGPORT" --dbname="$DATABASE_TO_DELETE" --password > backup.sql
 
 # Erase the database if it exists
 sudo -i -u postgres dropdb --username="$PGUSER" --host="$PGHOST" --port="$PGPORT" "$DATABASE_TO_DELETE"
@@ -32,7 +32,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Import the data back into the new database
-psql --username="$PGUSER" --host="$PGHOST" --port="$PGPORT" --dbname="$DATABASE_TO_CREATE" --password="$PGPASSWORD" < backup.sql
+psql --username="$PGUSER" --host="$PGHOST" --port="$PGPORT" --dbname="$DATABASE_TO_CREATE" --password < backup.sql
 
 echo "The database '$DATABASE_TO_CREATE' was recreated with the data from backup!"
 
