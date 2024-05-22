@@ -21,7 +21,7 @@ def run():
             ["Abgebrochen", "dark", 100],
         ]
         ums = ["Stk.", "S.", "Zl.", "Tg.", "Std.", "Min."]
-        um = UM.objects.filter(name="Stücke").first()
+        um = UM.objects.filter(name="Stk.").first()
     else:
         statuses = [
             ["Waiting", "danger", 20],
