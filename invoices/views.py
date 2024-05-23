@@ -209,6 +209,7 @@ def invoice(request, invoice_id, person_id, order_id):
         order = ""
     if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
+        invoice_date = invoice.created_at
         is_client = invoice.is_client
         new = False
     else:
@@ -251,7 +252,7 @@ def invoice(request, invoice_id, person_id, order_id):
                         invoice_date = new_invoice_date
                 except:
                     invoice_deadline = date_now.date()
-                    invoice_date = invoice.created_at
+                    
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
                 try: # delete an element
