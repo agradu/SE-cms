@@ -196,7 +196,7 @@ def invoice(request, invoice_id, person_id, order_id):
     # Default parts
     invoice_elements = []
     uninvoiced_elements = []
-    date_now = timezone.now()
+    date_now = timezone.localtime()
     clock = date_now.time()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
@@ -247,7 +247,6 @@ def invoice(request, invoice_id, person_id, order_id):
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
-                    #invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now.date()
                     invoice_date = date_now
@@ -297,7 +296,6 @@ def invoice(request, invoice_id, person_id, order_id):
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
-                    #invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now.date()
                     invoice_date = date_now
