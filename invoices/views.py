@@ -299,11 +299,11 @@ def invoice(request, invoice_id, person_id, order_id):
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     new_invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
-                    if not invoice.created_at == new_invoice_date:
+                    if not date_now == new_invoice_date:
                         invoice_date = new_invoice_date
                 except:
                     invoice_deadline = date_now.date()
-                    invoice_date = invoice.created_at
+                    invoice_date = date_now
                 invoice = Invoice(
                     created_at = invoice_date,
                     description = invoice_description,
