@@ -247,12 +247,11 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
-                    deadline_naive = datetime.strptime(deadline_date, "%Y-%m-%d")
-                    invoice_deadline = timezone.make_aware(deadline_naive)
+                    invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     isued_naive = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d"), clock)
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
-                    invoice_deadline = date_now
+                    invoice_deadline = date_now.date()
                     invoice_date = date_now
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
@@ -298,12 +297,11 @@ def invoice(request, invoice_id, person_id, order_id):
                 deadline_date = request.POST.get("deadline_date")
                 invoice_date = request.POST.get("invoice_date")
                 try:
-                    deadline_naive = datetime.strptime(deadline_date, "%Y-%m-%d")
-                    invoice_deadline = timezone.make_aware(deadline_naive)
+                    invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     isued_naive = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d"), clock)
                     invoice_date = timezone.make_aware(isued_naive)
                 except:
-                    invoice_deadline = date_now
+                    invoice_deadline = date_now.date()
                     invoice_date = date_now
                 invoice = Invoice(
                     created_at = invoice_date,
