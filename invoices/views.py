@@ -246,7 +246,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 invoice_date = request.POST.get("invoice_date")
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d"), clock)
+                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
                     #invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now.date()
@@ -296,7 +296,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 invoice_date = request.POST.get("invoice_date")
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d"), clock)
+                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
                     #invoice_date = timezone.make_aware(isued_naive)
                 except:
                     invoice_deadline = date_now.date()
