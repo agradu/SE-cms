@@ -94,7 +94,7 @@
 									{% endif %}
 								</td>
 								<td> {% if i.invoice.cancellation_to == None and i.invoice.cancelled_from == None %}
-									<button type="button" title="Create an payment" class="btn btn-gradient-danger btn-rounded btn-icon" onclick="location.href='/payments/cancellation_invoice/{{ i.invoice.id }}/';">
+									<button type="button" title="Cancellation" class="btn btn-gradient-danger btn-rounded btn-icon" onclick="if(confirm('Are you sure?')) { location.href='/payments/cancellation_invoice/{{ i.invoice.id }}/'; }">
 									<i class="mdi mdi-close"></i>
 									</button>
 									{% endif %}
