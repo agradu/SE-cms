@@ -9,12 +9,13 @@ def run():
     services = ["","","","","notar","traducator","grafician","curier"]
     for i in range(0,1000):
         response = requests.get(api_url, headers={'X-Api-Key': '8TqedOdrbAh8WZKAZJrILg==bwehGu1FNqpfDDAm'})
-        names = response["name"].split(" ")
+        data = response.json()
+        names = data["name"].split(" ")
         firstname = names[0]
         lastname = names[1]
         service = services[random.randrange(0, 7)]
-        email = response["email"]
-        address = response["address"]
+        email = data["email"]
+        address = data["address"]
         Person.objects.get_or_create(
             firstname=firstname, 
             lastname=lastname, 
