@@ -1,6 +1,7 @@
 from persons.models import Person
 import os
-import requests, random
+import random
+import requests
 api_url = 'https://api.api-ninjas.com/v1/randomuser'
 
 
