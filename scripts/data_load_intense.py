@@ -19,7 +19,7 @@ def run():
         Person.objects.get_or_create(
             firstname=firstname, 
             lastname=lastname, 
-            service=service, 
+            services=service, 
             email=email,
             address=address
             )
