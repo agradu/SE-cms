@@ -252,6 +252,8 @@ def invoice(request, invoice_id, person_id, order_id):
                         invoice_date = new_invoice_date
                 except:
                     invoice_deadline = date_now.date()
+                invoice.created_at = invoice_date
+                invoice.deadline = invoice_deadline
                     
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
@@ -274,8 +276,6 @@ def invoice(request, invoice_id, person_id, order_id):
             # Setting the modiffied user and date
             invoice.modified_by = request.user
             invoice.modified_at = date_now
-            invoice.created_at = invoice_date
-            invoice.deadline = invoice_deadline
             # Save the invoice value
             set_value(invoice)
 
