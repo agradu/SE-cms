@@ -246,10 +246,12 @@ def invoice(request, invoice_id, person_id, order_id):
                 invoice_date = request.POST.get("invoice_date")
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
+                    new_invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
+                    if not invoice.created_at == new_invoice_date:
+                        invoice_date = new_invoice_date
                 except:
                     invoice_deadline = date_now.date()
-                    invoice_date = date_now
+                    invoice_date = invoice.created_at
             if "invoice_element_id" in request.POST:
                 invoice_element_id = int(request.POST.get("invoice_element_id"))
                 try: # delete an element
@@ -295,10 +297,12 @@ def invoice(request, invoice_id, person_id, order_id):
                 invoice_date = request.POST.get("invoice_date")
                 try:
                     invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                    invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
+                    new_invoice_date = datetime.combine(datetime.strptime(invoice_date, "%Y-%m-%d").date(), clock)
+                    if not invoice.created_at == new_invoice_date:
+                        invoice_date = new_invoice_date
                 except:
                     invoice_deadline = date_now.date()
-                    invoice_date = date_now
+                    invoice_date = invoice.created_at
                 invoice = Invoice(
                     created_at = invoice_date,
                     description = invoice_description,
