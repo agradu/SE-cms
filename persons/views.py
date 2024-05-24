@@ -29,7 +29,7 @@ def c_clients(request):
         client = {"client": person, "total_orders": person_total_orders}
         selected_clients.append(client)
     page = request.GET.get("page")
-    paginator = Paginator(selected_clients, 10)
+    paginator = Paginator(selected_clients, 5)
     clients_on_page = paginator.get_page(page)
     return render(
         request,
