@@ -84,9 +84,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in selected_providers.paginator.page_range %}
 										{% if pg == selected_providers.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/providers/providers/?page={{ pg }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/providers/providers/?page={{ pg }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %}
 									</div>
