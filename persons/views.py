@@ -63,7 +63,7 @@ def p_providers(request):
         provider = {"provider": person, "total_orders": person_total_orders}
         selected_providers.append(provider)
     page = request.GET.get("page")
-    paginator = Paginator(selected_providers, 10)
+    paginator = Paginator(selected_providers, 5)
     providers_on_page = paginator.get_page(page)
     return render(
         request,
