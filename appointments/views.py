@@ -21,7 +21,9 @@ def appointments(request):
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now
+    filter_end = date_now.replace(
+                hour=23, minute=59, second=59, microsecond=0
+            )
     if request.method == "POST":
         search = request.POST.get("search")
         if len(search) > 3:
