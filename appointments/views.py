@@ -16,12 +16,12 @@ from django.utils import timezone
 def appointments(request):
     # search elements
     search = ""
-    date_now = timezone.now() + timedelta(days=5)
-    date_before = date_now - timedelta(days=10)
+    date_before = timezone.now() - timedelta(days=10)
+    date_after = timezone.now() + timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
-    reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now.replace(
+    reg_end = date_after.strftime("%Y-%m-%d")
+    filter_end = date_after.replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
     if request.method == "POST":
