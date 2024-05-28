@@ -4,7 +4,7 @@
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-calendar-check"></i>
+			<i class="mdi mdi-calendar-clock"></i>
 		</span> Appointment of {{ appointment.person.firstname }} {{ appointment.person.lastname }} 
 		with {{ appointment.with_person.firstname }} {{ appointment.with_person.lastname }}
 		on {{ appointment.schedule|date:"d.m.Y"}} at {{ appointment.schedule|time:"H:i"}}
@@ -145,7 +145,7 @@
 							<div class="form-group row">
 								<div class="col-sm-12">
 									<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-										<i class="mdi mdi mdi-calendar-check btn-icon-prepend"></i> Save the appointment </button>
+										<i class="mdi mdi mdi-calendar-clock btn-icon-prepend"></i> Save the appointment </button>
 								</div>
 							</div>
 						</div>
