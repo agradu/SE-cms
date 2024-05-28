@@ -26,14 +26,14 @@
 		<li class="nav-item{% if request.path == '/' %} active{% endif %}">
 			<a class="nav-link" href="/">
 				<span class="menu-title">Dashboard</span>
-				<i class="mdi mdi-home menu-icon"></i>
+				<i class="mdi mdi-view-dashboard-outline menu-icon"></i>
 			</a>
 		</li>
 		<li class="nav-item{% if 'clients/' in request.path %} active{% endif %}">
 			<a class="nav-link" data-bs-toggle="collapse" href="#clients-orders" aria-expanded="{% if 'clients/' in request.path %}true{% else %}false{% endif %}" aria-controls="clients-orders">
 				<span class="menu-title">Clients Orders</span>
 				<i class="menu-arrow"></i>
-				<i class="mdi mdi-clipboard menu-icon"></i>
+				<i class="mdi mdi-cart menu-icon"></i>
 			</a>
 			<div class="collapse{% if 'clients/' in request.path %} show{% endif %}" id="clients-orders">
 				<ul class="nav flex-column sub-menu">
@@ -53,7 +53,7 @@
 			<a class="nav-link" data-bs-toggle="collapse" href="#providers-orders" aria-expanded="{% if 'providers/' in request.path %}true{% else %}false{% endif %}" aria-controls="providers-orders">
 				<span class="menu-title">Providers Orders</span>
 				<i class="menu-arrow"></i>
-				<i class="mdi mdi-cart menu-icon"></i>
+				<i class="mdi mdi-truck menu-icon"></i>
 			</a>
 			<div class="collapse{% if 'providers/' in request.path %} show{% endif %}" id="providers-orders">
 				<ul class="nav flex-column sub-menu">
@@ -69,14 +69,14 @@
 		<li class="nav-item{% if request.path == '/appointments/' %} active{% endif %}">
 			<a class="nav-link" href="/appointments/">
 			  <span class="menu-title">Appointments</span>
-			  <i class="mdi mdi-calendar-check menu-icon"></i>
+			  <i class="mdi mdi-calendar-clock menu-icon"></i>
 			</a>
 		</li>
 		<li class="nav-item{% if 'payments/' in request.path %} active{% endif %}">
 			<a class="nav-link" data-bs-toggle="collapse" href="#payments" aria-expanded="{% if 'payments/' in request.path %}true{% else %}false{% endif %}" aria-controls="payments">
 				<span class="menu-title">Payments</span>
 				<i class="menu-arrow"></i>
-				<i class="mdi mdi-cash menu-icon"></i>
+				<i class="mdi mdi-credit-card menu-icon"></i>
 			</a>
 			<div class="collapse{% if 'payments/' in request.path %} show{% endif %}" id="payments">
 				<ul class="nav flex-column sub-menu">
