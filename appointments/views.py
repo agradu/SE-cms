@@ -26,7 +26,7 @@ def appointments(request):
             )
     if request.method == "POST":
         search = request.POST.get("search")
-        if len(search) > 3:
+        if len(search) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -47,14 +47,6 @@ def appointments(request):
         .filter(schedule__gte=filter_start, schedule__lte=filter_end)
         .order_by("schedule")
     )
-    if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
-            filtered_appointments = Appointment.objects.filter(
-                Q(person__firstname__icontains=search)
-                | Q(person__lastname__icontains=search)
-                | Q(person__company_name__icontains=search)
-            ).order_by("schedule")
 
     """
     # sorting types
