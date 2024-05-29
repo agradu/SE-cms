@@ -41,7 +41,7 @@
         <div class="tr">
             <div class="td">Rechnung Nr. {{ e.invoice.serial }}-{{ e.invoice.number }}</div>
             <div class="td pl">({{ e.invoice.description }})</div>
-            <div class="td right pl"> von {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
+            <div class="td right pl"> vom {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
             <div class="td right pl">{{ e.invoice.value }} {{ e.invoice.currency.symbol }}</div>
         </div>
         {% endfor %}
