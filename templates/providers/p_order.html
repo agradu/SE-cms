@@ -10,7 +10,7 @@
 </div>
 {% load static %}
 <div class="row">
-	<div class="col-md-4 grid-margin stretch-card">
+	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card">
 			<div class="card-body">
 				<h4 class="card-title">Provider details</h4>
@@ -50,38 +50,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-md-4 grid-margin stretch-card">
-		<div class="card bg-light">
-			<div class="card-body">
-				<h4 class="card-title">Modify the provider</h4>
-				<p>(Only if is needed)</p>
-				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
-							<div class="col-sm-8">
-								<input type="text" class="form-control" placeholder="Search a new provider" name="search" value="{{ search }}" aria-label="Search a new provider">
-							</div>
-							<div class="col-sm-4">
-								<button type="submit" class="btn btn-gradient-primary">Search</button>
-							</div>
-						</div>
-					</form>
-				</div>
-				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %} <div class="form-group row">
-							<div class="col-sm-7">
-								<select class="form-select" name="new_provider"> {% for p in providers %} <option value="{{ p.id }}" {% if p.id == order.person.id %} selected{% endif %}>{{ p.firstname }} {{ p.lastname }} - {{ p.company_name }}</option> {% endfor %} </select>
-							</div>
-							<div class="col-sm-5">
-								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-									<i class="mdi mdi-account btn-icon-prepend"></i> Select the provider </button>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-4 grid-margin stretch-card">
+	<div class="col-md-6 grid-margin stretch-card">
 		<div class="card bg-light">
 			<div class="card-body">
 				<h4 class="card-title">Modify the provider</h4>
