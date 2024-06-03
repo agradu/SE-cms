@@ -78,6 +78,7 @@ def p_providers(request):
             "selected_providers": providers_on_page,
             "search_name": search_name,
             "search_service": search_service,
+            "search_place": search_place,
         },
     )
 
