@@ -50,6 +50,7 @@
 								<th> Provider </th>
 								<th> Phone </th>
 								<th> E-mail </th>
+								<th> Address </th>
 								<th> Services </th>
 								<th> Orders </th>
 								<th> Appointments </th>
@@ -68,7 +69,14 @@
 								</td>
 								<td title="Tel. {{ p.provider.phone }}"> <a href="https://wa.me/{{ p.provider.phone | slice:'2:' }}"  target="_blank">
 									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.provider.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a> </td>
-								<td> <a href="mailto:{{ p.provider.email }}">{{ p.provider.email}}</a> </td>
+								<td title="{{ p.provider.email}}"> <a href="mailto:{{ p.provider.email }}"><i class="mdi mdi-email-outline"></i></a> </td>
+								<script>
+									function openGoogleMapsPopup(address) {
+										const url = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
+										window.open(url, 'googleMapsPopup', 'width=800,height=600');
+									}
+								</script>
+								<td title="{{ p.provider.address}}"> <a href="#" onclick="openGoogleMapsPopup('{{ p.provider.address}}')"><i class="mdi mdi-google-maps"></i></a> </td>
 								<td> {{ p.provider.services|truncatechars:80}} </td>
 								<td> {{ p.total_orders}} </td>
 								<td> {{ p.total_appointments}} </td>
