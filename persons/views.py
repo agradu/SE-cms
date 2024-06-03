@@ -22,7 +22,7 @@ def c_clients(request):
                 | Q(company_name__icontains=search)
             ).order_by("firstname")[:30]
     else:
-        filtered_persons = Person.objects.order_by("created_at")[:30]
+        filtered_persons = Person.objects.order_by("-created_at")[:30]
     selected_clients = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=True).count()
