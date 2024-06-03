@@ -47,7 +47,8 @@ def p_providers(request):
     if request.method == "POST":
         search_name = request.POST.get("search_name")
         search_service = request.POST.get("search_service")
-        if len(search_name) > 2 or len(search_service) > 2:
+        search_place = request.POST.get("search_place")
+        if len(search_name) > 2 or len(search_service) > 2 or len(search_place) > 2:
             filtered_persons = (
                 Person.objects.filter(
                     Q(firstname__icontains=search_name)
@@ -55,11 +56,12 @@ def p_providers(request):
                     | Q(company_name__icontains=search_name)
                 )
                 .filter(services__icontains=search_service)
+                .filter(address__icontains=search_place)
                 .exclude(services='')
                 .order_by("firstname")[:30]
             )
     else:
-        filtered_persons = Person.objects.filter(services__icontains=search_service).exclude(services='').order_by("-created_at")[:30]
+        filtered_persons = Person.objects.exclude(services='').order_by("-created_at")[:30]
     selected_providers = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=False).count()
