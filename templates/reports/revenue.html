@@ -78,42 +78,11 @@
 					</form>
 				</div>
 				<div class="bar-chart-container">
-					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
-					  <span class="bar-chart-label">Mai 23</span>
+					{% for revenue in payments %}
+					<div class="bar" style="height: 30%;" title="{{ revenue.year_month }} - {{ revenue.total_value }}">
+					  <span class="bar-chart-label">{{ revenue.year_month }}</span>
 					</div>
-					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
-					  <span class="bar-chart-label">02.23</span>
-					</div>
-					<div class="bar" style="height: 40%;" title="Jul 23 - 1,500">
-					  <span class="bar-chart-label">03.23</span>
-					</div>
-					<div class="bar" style="height: 30%;" title="Aug 23 - 1,000">
-					  <span class="bar-chart-label">04.23</span>
-					</div>
-					<div class="bar" style="height: 60%;" title="Sep 23 - 2,000">
-					  <span class="bar-chart-label">05.23</span>
-					</div>
-					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
-					  <span class="bar-chart-label">06.23</span>
-					</div>
-					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
-					  <span class="bar-chart-label">07.23</span>
-					</div>
-					<div class="bar" style="height: 40%;" title="Jul 23 - 1,500">
-					  <span class="bar-chart-label">08.23</span>
-					</div>
-					<div class="bar" style="height: 30%;" title="Aug 23 - 1,000">
-					  <span class="bar-chart-label">09.23</span>
-					</div>
-					<div class="bar" style="height: 60%;" title="Sep 23 - 2,000">
-					  <span class="bar-chart-label">10.23</span>
-					</div>
-					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
-					  <span class="bar-chart-label">11.23</span>
-					</div>
-					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
-					  <span class="bar-chart-label">12.23</span>
-					</div>
+					{% endfor %}
 				  </div>
 			</div>
 		</div>
