@@ -15,14 +15,14 @@ def c_clients(request):
     search = ""
     if request.method == "POST":
         search = request.POST.get("search")
-        if len(search) < 3:
-            search = ""
-    # CLIENTS
-    filtered_persons = Person.objects.filter(
-        Q(firstname__icontains=search)
-        | Q(lastname__icontains=search)
-        | Q(company_name__icontains=search)
-    ).order_by("firstname")[:30]
+        if len(search) > 2:
+            filtered_persons = Person.objects.filter(
+                Q(firstname__icontains=search)
+                | Q(lastname__icontains=search)
+                | Q(company_name__icontains=search)
+            ).order_by("firstname")[:30]
+        else:
+            filtered_persons = Person.objects.order_by("created_at")[:30]
     selected_clients = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=True).count()
