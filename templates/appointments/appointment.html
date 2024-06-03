@@ -54,7 +54,7 @@
 		<div class="card">
 			<div class="card-body">
 				<h4 class="card-title">Provider: {{ appointment.with_person.firstname }} {{ appointment.with_person.lastname }}</h4>
-				<p>Phone: {{ appointment.with_person.phone }} / E-mail: {{ appointment.with_person.email }}</p>
+				<p>Phone: {{ appointment.with_person.phone }} / E-mail: {{ appointment.with_person.email }}  / Adress: {{ appointment.with_person.address }}</p>
 				<div class="row">
 					<form method="post" class="col-md-12"> {% csrf_token %}
 						<fieldset{% if is_invoiced %} disabled{% endif %}>
