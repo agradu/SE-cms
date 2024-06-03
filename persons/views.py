@@ -58,7 +58,7 @@ def p_providers(request):
                 .order_by("firstname")[:30]
             )
     else:
-        filtered_persons = Person.objects.order_by("-created_at")[:30]
+        filtered_persons = Person.objects.filter(services__icontains=search_service).exclude(services='').order_by("-created_at")[:30]
     selected_providers = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=False).count()
