@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from .models import Person
 from orders.models import Order
+from appointments.models import Appointment
 from django.core.paginator import Paginator
 from django.utils import timezone
 
@@ -62,7 +63,8 @@ def p_providers(request):
     selected_providers = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=False).count()
-        provider = {"provider": person, "total_orders": person_total_orders}
+        person_total_appointments = Appointment.objects.filter(with_person=person).count()
+        provider = {"provider": person, "total_orders": person_total_orders, "total_appointments": person_total_appointments}
         selected_providers.append(provider)
     page = request.GET.get("page")
     paginator = Paginator(selected_providers, 10)
