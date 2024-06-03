@@ -66,7 +66,7 @@
 								<td>
 									<a href="/persons/{{ p.provider.id}}">{{ p.provider.firstname}} {{ p.provider.lastname}} {% if p.provider.company_name != "" %}- {{ p.provider.company_name}} {% endif %}</a>
 								</td>
-								<td> <a href="https://wa.me/{{ p.provider.phone | slice:'2:' }}"  target="_blank">
+								<td title="Tel. {{ p.provider.phone }}"> <a href="https://wa.me/{{ p.provider.phone | slice:'2:' }}"  target="_blank">
 									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.provider.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a> </td>
 								<td> <a href="mailto:{{ p.provider.email }}">{{ p.provider.email}}</a> </td>
 								<td> {{ p.provider.services|truncatechars:80}} </td>
