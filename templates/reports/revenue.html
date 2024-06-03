@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Sprachen Express - Revenue{% endblock %}
+{% block content %}
+<div class="page-header">
+	<h3 class="page-title">
+		<span class="page-title-icon bg-gradient-primary text-white me-2">
+			<i class="mdi mdi-cash"></i>
+		</span> Revenue
+	</h3>
+</div>
+{% load static %}
+
+<style>
+	.bar-chart-container {
+	  width: 100%; /* Full width of the container */
+	  height: 300px;
+	  padding: 20px;
+	  background-color: #fff;
+	  display: flex;
+	  align-items: flex-end;
+	  justify-content: space-between; /* Ensures bars are evenly spaced */
+	  box-sizing: border-box;
+	}
+  
+	.bar {
+	  flex: 1; /* Allows bars to grow but not shrink, ensuring they take up available space */
+	  margin: 0 10px; /* Adds space between the bars */
+	  height: 100%; /* Maximum height adjusted via inline styles */
+	  background-color: #4CAF50;
+	  display: flex;
+	  justify-content: center; /* Center label horizontally */
+	  position: relative; /* Needed for absolute positioning of labels */
+	}
+  
+	.bar-chart-container .bar .bar-chart-label {
+	  all: initial; /* Resets all the default styling */
+	  display: block; /* Converts span to block for better control */
+	  position: absolute; /* Absolute positioning at the bottom of the bar */
+	  bottom: -20px; /* Offset from the bottom */
+	  right: 100%; /* Align right side of label with right side of the bar */
+	  white-space: nowrap; /* Ensures the text does not wrap */
+	  font-family: Arial, sans-serif;
+	  font-size: 14px;
+	  color: #666; /* Gray color for the text */
+	  transform: rotate(-90deg) translateY(50%); /* Rotate and shift the label to not overlap the bar */
+	  transform-origin: top right; /* Sets the origin of transformation to the top right */
+	}
+</style>
+
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="table-responsive">
+					<form method="post"> 
+						{% csrf_token %} 
+						<table class="table">
+							<tbody>
+								<tr>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="date" class="form-control" name="date_start" value="{{ date_start }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<input type="date" class="form-control" name="date_end" value="{{ date_end }}">
+										</div>
+									</td>
+									<td>
+										<div class="col input-group input-group-sm">
+											<button type="submit" class="btn btn-gradient-primary me-2">Search</button>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
+				</div>
+				<div class="bar-chart-container">
+					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
+					  <span class="bar-chart-label">Mai 23</span>
+					</div>
+					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
+					  <span class="bar-chart-label">02.23</span>
+					</div>
+					<div class="bar" style="height: 40%;" title="Jul 23 - 1,500">
+					  <span class="bar-chart-label">03.23</span>
+					</div>
+					<div class="bar" style="height: 30%;" title="Aug 23 - 1,000">
+					  <span class="bar-chart-label">04.23</span>
+					</div>
+					<div class="bar" style="height: 60%;" title="Sep 23 - 2,000">
+					  <span class="bar-chart-label">05.23</span>
+					</div>
+					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
+					  <span class="bar-chart-label">06.23</span>
+					</div>
+					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
+					  <span class="bar-chart-label">07.23</span>
+					</div>
+					<div class="bar" style="height: 40%;" title="Jul 23 - 1,500">
+					  <span class="bar-chart-label">08.23</span>
+					</div>
+					<div class="bar" style="height: 30%;" title="Aug 23 - 1,000">
+					  <span class="bar-chart-label">09.23</span>
+					</div>
+					<div class="bar" style="height: 60%;" title="Sep 23 - 2,000">
+					  <span class="bar-chart-label">10.23</span>
+					</div>
+					<div class="bar" style="height: 30%;" title="Mai 23 - 1,000">
+					  <span class="bar-chart-label">11.23</span>
+					</div>
+					<div class="bar" style="height: 90%;" title="Jun 23 - 3,000">
+					  <span class="bar-chart-label">12.23</span>
+					</div>
+				  </div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

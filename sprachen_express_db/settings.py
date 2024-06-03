@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "services",
     "users",
     "appointments",
+    "reports",
 ]
 
 AUTH_USER_MODEL = "users.CustomUser"
