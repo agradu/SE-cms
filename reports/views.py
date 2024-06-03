@@ -42,5 +42,5 @@ def revenue(request):
     return render(
         request,
         "reports/revenue.html",
-        list(payments),
+        {'payments': list(payments)},
     )
