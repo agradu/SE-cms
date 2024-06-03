@@ -13,8 +13,9 @@ from datetime import datetime, time
 @login_required(login_url="/login/")
 def revenue(request):
     # search elements
-    date_start = datetime(timezone.now().year, 1, 1, time(00, 00, 00), timezone.get_current_timezone())
-    date_end = datetime(timezone.now().year, 12, 31, time(23, 59, 59), timezone.get_current_timezone())
+    now = timezone.now()
+    date_start = timezone.make_aware(datetime.combine(datetime(now.year, 1, 1), time(0, 0, 0)), timezone.get_current_timezone())
+    date_end = timezone.make_aware(datetime.combine(datetime(now.year, 12, 31), time(23, 59, 59)), timezone.get_current_timezone())
     if request.method == "POST":
         date_start = request.POST.get("date_start")
         date_start = datetime.strptime(date_start, "%Y-%m-%d")
