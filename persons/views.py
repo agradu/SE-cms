@@ -44,6 +44,7 @@ def p_providers(request):
     # search elements
     search_name = ""
     search_service = ""
+    search_place = ""
     if request.method == "POST":
         search_name = request.POST.get("search_name")
         search_service = request.POST.get("search_service")
