@@ -13,7 +13,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{% for o in client_orders %}{{o}}
+					{% for o in client_orders %}
 					<tr  onclick="window.location='/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
 						<td> 
 							<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
