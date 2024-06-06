@@ -55,7 +55,7 @@ def dashboard(request):
         )
 
     # last unfinished provider orders
-    selected_orders = Order.objects.filter(is_client=False).order_by("deadline")[:8]
+    selected_orders = Order.objects.filter(is_client=False, status__id__lt=5).order_by("deadline")[:8]
     provider_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
@@ -80,16 +80,15 @@ def dashboard(request):
         else:
             alert = ""
 
-        if o_status.id < 5:
-            provider_orders.append(
-                {
-                    "order": o,
-                    "elements": order_elements,
-                    "status": o_status,
-                    "invoiced": invoiced,
-                    "alert": alert
-                }
-            )
+        provider_orders.append(
+            {
+                "order": o,
+                "elements": order_elements,
+                "status": o_status,
+                "invoiced": invoiced,
+                "alert": alert
+            }
+        )
 
     # last unpayed client invoices
     selected_invoices = Invoice.objects.filter(is_client=True).order_by("deadline")[:8]
@@ -179,7 +178,6 @@ def login_view(request):
             return redirect("dashboard")
         else:
             logout(request)
-            # Autentificarea a eșuat, poți afișa o eroare sau un mesaj de avertizare
             error_message = "Fail to sign in. Please verify everything carefuly."
             return render(request, "login.html", {"error_message": error_message})
     # Dacă nu e metoda POST, deconectează utilizatorul
