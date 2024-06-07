@@ -91,7 +91,7 @@ def dashboard(request):
         )
 
     # last unpayed client invoices
-    selected_invoices = Invoice.objects.filter(is_client=True).order_by("deadline")[:20]
+    selected_invoices = Invoice.objects.filter(is_client=True).order_by("deadline")[:7]
     client_invoices = []
     for i in selected_invoices:
         i_payed = 0
