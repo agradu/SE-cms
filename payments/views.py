@@ -23,7 +23,7 @@ def payments(request):
     # search elements
     search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=20)
+    date_before = date_now - timedelta(days=30)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")
