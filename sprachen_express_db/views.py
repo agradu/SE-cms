@@ -2,7 +2,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.db.models import Sum
+from django.db.models import Sum, Case, When, Value, F, DecimalField
+from django.db.models.functions import Coalesce
 from orders.models import Order, OrderElement
 from payments.models import Payment, PaymentElement
 from invoices.models import Invoice, InvoiceElement
@@ -12,7 +13,7 @@ from datetime import datetime, timezone
 @login_required(login_url="/login/")
 def dashboard(request):
     # recent orders box
-    selected_orders = Order.objects.all().order_by("-created_at")[:6]
+    selected_orders = Order.objects.all().order_by("-created_at")[:10]
     recent_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
@@ -20,7 +21,7 @@ def dashboard(request):
         recent_orders.append({"order": o, "elements": order_elements, "status": status})
 
     # last unfinished client orders
-    selected_orders = Order.objects.filter(is_client=True, status__id__lt=5).order_by("deadline")[:8]
+    selected_orders = Order.objects.filter(is_client=True, status__id__lt=5).order_by("deadline")[:10]
     client_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
@@ -55,7 +56,7 @@ def dashboard(request):
         )
 
     # last unfinished provider orders
-    selected_orders = Order.objects.filter(is_client=False, status__id__lt=5).order_by("deadline")[:8]
+    selected_orders = Order.objects.filter(is_client=False, status__id__lt=5).order_by("deadline")[:10]
     provider_orders = []
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
@@ -91,64 +92,69 @@ def dashboard(request):
         )
 
     # last unpayed client invoices
-    selected_invoices = Invoice.objects.filter(is_client=True).order_by("deadline")[:7]
-    client_invoices = []
-    for i in selected_invoices:
-        i_payed = 0
-        i_payments = PaymentElement.objects.filter(invoice=i)
-        for p in i_payments:
-            if p.payment.value < p.invoice.value:
-                i_payed += p.payment.value
-            else:
-                i_payed += p.invoice.value
-        if i.value != 0:
-            payed = int(i_payed / i.value * 100)
-        else:
-            payed = 0
-
-        if o.deadline < datetime.now(timezone.utc):
-            alert = "text-danger"
-        else:
-            alert = ""
-
-        if payed < 100:
-            client_invoices.append(
-                {
-                    "invoice": i,
-                    "payed": payed,
-                    "alert": alert
-                }
+    invoices_with_payments = Invoice.objects.filter(
+        is_client=True
+    ).annotate(
+        total_paid=Coalesce(Sum(
+            Case(
+                When(paymentelement__payment__value__lte=F('value'), then='paymentelement__payment__value'),
+                default=Value(0, output_field=DecimalField()),  # Dacă nu există plăți, sau sunt invalide, suma este zero
+                output_field=DecimalField()
             )
+        ), Value(0, output_field=DecimalField()))  # Setting all nulls to zero
+    ).order_by('-deadline')
+
+    # Select all invoices where the total is less than the invoice value (inclusiv without payments)
+    partially_paid_invoices = invoices_with_payments.filter(
+        total_paid__lt=F('value')
+    )
+
+    client_invoices = []
+    for invoice in partially_paid_invoices[:15]:
+        payed_percentage = (invoice.total_paid / invoice.value * 100) if invoice.value else 0
+        payed_percentage = int(payed_percentage)
+        
+        current_date = datetime.now().date()
+        alert = "text-danger" if invoice.deadline < current_date else ""
+        
+        client_invoices.append({
+            "invoice": invoice,
+            "payed": payed_percentage,
+            "alert": alert
+        })
 
     # last unpayed provider invoices
-    selected_invoices = Invoice.objects.filter(is_client=False).order_by("deadline")[:8]
-    provider_invoices = []
-    for i in selected_invoices:
-        i_payed = 0
-        i_payments = PaymentElement.objects.filter(invoice=i)
-        for p in i_payments:
-            if p.payment.value < p.invoice.value:
-                i_payed += p.payment.value
-            else:
-                i_payed += p.invoice.value
-        if i.value > 0:
-            payed = int(i_payed / i.value * 100)
-        else:
-            payed = 0
-
-        if o.deadline < datetime.now(timezone.utc):
-            alert = "text-danger"
-        else:
-            alert = ""
-
-        if payed < 100:
-            provider_invoices.append(
-                {
-                    "invoice": i,
-                    "payed": payed,
-                    "alert": alert
-                }
+    invoices_with_payments = Invoice.objects.filter(
+        is_client=False
+    ).annotate(
+        total_paid=Coalesce(Sum(
+            Case(
+                When(paymentelement__payment__value__lte=F('value'), then='paymentelement__payment__value'),
+                default=Value(0, output_field=DecimalField()),  # Dacă nu există plăți, sau sunt invalide, suma este zero
+                output_field=DecimalField()
             )
+        ), Value(0, output_field=DecimalField()))  # Setting all nulls to zero
+    ).order_by('-deadline')
+
+    # Select all invoices where the total is less than the invoice value (inclusiv without payments)
+    partially_paid_invoices = invoices_with_payments.filter(
+        total_paid__lt=F('value')
+    )
+
+    provider_invoices = []
+    for invoice in partially_paid_invoices[:15]:
+        payed_percentage = (invoice.total_paid / invoice.value * 100) if invoice.value else 0
+        payed_percentage = int(payed_percentage)
+        
+        current_date = datetime.now().date()
+        alert = "text-danger" if invoice.deadline < current_date else ""
+        
+        provider_invoices.append({
+            "invoice": invoice,
+            "payed": payed_percentage,
+            "alert": alert
+        })
+
 
     return render(
         request,
