@@ -8,80 +8,64 @@ from orders.models import Order
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.contrib import messages
 
 # Create your views here.
 
 
 @login_required(login_url="/login/")
 def appointments(request):
-    # search elements
-    search = ""
+    # Initial date range setup
     date_before = timezone.now() - timedelta(days=10)
     date_after = timezone.now() + timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
-    filter_start = date_before
     reg_end = date_after.strftime("%Y-%m-%d")
-    filter_end = date_after.replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
+
+    # Set initial filtering dates
+    filter_start = date_before
+    filter_end = date_after.replace(hour=23, minute=59, second=59, microsecond=0)
+
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
-            reg_start = request.POST.get("reg_start")
-            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-            filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get("reg_end")
-            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-            filter_end = timezone.make_aware(filter_end).replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
+        search = request.POST.get("search", "")
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+        if search:
+            try:
+                filter_start = timezone.make_aware(datetime.strptime(reg_start, "%Y-%m-%d"))
+                filter_end = timezone.make_aware(datetime.strptime(reg_end, "%Y-%m-%d"))
+                filter_end = filter_end.replace(hour=23, minute=59, second=59, microsecond=0)
+            except ValueError:
+                # Handle potential formatting errors or bad input
+                search = ""
         else:
             search = ""
-    # APPOINTMENTS
-    filtered_appointments = (
-        Appointment.objects.filter(
-            Q(person__firstname__icontains=search)
-            | Q(person__lastname__icontains=search)
-            | Q(person__company_name__icontains=search)
-        )
-        .filter(schedule__gte=filter_start, schedule__lte=filter_end)
-        .order_by("schedule")
-    )
+    else:
+        search = ""
 
-    """
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "client":
-            return x["person"].firstname
-        elif sort == "provider":
-            return x["with_person"].firstname
-        elif sort == "assignee":
-            return x["modified_by"].first_name
-        elif sort == "registered":
-            return x["created_at"]
-        elif sort == "modified":
-            return x["modified_at"]
-        elif sort == "scheduled":
-            return x["schedule"]
-        else:
-            return x["schedule"]
-    filtered_appointments = sorted(filtered_appointments, key=get_sort_key, reverse=(sort != "person" and sort != "with_person"))
-    """
+    # Filter appointments
+    query = Q(schedule__gte=filter_start, schedule__lte=filter_end)
+    if search:
+        search_query = (
+            Q(person__firstname__icontains=search) |
+            Q(person__lastname__icontains=search) |
+            Q(person__company_name__icontains=search)
+        )
+        query = query & search_query
+
+    filtered_appointments = Appointment.objects.filter(query).order_by("schedule")
+
+    # Pagination
     page = request.GET.get("page")
     paginator = Paginator(filtered_appointments, 10)
     appointments_on_page = paginator.get_page(page)
-    return render(
-        request,
-        "appointments/appointments.html",
-        {
-            "selected_appointments": appointments_on_page,
-            "search": search,
-            "reg_start": reg_start,
-            "reg_end": reg_end,
-        },
-    )
+
+    return render(request, "appointments/appointments.html", {
+        "selected_appointments": appointments_on_page,
+        "search": search,
+        "reg_start": reg_start,
+        "reg_end": reg_end,
+    })
 
 @login_required(login_url="/login/")
 def appointment(request, appointment_id):
@@ -176,15 +160,19 @@ def appointment(request, appointment_id):
                 try:
                     client = Person.objects.get(id=client_id)
                     appointment = Appointment(
-                        modified_by = request.user,
-                        person = client,
-                        created_by = request.user,
-                        schedule = date_now,
+                        modified_by=request.user,
+                        person=client,
+                        created_by=request.user,
+                        schedule=date_now,
                     )
                     appointment.save()
-                    update = "New appointment created"
-                    return redirect("appointment", appointment_id = appointment.id)
-                except:
+                    messages.success(request, "New appointment created successfully.")
+                    return redirect("appointment", appointment_id=appointment.id)
+                except Person.DoesNotExist:
+                    messages.error(request, "Client not found. Please try again.")
+                    client = None
+                except Exception as e:
+                    messages.error(request, f"An error occurred: {str(e)}")
                     client = None
             if "new_provider" in request.POST:
                 provider_id = request.POST.get("new_provider")
@@ -197,9 +185,13 @@ def appointment(request, appointment_id):
                         schedule = date_now,
                     )
                     appointment.save()
-                    update = "New appointment created"
-                    return redirect("appointment", appointment_id = appointment.id)
-                except:
+                    messages.success(request, "New appointment created successfully.")
+                    return redirect("appointment", appointment_id=appointment.id)
+                except Person.DoesNotExist:
+                    messages.error(request, "Provider not found. Please try again.")
+                    provider = None
+                except Exception as e:
+                    messages.error(request, f"An error occurred: {str(e)}")
                     provider = None
         update = ""
         
