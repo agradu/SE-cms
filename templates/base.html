@@ -30,23 +30,7 @@
         <!-- partial -->
         <div class="main-panel">
           <div class="content-wrapper"
-            {% if '/clients/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-clients.jpg' %});"
-            {% elif '/providers/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-providers.jpg' %});"
-            {% elif '/appointments/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-appointments.jpg' %});"
-            {% elif '/payments/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-payments.jpg' %});"
-            {% elif '/satistics/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-satistics.jpg' %});"
-            {% elif '/settings/' in request.path %}
-            style="background-image: url({% static 'images/backgrounds/bg-settings.jpg' %});"
-            {% elif '/persons/' in request.path or '/clients/clients/' in request.path or '/providers/providers/' in request.path%}
-            style="background-image: url({% static 'images/backgrounds/bg-persons.jpg' %});"
-            {% else %}
-            style="background-image: url({% static 'images/backgrounds/bg-dashboard.jpg' %});"
-            {% endif %}>
+            style="background-image: url({% static 'images/backgrounds/'|add:background_image %});"
             <!-- content-wrapper start -->
             {% block content %}
             {% endblock %}

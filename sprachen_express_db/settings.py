@@ -43,14 +43,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
+    "persons",
+    "orders",
+    "appointments",
     "invoices",
     "payments",
-    "orders",
-    "persons",
-    "services",
-    "users",
-    "appointments",
     "reports",
+    "users",
+    "services",
 ]
 
 AUTH_USER_MODEL = "users.CustomUser"
@@ -85,6 +85,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "sprachen_express_db.context_processors.sidebar_templates",
+                "sprachen_express_db.context_processors.background_image",
             ],
         },
     },

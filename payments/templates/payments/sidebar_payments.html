@@ -1,0 +1,20 @@
+<li class="nav-item{% if 'payments/' in request.path %} active{% endif %}">
+    <a class="nav-link" data-bs-toggle="collapse" href="#payments" aria-expanded="{% if 'payments/' in request.path %}true{% else %}false{% endif %}" aria-controls="payments">
+        <span class="menu-title">Payments</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-credit-card menu-icon"></i>
+    </a>
+    <div class="collapse{% if 'payments/' in request.path %} show{% endif %}" id="payments">
+        <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+                <a class="nav-link{% if 'payments/proformas/' in request.path %} active{% endif %}" href="/payments/proformas/">Proformas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if 'payments/invoices/' in request.path %} active{% endif %}" href="/payments/invoices/">Invoices</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if 'payments/payments/' in request.path %} active{% endif %}" href="/payments/payments/">Payments</a>
+            </li>
+        </ul>
+    </div>
+</li>

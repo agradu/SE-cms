@@ -1,0 +1,27 @@
+{% if user.is_superuser or user.is_staff %}
+<li class="nav-item{% if 'settings/' in request.path %} active{% endif %}">
+    <a class="nav-link" data-bs-toggle="collapse" href="#settings" aria-expanded="{% if 'settings/' in request.path %}true{% else %}false{% endif %}" aria-controls="settings">
+        <span class="menu-title">Settings</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-settings menu-icon"></i>
+    </a>
+    <div class="collapse{% if 'settings/' in request.path %} show{% endif %}" id="settings">
+        <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+                <a class="nav-link{% if 'settings/services/' in request.path %} active{% endif %}" href="/settings/services/">Services</a>
+            </li>
+            {% if user.is_superuser %}
+            <li class="nav-item">
+                <a class="nav-link{% if 'settings/statuses/' in request.path %} active{% endif %}" href="/settings/statuses/">Statuses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if 'settings/currencies/' in request.path %} active{% endif %}" href="/settings/currencies/">Currencies</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if 'settings/units/' in request.path %} active{% endif %}" href="/settings/units/">Units</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</li>
+{% endif %}

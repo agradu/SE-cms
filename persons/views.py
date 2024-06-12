@@ -34,7 +34,7 @@ def c_clients(request):
     clients_on_page = paginator.get_page(page)
     return render(
         request,
-        "clients/c_clients.html",
+        "persons/clients/c_clients.html",
         {"selected_clients": clients_on_page, "search": search},
     )
 
@@ -74,7 +74,7 @@ def p_providers(request):
     providers_on_page = paginator.get_page(page)
     return render(
         request,
-        "providers/p_providers.html",
+        "persons/providers/p_providers.html",
         {
             "selected_providers": providers_on_page,
             "search_name": search_name,
@@ -149,4 +149,4 @@ def person_detail(request, person_id):
         else:
             update = ""
             person = ""
-    return render(request, "clients/person.html", {"person": person, "update": update})
+    return render(request, "persons/clients/person.html", {"person": person, "update": update})

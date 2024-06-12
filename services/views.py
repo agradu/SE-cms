@@ -12,7 +12,7 @@ def services(request):
     paginator = Paginator(services, 10)
     page = request.GET.get("page")
     services_on_page = paginator.get_page(page)
-    return render(request, "settings/services.html", {"services": services_on_page})
+    return render(request, "services/services.html", {"services": services_on_page})
 
 
 @login_required(login_url="/login/")
@@ -58,7 +58,7 @@ def service_detail(request, service_id):
             service = ""
     return render(
         request,
-        "settings/service.html",
+        "services/service.html",
         {
             "service": service,
             "update": update,
@@ -71,7 +71,7 @@ def service_detail(request, service_id):
 @login_required(login_url="/login/")
 def statuses(request):
     statuses = Status.objects.all().order_by("id")
-    return render(request, "settings/statuses.html", {"statuses": statuses})
+    return render(request, "services/statuses.html", {"statuses": statuses})
 
 
 @login_required(login_url="/login/")
@@ -85,13 +85,13 @@ def status_detail(request, status_id):
         status.save()
     else:
         update = ""
-    return render(request, "settings/status.html", {"status": status, "update": update})
+    return render(request, "services/status.html", {"status": status, "update": update})
 
 
 @login_required(login_url="/login/")
 def currencies(request):
     currencies = Currency.objects.all()
-    return render(request, "settings/currencies.html", {"currencies": currencies})
+    return render(request, "services/currencies.html", {"currencies": currencies})
 
 
 @login_required(login_url="/login/")
@@ -105,14 +105,14 @@ def currency_detail(request, currency_id):
     else:
         update = ""
     return render(
-        request, "settings/currency.html", {"currency": currency, "update": update}
+        request, "services/currency.html", {"currency": currency, "update": update}
     )
 
 
 @login_required(login_url="/login/")
 def units(request):
     units = UM.objects.all()
-    return render(request, "settings/units.html", {"units": units})
+    return render(request, "services/units.html", {"units": units})
 
 
 @login_required(login_url="/login/")
@@ -124,4 +124,4 @@ def unit_detail(request, unit_id):
         unit.save()
     else:
         update = ""
-    return render(request, "settings/unit.html", {"unit": unit, "update": update})
+    return render(request, "services/unit.html", {"unit": unit, "update": update})

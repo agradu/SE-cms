@@ -19,7 +19,7 @@ def users(request):
     paginator = Paginator(users, 10)
     page = request.GET.get("page")
     users_on_page = paginator.get_page(page)
-    return render(request, "settings/users.html", {"users": users_on_page})
+    return render(request, "users/users.html", {"users": users_on_page})
 
 
 @login_required(login_url="/login/")
@@ -122,4 +122,4 @@ def user_detail(request, user_id):
         else:
             update = ""
             user = ""
-    return render(request, "settings/user.html", {"us": user, "update": update})
+    return render(request, "users/user.html", {"us": user, "update": update})

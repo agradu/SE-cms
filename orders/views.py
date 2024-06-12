@@ -106,7 +106,7 @@ def c_orders(request):
 
     return render(
         request,
-        "clients/c_orders.html",
+        "orders/c_orders.html",
         {
             "client_orders": orders_on_page,
             "sort": sort,
@@ -278,7 +278,7 @@ def c_order(request, order_id, client_id):
 
     return render(
         request,
-        "clients/c_order.html",
+        "orders/c_order.html",
         {
             "clients": clients,
             "order": order,
@@ -363,7 +363,7 @@ def c_offers(request):
 
     return render(
         request,
-        "clients/c_offers.html",
+        "orders/c_offers.html",
         {
             "client_offers": offers_on_page,
             "sort": sort,
@@ -495,7 +495,7 @@ def c_offer(request, offer_id, client_id):
 
     return render(
         request,
-        "clients/c_offer.html",
+        "orders/c_offer.html",
         {
             "clients": clients,
             "offer": offer,
@@ -634,7 +634,7 @@ def p_orders(request):
 
     return render(
         request,
-        "providers/p_orders.html",
+        "orders/p_orders.html",
         {
             "provider_orders": orders_on_page,
             "sort": sort,
@@ -794,7 +794,7 @@ def p_order(request, order_id, provider_id):
 
     return render(
         request,
-        "providers/p_order.html",
+        "orders/p_order.html",
         {
             "providers": providers,
             "order": order,
@@ -830,7 +830,7 @@ def print_order(request, order_id):
         "order_elements": order_elements,
         "logo_base64": logo_base64
     }
-    html_content = render_to_string("clients/print_order.html", context)
+    html_content = render_to_string("orders/print_order.html", context)
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=order_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
@@ -858,7 +858,7 @@ def print_offer(request, offer_id):
         "offer_elements": offer_elements,
         "logo_base64": logo_base64
     }
-    html_content = render_to_string("clients/print_offer.html", context)
+    html_content = render_to_string("orders/print_offer.html", context)
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=offer_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')

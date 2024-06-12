@@ -4,8 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path("settings/users/", views.users, name="users"),
-    path("settings/users/<int:user_id>/", views.user_detail, name="user_detail"),
+    path("users/", views.users, name="users"),
+    path("users/<int:user_id>/", views.user_detail, name="user_detail"),
 ]
 
 if settings.DEBUG:
