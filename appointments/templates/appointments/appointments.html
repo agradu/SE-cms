@@ -65,7 +65,7 @@
 								<td> 
 									<a href="/appointments/{{ a.id}}/"> {{ a.schedule|date:"d.m.Y"}} - {{ a.schedule|time:"H:i"}} </a>
 								</td>
-								<td>
+								<td title="{{ a.order.description}}">
 									<a href="/{% if a.order.is_client %}clients{% else %}providers{% endif %}/order/{{ a.order.id }}/{{ a.order.person.id}}/">{{ a.order.serial}}{{ a.order.number}}</a>
 								</td>
 								<td>
