@@ -16,7 +16,7 @@ from django.contrib import messages
 @login_required(login_url="/login/")
 def appointments(request):
     # Initial date range setup
-    date_before = timezone.now() - timedelta(days=10)
+    date_before = timezone.now() - timedelta(days=3)
     date_after = timezone.now() + timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")
     reg_end = date_after.strftime("%Y-%m-%d")
