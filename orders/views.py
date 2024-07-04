@@ -29,8 +29,9 @@ def c_orders(request):
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_client = request.POST.get("search_client")
+        search_description = request.POST.get("search_description")
+        if len(search_client) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -39,16 +40,18 @@ def c_orders(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_client = ""
+        search_description = ""
     # CLIENT ORDERS
     selected_orders = (
         Order.objects.filter(is_client=True)
         .filter(
-            Q(person__firstname__icontains=search)
-            | Q(person__lastname__icontains=search)
-            | Q(person__company_name__icontains=search)
+            Q(person__firstname__icontains=search_client)
+            | Q(person__lastname__icontains=search_client)
+            | Q(person__company_name__icontains=search_client)
         )
+        .filter(description__icontains=search_description)
         .filter(created_at__gte=filter_start, created_at__lte=filter_end)
     )
     client_orders = []
@@ -110,7 +113,8 @@ def c_orders(request):
         {
             "client_orders": orders_on_page,
             "sort": sort,
-            "search": search,
+            "search_client": search_client,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
@@ -307,8 +311,9 @@ def c_offers(request):
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_client = request.POST.get("search_client")
+        search_description = request.POST.get("search_description")
+        if len(search_client) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -317,15 +322,17 @@ def c_offers(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_client = ""
+        search_description = ""
     # CLIENT OFFERS
     selected_offers = (
         Offer.objects.filter(
-            Q(person__firstname__icontains=search)
-            | Q(person__lastname__icontains=search)
-            | Q(person__company_name__icontains=search)
+            Q(person__firstname__icontains=search_client)
+            | Q(person__lastname__icontains=search_client)
+            | Q(person__company_name__icontains=search_client)
         )
+        .filter(description__icontains=search_description)
         .filter(created_at__gte=filter_start, created_at__lte=filter_end)
     )
     client_offers = []
@@ -367,7 +374,8 @@ def c_offers(request):
         {
             "client_offers": offers_on_page,
             "sort": sort,
-            "search": search,
+            "search_client": search_client,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
@@ -562,8 +570,9 @@ def p_orders(request):
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_provider = request.POST.get("search_provider")
+        search_description = request.POST.get("search_description")
+        if len(search_provider) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -572,16 +581,18 @@ def p_orders(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_provider = ""
+        search_description = ""
     # PROVIDERS ORDERS
     selected_orders = (
         Order.objects.filter(is_client=False)
         .filter(
-            Q(person__firstname__icontains=search)
-            | Q(person__lastname__icontains=search)
-            | Q(person__company_name__icontains=search)
+            Q(person__firstname__icontains=search_provider)
+            | Q(person__lastname__icontains=search_provider)
+            | Q(person__company_name__icontains=search_provider)
         )
+        .filter(description__icontains=search_description)
         .filter(created_at__gte=filter_start, created_at__lte=filter_end)
     )
     provider_orders = []
@@ -638,7 +649,8 @@ def p_orders(request):
         {
             "provider_orders": orders_on_page,
             "sort": sort,
-            "search": search,
+            "search_provider": search_provider,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
