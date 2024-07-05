@@ -22,7 +22,7 @@ from num2words import num2words
 def payments(request):
     # search elements
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=360)
+    date_before = (date_now - timedelta(days=360)).replace(hour=0, minute=0, second=0, microsecond=0)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")

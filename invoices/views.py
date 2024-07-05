@@ -20,18 +20,16 @@ import base64
 @login_required(login_url="/login/")
 def invoices(request):
     # search elements
-    search = request.GET.get("search")
-    if search == None:
-        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = (date_now - timedelta(days=10)).replace(hour=0, minute=0, second=0, microsecond=0)
+    date_before = (date_now - timedelta(days=360)).replace(hour=0, minute=0, second=0, microsecond=0)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_client = request.POST.get("search_client")
+        search_description = request.POST.get("search_description")
+        if len(search_client) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -40,14 +38,19 @@ def invoices(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_client = ""
+        search_description = ""
     # CLIENT/PROVIDER INVOICES
-    selected_invoices = Invoice.objects.filter(
-        Q(person__firstname__icontains=search)
-        | Q(person__lastname__icontains=search)
-        | Q(person__company_name__icontains=search)
-    ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    selected_invoices = (
+        Invoice.objects.filter(
+        Q(person__firstname__icontains=search_client)
+        | Q(person__lastname__icontains=search_client)
+        | Q(person__company_name__icontains=search_client)
+        )
+        .filter(description__icontains=search_description)
+        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    )
     person_invoices = []
     for i in selected_invoices:
         invoice_elements = InvoiceElement.objects.filter(invoice=i).order_by("id")
@@ -110,7 +113,8 @@ def invoices(request):
         {
             "person_invoices": invoices_on_page,
             "sort": sort,
-            "search": search,
+            "search_client": search_client,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
@@ -395,14 +399,15 @@ def proformas(request):
     if search == None:
         search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=10)
+    date_before = (date_now - timedelta(days=360)).replace(hour=0, minute=0, second=0, microsecond=0)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_client = request.POST.get("search_client")
+        search_description = request.POST.get("search_description")
+        if len(search_client) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -411,14 +416,19 @@ def proformas(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_client = ""
+        search_description = ""
     # CLIENT/PROVIDER PROFORMAS
-    selected_proformas = Proforma.objects.filter(
-        Q(person__firstname__icontains=search)
-        | Q(person__lastname__icontains=search)
-        | Q(person__company_name__icontains=search)
-    ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    selected_proformas = (
+        Proforma.objects.filter(
+        Q(person__firstname__icontains=search_client)
+        | Q(person__lastname__icontains=search_client)
+        | Q(person__company_name__icontains=search_client)
+        )
+        .filter(description__icontains=search_description)
+        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    )
     person_proformas = []
     for p in selected_proformas:
         proforma_elements = ProformaElement.objects.filter(proforma=p).order_by("id")
@@ -462,7 +472,8 @@ def proformas(request):
         {
             "person_proformas": proformas_on_page,
             "sort": sort,
-            "search": search,
+            "search_client": search_client,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
