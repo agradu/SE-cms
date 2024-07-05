@@ -19,10 +19,16 @@
 						<table class="table">
 							<tbody>
 								<tr>
-									<td width="50%">
+									<td>
 										<div class="input-group input-group-sm">
 											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
-											<input type="text" class="form-control" placeholder="Search clients" name="search" value="{{ search }}" aria-label="Search clients">
+											<input type="text" class="form-control" placeholder="Search client" name="search_client" value="{{ search_client }}" aria-label="Search client">
+										</div>
+									</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<i class="input-group-text mdi mdi-magnify mdi-18px"></i>
+											<input type="text" class="form-control" placeholder="Search description" name="search_description" value="{{ search_description }}" aria-label="Search description">
 										</div>
 									</td>
 									<td>
@@ -64,7 +70,7 @@
 							{% for p in person_payments %} 
 							<tr>
 								<td> <i class="mdi mdi-{{ p.payment.type }} mdi-18px"></i> </td>
-								<td> <a href="/payments/payment/{{ p.payment.id}}/{{ p.payment.person.id}}/0">Payment-{{ p.payment.id}}</a> </td>
+								<td> <a href="/payments/payment/{{ p.payment.id}}/{{ p.payment.person.id}}/0" title="{{ p.payment.description }}">Payment-{{ p.payment.id}}</a> </td>
 								<td> <a href="/persons/{{ p.payment.person.id}}/"> {{ p.payment.person.firstname}} {{ p.payment.person.lastname}} {% if p.payment.person.company_name != "" %}- {{ p.payment.person.company_name}} {% endif %}</a> </td>
 								<td> {% if p.payment.serial and p.payment.number %}<a href="/payments/payment/{{ p.payment.id}}/{{ p.payment.person.id}}/0">{{ p.payment.serial}}-{{ p.payment.number}}</a>{% endif %} </td>
 								<td> 
@@ -87,30 +93,21 @@
 				<div class="table-responsive">
 					<table class="table">
 						<tbody>
-							{% if client_receipts.paginator.num_pages > 1 %} 
+							{% if person_payments.paginator.num_pages > 1 %} 
 								<tr>
 									<td>
 										<div class="btn-group btn-group-sm">
-											{% for pg in client_receipts.paginator.page_range %}
-											{% if pg == client_receipts.number %}
-											<button type="button" class="btn btn-primary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											{% for pg in person_payments.paginator.page_range %}
+											{% if pg == person_payments.number %}
+											<button type="button" class="btn btn-primary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 											{% else %}
-											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/receipts/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
 											{% endif %}
 											{% endfor %} </div>
 									</td>
 								</tr> 
 								{% endif %}
-								<!-- 
-								<tr>
-									<td>
-									<div class="input-group input-group-sm">
-										<button type="button" class="btn btn-gradient-primary btn-icon-text">
-											<i class="mdi mdi-cash btn-icon-prepend"></i> Register a new payment</button>
-									</div>
-									</td>
-								</tr>
-								-->
+
 						  </tbody>
 					</table>
 				</div>

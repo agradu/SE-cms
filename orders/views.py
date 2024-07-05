@@ -19,9 +19,6 @@ import base64
 @login_required(login_url="/login/")
 def c_orders(request):
     # search elements
-    search = request.GET.get("search")
-    if search == None:
-        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
     reg_start = date_before.strftime("%Y-%m-%d")

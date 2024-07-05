@@ -21,16 +21,16 @@ from num2words import num2words
 @login_required(login_url="/login/")
 def payments(request):
     # search elements
-    search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=30)
+    date_before = date_now - timedelta(days=360)
     reg_start = date_before.strftime("%Y-%m-%d")
     filter_start = date_before
     reg_end = date_now.strftime("%Y-%m-%d")
     filter_end = date_now
     if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
+        search_client = request.POST.get("search_client")
+        search_description = request.POST.get("search_description")
+        if len(search_client) > 2 or len(search_description) > 2:
             reg_start = request.POST.get("reg_start")
             filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
             filter_start = timezone.make_aware(filter_start)
@@ -39,14 +39,19 @@ def payments(request):
             filter_end = timezone.make_aware(filter_end).replace(
                 hour=23, minute=59, second=59, microsecond=0
             )
-        else:
-            search = ""
+    else:
+        search_client = ""
+        search_description = ""
     # CLIENT/PROVIDER PAYMENTS
-    selected_payments = Payment.objects.filter(
-        Q(person__firstname__icontains=search)
-        | Q(person__lastname__icontains=search)
-        | Q(person__company_name__icontains=search)
-    ).filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    selected_payments = (
+        Payment.objects.filter(
+        Q(person__firstname__icontains=search_client)
+        | Q(person__lastname__icontains=search_client)
+        | Q(person__company_name__icontains=search_client)
+        )
+        .filter(description__icontains=search_description)
+        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    )
     person_payments = []
     for p in selected_payments:
         invoices = PaymentElement.objects.filter(payment=p)
@@ -84,7 +89,8 @@ def payments(request):
         {
             "person_payments": payments_on_page,
             "sort": sort,
-            "search": search,
+            "search_client": search_client,
+            "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
         },
