@@ -53,14 +53,46 @@
 							<div class="grid-line"></div>
 							<div class="grid-line"></div>
 						</div>
-						<div class="bar1" style="height: 30%;"></div>
-						<div class="bar2" style="height: 25%;"></div>
-						<div class="bar1" style="height: 100%;"></div>
-						<div class="bar2" style="height: 75%;"></div>
-						<div class="bar1" style="height: 45%;"></div>
-						<div class="bar2" style="height: 15%;"></div>
-						<div class="bar1" style="height: 26%;"></div>
-						<div class="bar2" style="height: 80%;"></div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 30%;"></div>
+							<div class="bar2" style="height: 25%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 100%;"></div>
+							<div class="bar2" style="height: 75%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 45%;"></div>
+							<div class="bar2" style="height: 15%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 26%;"></div>
+							<div class="bar2" style="height: 80%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 100%;"></div>
+							<div class="bar2" style="height: 75%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 45%;"></div>
+							<div class="bar2" style="height: 15%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 26%;"></div>
+							<div class="bar2" style="height: 80%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 100%;"></div>
+							<div class="bar2" style="height: 75%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 45%;"></div>
+							<div class="bar2" style="height: 15%;"></div>
+						</div>
+						<div class="bar" style="height: 100%;">
+							<div class="bar1" style="height: 26%;"></div>
+							<div class="bar2" style="height: 80%;"></div>
+						</div>
 					</div>
 				</div>
 				
@@ -87,8 +119,6 @@
 				.bar-chart {
 					position: relative;
 					display: flex;
-					justify-content: space-around;
-					align-items: flex-end;
 					height: 300px;
 					margin-top: 20px;
 				}
@@ -116,23 +146,21 @@
 				.grid-line:nth-child(4) { top: 75%; }
 				.grid-line:nth-child(5) { top: 100%; }
 				
-				.bar1 {
-					width: 100%;
-					background-color: #4CAF50;
-					margin-top: 0px;
-					margin-bottom: 0px;
-					margin-right: 0px;
-					margin-left: 5px;
+				.bar {
+					display: flex; /* Afișează 'bar1' și 'bar2' unul lângă celălalt */
+					flex: 1; /* Distribuie egal spațiul pentru fiecare 'bar' */
+					align-items: flex-end; /* Aliniază barele la partea de jos a containerului */
+					margin-right:  5px; /* Adaugă un spațiu între perechi de bare */
+					margin-left:  5px; /* Adaugă un spațiu între perechi de bare */
 					z-index: 1;
 				}
+				.bar1 {
+					width: 10px; /* Setează lățimea fiecărei bare */
+					background-color: #3498db; /* O culoare pentru bar1 */
+				}
 				.bar2 {
-					width: 100%;
-					background-color: #4CAFF0;
-					margin-top: 0px;
-					margin-bottom: 0px;
-					margin-right: 5px;
-					margin-left: 0px;
-					z-index: 1;
+					width: 10px; /* Setează lățimea fiecărei bare */
+					background-color: #e74c3c; /* O culoare diferită pentru bar2 */
 				}
 				</style>
 			</div>

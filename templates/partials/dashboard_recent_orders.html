@@ -16,9 +16,9 @@
 				</thead>
 				<tbody>
 					{% for o in recent_orders %}
-					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';" title="{{ o.order.description}}">
+					<tr onclick="window.location='/{% if o.order.is_client %}clients{% else %}providers{% endif %}/order/{{ o.order.id }}/{{ o.order.person.id}}/';">
 						<td><i class="mdi {% if o.order.is_client %}mdi-cart-outline{% else %}mdi-truck{% endif %} mdi-18px"></i></td>
-						<td> 
+						<td title="{{ o.order.description}}"> 
 							{% if o.order.is_client %}
 							<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/">{{ o.order.person.firstname}} {{ o.order.person.lastname}} {% if o.order.person.company_name != "" %}- {{ o.order.person.company_name}} {% endif %}</a>
 							{% else %}
@@ -27,7 +27,7 @@
 						</td>
 						<td>
 							{% for e in o.elements %}
-							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i>
+							<i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}" title="{{ e.description}}"></i>
 							{% endfor %}
 						</td>
 						<td>
