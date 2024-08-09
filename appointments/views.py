@@ -49,7 +49,7 @@ def appointments(request):
         search_query = (
             Q(person__firstname__icontains=search) |
             Q(person__lastname__icontains=search) |
-            Q(person__company_name__icontains=search |
+            Q(person__company_name__icontains=search) |
             Q(with_person__firstname__icontains=search) |
             Q(with_person__lastname__icontains=search) |
             Q(with_person__company_name__icontains=search)
