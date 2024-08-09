@@ -35,7 +35,7 @@
 						<p><b>Contact:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p><a href="mailto:{{ client.email }}"><i class="mdi mdi-email-outline"></i></a> {{ client.email }} / <a href="https://wa.me/{{ client.phone | slice:'2:' }}">
+						<p><a href="mailto:{{ client.email }}" target="_blank"><i class="mdi mdi-email-outline"></i></a> {{ client.email }} / <a href="https://wa.me/{{ client.phone | slice:'2:' }}" target="_blank">
 							<i class="mdi mdi-whatsapp"></i></a> {{ client.phone }}<br>Address - {{ client.address }}</p>
 					</div>
 				</div>
