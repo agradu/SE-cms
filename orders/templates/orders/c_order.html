@@ -133,7 +133,12 @@
 							<div class="form-group row">
 								<label class="col-sm-3 col-form-label">Deadline (date)</label>
 								<div class="col-sm-9">
+									{% load tz %}
+									{% if new == False %}
 									<input type="date" class="form-control" name="deadline_date" value="{{ order.deadline|date:'Y-m-d' }}">
+									{% else %}
+									<input type="date" class="form-control" name="deadline_date" value="{% now 'Y-m-d' %}">
+									{% endif %}
 								</div>
 							</div>
 						</div>
@@ -141,7 +146,11 @@
 							<div class="form-group row">
 								<label class="col-sm-3 col-form-label">Deadline (time)</label>
 								<div class="col-sm-9">
+									{% if new == False %}
 									<input type="time" class="form-control" name="deadline_time" value="{{ order.deadline|time:'H:i' }}">
+									{% else %}
+									<input type="time" class="form-control" name="deadline_time" value="{% now 'H:i' %}">
+									{% endif %}
 								</div>
 							</div>
 						</div>

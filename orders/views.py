@@ -164,7 +164,7 @@ def c_order(request, order_id, client_id):
                     deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
                     order.deadline = timezone.make_aware(deadline_naive)
                 except:
-                    order.deadline = date_now 
+                    order.deadline = date_now
             if "element_id" in request.POST:
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
