@@ -135,7 +135,12 @@
 							<div class="form-group row">
 								<label class="col-sm-3 col-form-label">Deadline (date)</label>
 								<div class="col-sm-9">
+									{% load tz %}
+									{% if new == False %}
 									<input type="date" class="form-control" name="deadline_date" value="{{ offer.deadline|date:'Y-m-d' }}"{% if offer.order %} disabled=""{% endif %}>
+									{% else %}
+									<input type="date" class="form-control" name="deadline_date" value="{% now 'Y-m-d' %}"{% if offer.order %} disabled=""{% endif %}>
+									{% endif %}
 								</div>
 							</div>
 						</div>
@@ -143,23 +148,20 @@
 							<div class="form-group row">
 								<label class="col-sm-3 col-form-label">Deadline (time)</label>
 								<div class="col-sm-9">
+									{% if new == False %}
 									<input type="time" class="form-control" name="deadline_time" value="{{ offer.deadline|time:'H:i' }}"{% if offer.order %} disabled=""{% endif %}>
+									{% else %}
+									<input type="time" class="form-control" name="deadline_time" value="{% now 'H:i' %}"{% if offer.order %} disabled=""{% endif %}>
+									{% endif %}
 								</div>
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group row">
 								<div class="col-sm-12">
-									{% if new %}
 									<button class="btn btn-gradient-primary btn-icon-text" type="submit">
 										<i class="mdi mdi-star btn-icon-prepend"></i> Save the offer
 									</button>
-									{% else %}
-									<input type="hidden" name="convert" value="convert">
-									<button class="btn btn-gradient-primary btn-icon-text" type="submit"{% if offer.order %} disabled=""{% endif %}>
-										<i class="mdi mdi-cart-outline btn-icon-prepend"></i> Save as order
-									</button>
-									{% endif %}
 								</div>
 							</div>
 						</div>

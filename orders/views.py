@@ -21,25 +21,29 @@ def c_orders(request):
     # search elements
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    reg_start = date_before.strftime("%Y-%m-%d")
-    filter_start = date_before
-    reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now
+    if request.GET.get("r_start") != None:
+        reg_start = request.GET.get("r_start")
+        reg_end = request.GET.get("r_end")
+    else:
+        reg_start = date_before.strftime("%Y-%m-%d")
+        reg_end = date_now.strftime("%Y-%m-%d")
+    search_client = ""
+    search_description = ""
     if request.method == "POST":
         search_client = request.POST.get("search_client")
         search_description = request.POST.get("search_description")
-        if len(search_client) > 2 or len(search_description) > 2:
-            reg_start = request.POST.get("reg_start")
-            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-            filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get("reg_end")
-            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-            filter_end = timezone.make_aware(filter_end).replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
-    else:
-        search_client = ""
-        search_description = ""
+        if len(search_client) < 3:
+            search_client = ""
+        if len(search_description) < 3:
+            search_description = ""
+        reg_start = request.POST.get("reg_start")
+        reg_end = request.POST.get("reg_end")
+    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+    filter_start = timezone.make_aware(filter_start)
+    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+    filter_end = timezone.make_aware(filter_end).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
     # CLIENT ORDERS
     selected_orders = (
         Order.objects.filter(is_client=True)
@@ -100,7 +104,7 @@ def c_orders(request):
             return x["order"].modified_at
         else:
             return x["order"].created_at
-    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client"))
+    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client" and sort != "status"))
     paginator = Paginator(client_orders, 10)
     orders_on_page = paginator.get_page(page)
 
@@ -298,30 +302,31 @@ def c_order(request, order_id, client_id):
 @login_required(login_url="/login/")
 def c_offers(request):
     # search elements
-    search = request.GET.get("search")
-    if search == None:
-        search = ""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    reg_start = date_before.strftime("%Y-%m-%d")
-    filter_start = date_before
-    reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now
+    if request.GET.get("r_start") != None:
+        reg_start = request.GET.get("r_start")
+        reg_end = request.GET.get("r_end")
+    else:
+        reg_start = date_before.strftime("%Y-%m-%d")
+        reg_end = date_now.strftime("%Y-%m-%d")
+    search_client = ""
+    search_description = ""
     if request.method == "POST":
         search_client = request.POST.get("search_client")
         search_description = request.POST.get("search_description")
-        if len(search_client) > 2 or len(search_description) > 2:
-            reg_start = request.POST.get("reg_start")
-            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-            filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get("reg_end")
-            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-            filter_end = timezone.make_aware(filter_end).replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
-    else:
-        search_client = ""
-        search_description = ""
+        if len(search_client) < 3:
+            search_client = ""
+        if len(search_description) < 3:
+            search_description = ""
+        reg_start = request.POST.get("reg_start")
+        reg_end = request.POST.get("reg_end")
+    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+    filter_start = timezone.make_aware(filter_start)
+    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+    filter_end = timezone.make_aware(filter_end).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
     # CLIENT OFFERS
     selected_offers = (
         Offer.objects.filter(
@@ -397,11 +402,6 @@ def c_offer(request, offer_id, client_id):
         client = offer.person
         elements = OfferElement.objects.filter(offer=offer).order_by("id")
         if request.method == "POST":
-            if "convert" in request.POST:
-                return redirect(
-                    "convert_offer",
-                    offer_id = offer.id
-                )
             if "search" in request.POST:
                 search = request.POST.get("search")
                 if len(search) > 3:
@@ -417,34 +417,41 @@ def c_offer(request, offer_id, client_id):
                 offer.modified_at = date_now
             if "offer_description" in request.POST:
                 offer.description = request.POST.get("offer_description")
+                offer.status = statuses[int(request.POST.get("offer_status")) - 1]
+                for e in elements:
+                    e.status = offer.status
+                    e.save()
                 offer.currency = currencies[int(request.POST.get("offer_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
                     offer.deadline = timezone.make_aware(deadline_naive)
+                    print ("DAAAAAAAAA VECHI")
                 except:
-                    offer.deadline = date_now 
+                    offer.deadline = date_now
+                    print ("NUUUUUUUUUUUU VECHI")
             if "element_id" in request.POST:
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
                     element = OfferElement.objects.get(id=element_id)
-                    service_id = int(request.POST.get("e_service"))
-                    element.service = Service.objects.get(id=service_id)
-                    element.description = request.POST.get("e_description")
-                    element.quantity = request.POST.get("e_quantity")
-                    element.um = ums[int(request.POST.get("e_um")) - 1]
-                    element.price = request.POST.get("e_price")
-                    element.save()
-                else:  # add an element to offer
+                else:  # add an element to order
                     element = OfferElement(offer=offer)
-                    service_id = int(request.POST.get("e_service"))
-                    element.service = Service.objects.get(id=service_id)
-                    element.description = request.POST.get("e_description")
-                    element.quantity = request.POST.get("e_quantity")
-                    element.um = ums[int(request.POST.get("e_um")) - 1]
-                    element.price = request.POST.get("e_price")
-                    element.save()
+                service_id = int(request.POST.get("e_service"))
+                element.service = Service.objects.get(id=service_id)
+                element.description = request.POST.get("e_description")
+                e_quantity = request.POST.get("e_quantity")
+                if e_quantity and e_quantity.replace(".", "").isdigit():
+                    element.quantity = float(e_quantity)
+                else:
+                    element.quantity = float(1.0)
+                element.um = ums[int(request.POST.get("e_um")) - 1]
+                e_price = request.POST.get("e_price")
+                if e_price and e_price.replace(".", "").isdigit():
+                    element.price = float(e_price)
+                else:
+                    element.price = float(1.0)
+                element.save()
                 element = ""  # clearing the active element
             if "delete_element_id" in request.POST:  # delete en element
                 element_id = int(request.POST.get("delete_element_id"))
@@ -464,9 +471,28 @@ def c_offer(request, offer_id, client_id):
 
     else:  # if offer is new
         new = True
-        client = get_object_or_404(Person, id=client_id)
+        if Person.objects.filter(id=client_id).exists():
+            client = Person.objects.get(id=client_id)
+        else:
+            client = ""
         offer = ""
         if request.method == "POST":
+            if "search" in request.POST:
+                search = request.POST.get("search")
+                if len(search) > 3:
+                    clients = Person.objects.filter(
+                        Q(firstname__icontains=search)
+                        | Q(lastname__icontains=search)
+                        | Q(company_name__icontains=search)
+                    )
+            if "new_client" in request.POST:
+                new_client = request.POST.get("new_client")
+                client = get_object_or_404(Person, id=new_client)
+                return redirect(
+                    "c_offer",
+                    offer_id = 0,
+                    client_id = client.id
+                )
             if "offer_description" in request.POST:
                 description = request.POST.get("offer_description")
                 status = statuses[int(request.POST.get("offer_status")) - 1]
@@ -476,8 +502,10 @@ def c_offer(request, offer_id, client_id):
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
                     deadline = timezone.make_aware(deadline_naive)
+                    print ("DAAAAAAAAA NOU")
                 except:
-                    deadline = date_now 
+                    deadline = date_now
+                    print ("NUUUUUUUUUUUU NOU")
                 offer = Offer(
                     description = description,
                     serial = serials.offer_serial,
@@ -486,6 +514,7 @@ def c_offer(request, offer_id, client_id):
                     deadline=deadline,
                     modified_by=request.user,
                     created_by=request.user,
+                    status=status,
                     currency=currency,
                 )
                 offer.save()
@@ -557,30 +586,34 @@ def convert_offer(request, offer_id):
 @login_required(login_url="/login/")
 def p_orders(request):
     # search elements
-    search = request.GET.get("search")
+    """ search = request.GET.get("search")
     if search == None:
-        search = ""
+        search = "" """
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    reg_start = date_before.strftime("%Y-%m-%d")
-    filter_start = date_before
-    reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now
+    if request.GET.get("r_start") != None:
+        reg_start = request.GET.get("r_start")
+        reg_end = request.GET.get("r_end")
+    else:
+        reg_start = date_before.strftime("%Y-%m-%d")
+        reg_end = date_now.strftime("%Y-%m-%d")
+    search_provider = ""
+    search_description = ""
     if request.method == "POST":
         search_provider = request.POST.get("search_provider")
         search_description = request.POST.get("search_description")
-        if len(search_provider) > 2 or len(search_description) > 2:
-            reg_start = request.POST.get("reg_start")
-            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-            filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get("reg_end")
-            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-            filter_end = timezone.make_aware(filter_end).replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
-    else:
-        search_provider = ""
-        search_description = ""
+        if len(search_provider) < 3:
+            search_provider = ""
+        if len(search_description) < 3:
+            search_description = ""
+        reg_start = request.POST.get("reg_start")
+        reg_end = request.POST.get("reg_end")
+    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+    filter_start = timezone.make_aware(filter_start)
+    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+    filter_end = timezone.make_aware(filter_end).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
     # PROVIDERS ORDERS
     selected_orders = (
         Order.objects.filter(is_client=False)

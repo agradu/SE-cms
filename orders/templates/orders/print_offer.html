@@ -23,9 +23,9 @@
     <div class="table invoice-daten">
         <div class="tr">
             <div class="right td" style="width: 75%;"><b>Angebotsdatum</b><br>
-                {{ offer.created_at|date:"d.m.Y"}} - {{ offer.created_at|time:"H:i"}} Uhr</div>
+                {{ offer.created_at|date:"d.m.Y"}}</div>
             <div class="right td"><b>Frist</b><br>
-                {{ offer.deadline|date:"d.m.Y"}} - {{ offer.deadline|time:"H:i"}} Uhr</div>
+                {{ offer.deadline|date:"d.m.Y"}}</div>
         </div>
     </div>
     <div class="invoice-title">
@@ -69,9 +69,10 @@
     <div class="footer">
         <p><b class="text-bigger">Erwähnungen</b> <br>
             {{ offer.description }}</p>
+        <p>Beide Parteien erklären ausdrücklich, dass sämtliche übergebenen Informationen vertraulich behandelt werden. Der Übersetzungsdienstleister verpflichtet sich, die Daten ausschließlich zum Zweck der vom Kunden gewünschten Dienstleistungen zu verwenden und alle erforderlichen Maßnahmen zu ergreifen, um die Sicherheit und Vertraulichkeit der Daten zu gewährleisten, gemäß seiner Datenschutzrichtlinie.</p>
         <p>Wenn Sie das Angebot akzeptiern und per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto 
             <b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> 
-            und "<b>Offer Nr. {{ leading_number }}</b>" als Verwendungszweck.</p>
+            und "<b>Offer Nr. {{ offer.serial }}-{{ leading_number }}</b>" als Verwendungszweck.</p>
         <p>Bitte fordern Sie auch die entsprechende Steuerrechnung für dieses Angebot an.</p>
         <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
         <p class="line-up center" style="padding-top: 10pt">
