@@ -137,7 +137,7 @@ def cancellation_invoice(request, invoice_id):
         currency = cancelled_invoice.currency,
         cancellation_to = cancelled_invoice,
         value = 0 - cancelled_invoice.value,
-        description = "Cancellation invoice"
+        description = "Stornorechnung"
     )
     cancellation_invoice.save()
 
@@ -156,7 +156,7 @@ def cancellation_invoice(request, invoice_id):
         created_by = request.user,
         currency = cancelled_invoice.currency,
         value = cancelled_invoice.value - p_value,
-        description = "Cancelled payment"
+        description = "Stornierte Zahlung"
     )
     cancelled_payment.save()
 
@@ -167,7 +167,7 @@ def cancellation_invoice(request, invoice_id):
         created_by = request.user,
         currency = cancellation_invoice.currency,
         value = cancellation_invoice.value + p_value,
-        description = "Cancellation payment"
+        description = "Stornozahlung"
     )
     cancellation_payment.save()
 

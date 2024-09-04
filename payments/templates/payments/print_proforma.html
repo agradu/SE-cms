@@ -78,7 +78,7 @@
     </div>
     <div class="footer">
         <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> und "<b>Proforma Nr. {{ proforma.serial }}-{{ leading_number }}</b>" als Verwendungszweck.</p>
-        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
+        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">{{ proforma.modified_by.first_name}} {{ proforma.modified_by.last_name}}</b></p>
         <p class="line-up center" style="padding-top: 10pt">
             <b>Sprachen Express</b> - Hektorweg 20, 39118 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
             <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>

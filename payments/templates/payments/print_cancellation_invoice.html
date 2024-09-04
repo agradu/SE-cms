@@ -31,7 +31,7 @@
         </table>
     </div>
     <div class="invoice-title">
-        <b>Stornorechnung Nr.</b> {{ invoice.serial}}-{{ leading_invoice }}
+        <b>Stornorechnung Nr.</b> {{ invoice.serial}}-{{ leading_storno }}
     </div>
     <div class="table">
         <div class="tr bold">
@@ -71,7 +71,7 @@
         </div>
     </div>
     <div class="footer">
-        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
+        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">{{ invoice.modified_by.first_name}} {{ invoice.modified_by.last_name}}</b></p>
         <p class="line-up center" style="padding-top: 10pt">
             <b>Sprachen Express</b> - Hektorweg 20, 39118 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
             <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
