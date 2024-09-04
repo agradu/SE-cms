@@ -358,14 +358,14 @@ def print_invoice(request, invoice_id):
     date1 = invoice.created_at.date()
     date2 = invoice.deadline
     day_left = (date2 - date1).days
-    leading_invoice = invoice.number.rjust(3,'0')
+    leading_invoice = invoice.number.rjust(4,'0')
     try:
         proforma = Proforma.objects.get(invoice=invoice)
         proforma_number = proforma.number
     except:
         proforma = ""
         proforma_number = ""
-    leading_proforma = proforma_number.rjust(3,'0')
+    leading_proforma = proforma_number.rjust(4,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
@@ -391,6 +391,39 @@ def print_invoice(request, invoice_id):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename=invoice-{invoice.serial}-{invoice.number}.pdf'
     return response
+
+@login_required(login_url="/login/")
+def print_cancellation_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice_elements = InvoiceElement.objects.exclude(element__status__id='6').filter(invoice=invoice).order_by("id")
+    date1 = invoice.created_at.date()
+    date2 = invoice.deadline
+    leading_storno = invoice.number.rjust(4,'0')
+    leading_invoice = invoice.cancellation_to.number.rjust(4,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        svg_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(svg_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        invoice_content = f.read()
+
+    context = {
+        "invoice": invoice,
+        "leading_storno": leading_storno,
+        "leading_invoice": leading_invoice,
+        "invoice_elements": invoice_elements,
+        "logo_base64": logo_base64
+    }
+    html_content = render_to_string("payments/print_cancellation_invoice.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=invoice-{invoice.serial}-{invoice.number}.pdf'
+    return response
+
 
 @login_required(login_url="/login/")
 def proformas(request):

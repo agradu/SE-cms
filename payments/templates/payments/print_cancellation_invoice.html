@@ -1,0 +1,82 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'css/invoice.css' %}" media="print" rel="stylesheet">
+    <title>Invoice</title>
+    <meta name="description" content="Invoice">
+  </head>
+  <body>
+    <div class="logo">
+        <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="" style="width: 250px;">
+    </div>
+    <div class="firma-address">
+        Sprachen Express | Hektorweg 20, 39118 Magdeburg
+    </div>
+    <div class="client">
+        <b>{% if invoice.person.company_name != '' %}{{ invoice.person.company_name }}<br>{% endif %}
+        {{ invoice.person.firstname }} {{ invoice.person.lastname }}</b>
+    </div>
+    <div class="client-address">
+        {{ invoice.person.address }}
+    </div>
+    <div class="invoice-daten">
+        <table>
+            <tr>
+                <td class="right"><b>Stornorechnungsdatum</b><br>
+                    {{ invoice.created_at|date:"d.m.Y"}}</td>
+                <td class="right">&nbsp;&nbsp;&nbsp;<b>Stornorechnung für Rechnung</b><br>
+                    {{ invoice.cancellation_to.serial}}-{{ leading_invoice }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="invoice-title">
+        <b>Stornorechnung Nr.</b> {{ invoice.serial}}-{{ leading_invoice }}
+    </div>
+    <div class="table">
+        <div class="tr bold">
+            <div class="td line-down">Beschreibung</div>
+            <div class="td right line-down pl">Datum</div>
+            <div class="td right line-down pl">Menge</div>  
+            <div class="td right line-down pl">Einheit</div>
+            <div class="td right line-down pl">Einzelpreis</div>
+            <div class="td right line-down pl">Betrag</div>
+        </div>
+        {% for e in invoice_elements %}
+        <div class="tr">
+            <div class="td">{{ e.element.service.name }} - {{ e.element.description }}</div>
+            <div class="td right pl">{{ e.element.order.created_at|date:"d.m.Y"}}</div>
+            <div class="td right pl">{{ e.element.quantity }}</div>  
+            <div class="td right pl">{{ e.element.um.name }}</div>
+            <div class="td right pl">{{ e.element.price }}&nbsp;{{ invoice.currency.symbol }}</div>
+            <div class="td right pl">-{{ e.element.price }}&nbsp;{{ invoice.currency.symbol }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="table">
+        <div class="tr">
+            <div class="td2 line-up pt">Nicht umsatzsteuerpflichtig nach § 19 1 UStG.</div>
+            <div class="td2 line-up colspan1 bold text-small pt">Nettobetrag</div>
+            <div class="td2 line-up colspan2 right bold text-small pt">{{ invoice.value }}&nbsp;{{ invoice.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td2"></div>
+            <div class="td2 colspan1 text-small">USt. 0,00 %</div>
+            <div class="td2 colspan2 right text-small">0&nbsp;{{ invoice.currency.symbol }}</div>
+        </div>
+        <div class="tr bold">
+            <div class="td"></div>
+            <div class="td line-up colspan1 text-bigger">Gesamtsumme</div>
+            <div class="td line-up colspan2 right text-bigger pl">{{ invoice.value }}&nbsp;{{ invoice.currency.symbol }}</div>
+        </div>
+    </div>
+    <div class="footer">
+        <p style="padding-bottom: 10pt">Mit freundlichen Grüßen<br><b class="text-bigger">Adrian George Radu</b></p>
+        <p class="line-up center" style="padding-top: 10pt">
+            <b>Sprachen Express</b> - Hektorweg 20, 39118 Magdeburg, Deutschland | <b>Steuer Nr.</b> 102/260/07658 <br>
+            <b>E-Mail</b> info@sprachen-express.de | <b>Tel.</b> 0161234567 <br>
+            <b>Bank</b> Postbank | <b>SWIFT/BIC</b> PBNKDEFF | <b>IBAN</b> DE91 8601 0090 0991 6239 01
+        </p>
+    </div>
+  </body>
+</html>

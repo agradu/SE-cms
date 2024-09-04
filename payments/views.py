@@ -287,7 +287,7 @@ def payment(request, payment_id, person_id, invoice_id):
 def print_receipt(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
     payment_elements = PaymentElement.objects.filter(payment=payment).order_by("id")
-    leading_number = payment.number.rjust(3,'0')
+    leading_number = payment.number.rjust(4,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
