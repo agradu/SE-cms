@@ -309,5 +309,5 @@ def print_receipt(request, payment_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=receipt-{payment.serial}-{payment.number}.pdf'
+    response['Content-Disposition'] = f'filename=Beleg-{payment.serial}-{payment.number}.pdf'
     return response

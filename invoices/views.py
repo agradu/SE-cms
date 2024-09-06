@@ -389,7 +389,7 @@ def print_invoice(request, invoice_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=invoice-{invoice.serial}-{invoice.number}.pdf'
+    response['Content-Disposition'] = f'filename=Rechnung-{invoice.serial}-{invoice.number}.pdf'
     return response
 
 @login_required(login_url="/login/")
@@ -421,7 +421,7 @@ def print_cancellation_invoice(request, invoice_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=invoice-{invoice.serial}-{invoice.number}.pdf'
+    response['Content-Disposition'] = f'filename=Stornorechnung-{invoice.serial}-{invoice.number}.pdf'
     return response
 
 
@@ -660,7 +660,7 @@ def print_proforma(request, proforma_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=proforma_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=proforma-{proforma.serial}-{proforma.number}.pdf'
+    response['Content-Disposition'] = f'filename=Proforma-{proforma.serial}-{proforma.number}.pdf'
     return response
 
 @login_required(login_url="/login/")
