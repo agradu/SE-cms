@@ -876,7 +876,7 @@ def print_order(request, order_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=order_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=Auftragsbestaetigung_{order_id}.pdf'
+    response['Content-Disposition'] = f'filename=Auftragsbestaetigung_{order.serial}-{order.number}.pdf'
     return response
 
 @login_required(login_url="/login/")
@@ -904,5 +904,5 @@ def print_offer(request, offer_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=offer_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=Angebot_{offer_id}.pdf'
+    response['Content-Disposition'] = f'filename=Angebot_{offer.serial}-{offer.number}.pdf'
     return response
