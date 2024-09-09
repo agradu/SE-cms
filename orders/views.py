@@ -855,7 +855,7 @@ def p_order(request, order_id, provider_id):
 def print_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     order_elements = OrderElement.objects.exclude(status__id='6').filter(order=order).order_by("id")
-    leading_number = str(order.number).rjust(3,'0')
+    leading_number = str(order.number).rjust(4,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
@@ -876,14 +876,14 @@ def print_order(request, order_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=order_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=order_{order_id}.pdf'
+    response['Content-Disposition'] = f'filename=Auftragsbestaetigung_{order_id}.pdf'
     return response
 
 @login_required(login_url="/login/")
 def print_offer(request, offer_id):
     offer = get_object_or_404(Offer, id=offer_id)
     offer_elements = OfferElement.objects.filter(offer=offer).order_by("id")
-    leading_number = str(offer.number).rjust(3,'0')
+    leading_number = str(offer.number).rjust(4,'0')
 
     # Open the logo image
     with open('static/images/logo-se.jpeg', 'rb') as f:
@@ -904,5 +904,5 @@ def print_offer(request, offer_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=offer_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=offer_{offer_id}.pdf'
+    response['Content-Disposition'] = f'filename=Angebot_{offer_id}.pdf'
     return response
