@@ -93,7 +93,12 @@
 								<div class="form-group row">
 									<label class="col-sm-3 col-form-label">Payment date</label>
 									<div class="col-sm-4">
+										{% load tz %}
+										{% if new == False %}
 										<input type="date" class="form-control" name="payment_date" value="{{ payment.payment_date|date:'Y-m-d' }}">
+										{% else %}
+										<input type="date" class="form-control" name="payment_date" value="{% now 'Y-m-d' %}">
+										{% endif %}
 									</div>
 									<div class="col-sm-5">
 										<button class="btn btn-gradient-primary btn-icon-text" type="submit">

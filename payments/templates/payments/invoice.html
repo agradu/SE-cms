@@ -91,11 +91,20 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Isue date</label>
 									<div class="col-sm-4">
+										{% load tz %}
+										{% if new == False %}
 										<input type="date" class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
+										{% else %}
+										<input type="date" class="form-control" name="invoice_date" value="{% now 'Y-m-d' %}">
+										{% endif %}
 									</div>
 									<label class="col-sm-2 col-form-label">Due date</label>
 									<div class="col-sm-4">
+										{% if new == False %}
 										<input type="date" class="form-control" name="deadline_date" value="{{ invoice.deadline|date:'Y-m-d' }}">
+										{% else %}
+										<input type="date" class="form-control" name="deadline_date" value="{{ date_plus_five|date:'Y-m-d' }}">
+										{% endif %}
 									</div>
 								</div>
 							</div>

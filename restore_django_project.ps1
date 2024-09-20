@@ -1,6 +1,6 @@
-Get-ChildItem -Recurse -Filter "0*.py" | Remove-Item -Force
-Get-ChildItem -Recurse -Filter "0*.pyc" | Remove-Item -Force
-Write-Host "All migrations in apps are cleaned!"
+# Get-ChildItem -Recurse -Filter "0*.py" | Remove-Item -Force
+# Get-ChildItem -Recurse -Filter "0*.pyc" | Remove-Item -Force
+# Write-Host "All migrations in apps are cleaned!"
 
 
 # Parameters for PostgreSQL connection

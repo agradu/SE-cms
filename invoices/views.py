@@ -205,6 +205,7 @@ def invoice(request, invoice_id, person_id, order_id):
     invoice_elements = []
     uninvoiced_elements = []
     date_now = timezone.localtime()
+    date_plus_five = timezone.now().date() + timedelta(days=5)
     clock = date_now.time()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
@@ -351,7 +352,8 @@ def invoice(request, invoice_id, person_id, order_id):
             "is_client": is_client,
             "invoice_elements": invoice_elements,
             "uninvoiced_elements": uninvoiced_elements,
-            "new": new
+            "new": new,
+            "date_plus_five": date_plus_five
         },
     )
 
@@ -523,6 +525,7 @@ def proforma(request, proforma_id, person_id, order_id):
     proforma_elements = []
     unproformed_elements = []
     date_now = timezone.now()
+    date_plus_five = timezone.now().date() + timedelta(days=5)
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
     proforma_serial = serials.proforma_serial
@@ -632,7 +635,8 @@ def proforma(request, proforma_id, person_id, order_id):
             "proforma_number": proforma_number,
             "proforma_elements": proforma_elements,
             "unproformed_elements": unproformed_elements,
-            "new": new
+            "new": new,
+            "date_plus_five": date_plus_five
         },
     )
 

@@ -86,7 +86,12 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Due date</label>
 									<div class="col-sm-5">
+										{% load tz %}
+										{% if new == False %}
 										<input type="date" {% if proforma.invoice %}disabled=""{% endif %} class="form-control" name="deadline_date" value="{{ proforma.deadline|date:'Y-m-d' }}">
+										{% else %}
+										<input type="date" {% if proforma.invoice %}disabled=""{% endif %} class="form-control" name="deadline_date" value="{{ date_plus_five|date:'Y-m-d' }}">
+										{% endif %}
 									</div>
 									<div class="col-sm-5">
 										<button class="btn btn-gradient-primary btn-icon-text" type="submit" {% if proforma.invoice %}disabled=""{% endif %}>
