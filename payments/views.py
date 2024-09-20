@@ -22,26 +22,30 @@ from num2words import num2words
 def payments(request):
     # search elements
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = (date_now - timedelta(days=360)).replace(hour=0, minute=0, second=0, microsecond=0)
-    reg_start = date_before.strftime("%Y-%m-%d")
-    filter_start = date_before
-    reg_end = date_now.strftime("%Y-%m-%d")
-    filter_end = date_now
+    date_before = date_now - timedelta(days=10)
+    if request.GET.get("r_start") != None:
+        reg_start = request.GET.get("r_start")
+        reg_end = request.GET.get("r_end")
+    else:
+        reg_start = date_before.strftime("%Y-%m-%d")
+        reg_end = date_now.strftime("%Y-%m-%d")
+    search_client = ""
+    search_description = ""
     if request.method == "POST":
         search_client = request.POST.get("search_client")
         search_description = request.POST.get("search_description")
-        if len(search_client) > 2 or len(search_description) > 2:
-            reg_start = request.POST.get("reg_start")
-            filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-            filter_start = timezone.make_aware(filter_start)
-            reg_end = request.POST.get("reg_end")
-            filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-            filter_end = timezone.make_aware(filter_end).replace(
-                hour=23, minute=59, second=59, microsecond=0
-            )
-    else:
-        search_client = ""
-        search_description = ""
+        if len(search_client) < 3:
+            search_client = ""
+        if len(search_description) < 3:
+            search_description = ""
+        reg_start = request.POST.get("reg_start")
+        reg_end = request.POST.get("reg_end")
+    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
+    filter_start = timezone.make_aware(filter_start)
+    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
+    filter_end = timezone.make_aware(filter_end).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
     # CLIENT/PROVIDER PAYMENTS
     selected_payments = (
         Payment.objects.filter(

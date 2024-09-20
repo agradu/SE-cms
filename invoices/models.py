@@ -26,6 +26,7 @@ class Invoice(models.Model):
         null=True,
         blank=True,
     )
+    is_recurrent = models.BooleanField(default=False)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
     serial = models.CharField(max_length=10, blank=True)

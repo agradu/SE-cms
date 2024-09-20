@@ -99,9 +99,9 @@
 										<div class="btn-group btn-group-sm">
 											{% for pg in person_payments.paginator.page_range %}
 											{% if pg == person_payments.number %}
-											<button type="button" class="btn btn-primary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											<button type="button" class="btn btn-primary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 											{% else %}
-											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}';">{{ pg }}</button>
+											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 											{% endif %}
 											{% endfor %} </div>
 									</td>
