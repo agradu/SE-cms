@@ -38,6 +38,8 @@ class Invoice(models.Model):
         Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
     )
     description = models.CharField(max_length=255, null=True, blank=True)
+    is_recurrent = models.BooleanField(default=False)
+
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
