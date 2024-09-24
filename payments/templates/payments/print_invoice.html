@@ -78,7 +78,7 @@
     </div>
     <div class="footer">
         {% if proforma != "" %}
-        <p>Rechnung gemäß dem <b>Proforma Nr. {{proforma.serial}}-{{ leading_proforma }}</b> ausgestellt.</p>
+        <p>Rechnung ausgestellt gemäß der <b>Proforma Nr. {{proforma.serial}}-{{ leading_proforma }}</b>.</p>
         {% else %}
         <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>Sprachen Express</b>" als Begünstigter <br> und "<b>Rechnung Nr. {{ invoice.serial }}-{{ leading_invoice }}</b>" als Verwendungszweck.</p>
         {% endif %}
