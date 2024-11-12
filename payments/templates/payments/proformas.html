@@ -107,9 +107,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in person_proformas.paginator.page_range %}
 										{% if pg == person_proformas.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/proformas/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/proformas/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>
