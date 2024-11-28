@@ -49,7 +49,7 @@
             <div class="td right line-down pl">Betrag</div>
         </div>
         {% for e in invoice_elements %}
-        <div class="tr">
+        <div class="tr" style="font-size: 8pt">
             <div class="td">{{ e.element.service.name }} - {{ e.element.description }}</div>
             <div class="td right pl">{{ e.element.order.created_at|date:"d.m.Y"}}</div>
             <div class="td right pl">{{ e.element.quantity }}</div>  
