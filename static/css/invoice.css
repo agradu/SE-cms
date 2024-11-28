@@ -31,11 +31,11 @@ body {
 .client-address {
     width: 110pt;
     font-size: 10pt;
-    margin-bottom: 40pt;
+    margin-bottom: 10pt;
 }
 .invoice-daten{
     width: 100%;
-    height: 60pt;
+    height: 30pt;
 }
 .invoice-daten table {
     float: right;
@@ -47,7 +47,7 @@ body {
 }
 .subtitle {
     font-size: 9pt;
-    margin-bottom: 30pt;
+    margin-bottom: 10pt;
 }
 .subtitle2 {
     font-size: 9pt;
