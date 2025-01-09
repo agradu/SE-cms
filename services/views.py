@@ -116,14 +116,32 @@ def currencies(request):
 
 @login_required(login_url="/login/")
 def currency_detail(request, currency_id):
-    currency = get_object_or_404(Currency, id=currency_id)
-    if request.method == "POST":
-        update = "Succesfuly updated"
-        currency.symbol = request.POST.get("symbol")
-        currency.name = request.POST.get("name")
-        currency.save()
+    if currency_id != 0:
+        currency = get_object_or_404(Currency, id=currency_id)
+        if request.method == "POST":
+            update = "Succesfuly updated"
+            currency.symbol = request.POST.get("symbol")
+            currency.name = request.POST.get("name")
+            currency.save()
+        else:
+            update = ""
     else:
-        update = ""
+        if request.method == "POST":
+            name = request.POST.get("name")
+            style = request.POST.get("style")
+            try:
+                currency = Currency.objects.get(name=name)
+                update = "Currency name exists. Chose other."
+            except:
+                update = "Currency created"
+                currency = Currency(
+                    name=name,
+                    style = request.POST.get("style"),
+                )
+                currency.save()
+        else:
+            update = ""
+            currency = ""
     return render(
         request, "services/currency.html", {"currency": currency, "update": update}
     )
