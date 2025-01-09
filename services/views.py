@@ -155,11 +155,27 @@ def units(request):
 
 @login_required(login_url="/login/")
 def unit_detail(request, unit_id):
-    unit = get_object_or_404(UM, id=unit_id)
-    if request.method == "POST":
-        update = "Succesfuly updated"
-        unit.name = request.POST.get("name")
-        unit.save()
+    if unit_id != 0:
+        unit = get_object_or_404(UM, id=unit_id)
+        if request.method == "POST":
+            update = "Succesfuly updated"
+            unit.name = request.POST.get("name")
+            unit.save()
+        else:
+            update = ""
     else:
-        update = ""
+        if request.method == "POST":
+            name = request.POST.get("name")
+            try:
+                unit = UM.objects.get(name=name)
+                update = "Unit name exists. Chose other."
+            except:
+                update = "Unit created"
+                unit = UM(
+                    name=name,
+                )
+                unit.save()
+        else:
+            update = ""
+            unit = ""
     return render(request, "services/unit.html", {"unit": unit, "update": update})
