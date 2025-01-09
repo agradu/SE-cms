@@ -76,15 +76,16 @@ def statuses(request):
 
 @login_required(login_url="/login/")
 def status_detail(request, status_id):
-    status = get_object_or_404(Status, id=status_id)
-    if request.method == "POST":
-        update = "Succesfuly updated"
-        status.name = request.POST.get("name")
-        status.style = request.POST.get("style")
-        status.percent = request.POST.get("percent")
-        status.save()
-    else:
-        update = ""
+    if status_id != 0:
+        status = get_object_or_404(Status, id=status_id)
+        if request.method == "POST":
+            update = "Succesfuly updated"
+            status.name = request.POST.get("name")
+            status.style = request.POST.get("style")
+            status.percent = request.POST.get("percent")
+            status.save()
+        else:
+            update = ""
     return render(request, "services/status.html", {"status": status, "update": update})
 
 
