@@ -86,6 +86,24 @@ def status_detail(request, status_id):
             status.save()
         else:
             update = ""
+    else:
+        if request.method == "POST":
+            name = request.POST.get("name")
+            style = request.POST.get("style")
+            percent = request.POST.get("percent")
+            try:
+                status = Status.objects.get(name=name)
+                update = "Status name exists. Chose other."
+            except:
+                update = "Status created"
+                status = Status(
+                    name=name,
+                    style = request.POST.get("style"),
+                    percent = request.POST.get("percent"),
+                )
+                status.save()
+        else:
+            update = ""
     return render(request, "services/status.html", {"status": status, "update": update})
 
 
