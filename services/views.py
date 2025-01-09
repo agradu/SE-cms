@@ -104,6 +104,7 @@ def status_detail(request, status_id):
                 status.save()
         else:
             update = ""
+            status = ""
     return render(request, "services/status.html", {"status": status, "update": update})
 
 
