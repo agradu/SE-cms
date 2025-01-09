@@ -78,9 +78,9 @@
 							  <div class="btn-group btn-group-sm">
 								{% for pg in users.paginator.page_range %}
 								{% if pg == users.number %}
-								<button type="button" class="btn btn-primary" onclick="location.href='/settings/users/?page={{ pg }}';">{{ pg }}</button>
+								<button type="button" class="btn btn-primary" onclick="location.href='/users/?page={{ pg }}';">{{ pg }}</button>
 								{% else %}
-								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/settings/users/?page={{ pg }}';">{{ pg }}</button>
+								<button type="button" class="btn btn-outline-secondary" onclick="location.href='/users/?page={{ pg }}';">{{ pg }}</button>
 								{% endif %}
 								{% endfor %}
 							  </div>
@@ -90,7 +90,7 @@
 						  <tr>
 							<td>
 							  <div class="input-group input-group-sm">
-								<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/settings/users/0/';">
+								<button type="button" class="btn btn-gradient-primary btn-icon-text" onclick="location.href='/users/0/';">
 								  <i class="mdi mdi-account-plus btn-icon-prepend"></i> Register a new user</button>
 							  </div>
 							</td>
