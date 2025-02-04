@@ -97,7 +97,7 @@ def invoices(request):
         elif sort == "deadline":
             return x["invoice"].deadline
         elif sort == "status":
-            return x["invoice"].status.id
+            return x["invoice"].status.percent
         elif sort == "value":
             return x["value"]
         elif sort == "payed":
