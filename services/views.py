@@ -70,7 +70,7 @@ def service_detail(request, service_id):
 
 @login_required(login_url="/login/")
 def statuses(request):
-    statuses = Status.objects.all().order_by("id")
+    statuses = Status.objects.all().order_by("percent")
     return render(request, "services/statuses.html", {"statuses": statuses})
 
 
