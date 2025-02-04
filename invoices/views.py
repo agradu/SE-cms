@@ -228,7 +228,7 @@ def invoice(request, invoice_id, person_id, order_id):
             invoice_serial = ""
             invoice_number = ""
     all_orders_elements = OrderElement.objects.exclude(status__id='0').filter(order__person=person).order_by("id")
-    invoiced_elements = InvoiceElement.objects.exclude(element__status__id='0').filter(invoice__person=person).order_by("id")
+    invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
     uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
@@ -239,7 +239,7 @@ def invoice(request, invoice_id, person_id, order_id):
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
-        invoice_elements = InvoiceElement.objects.exclude(element__status__id='0').filter(invoice=invoice).order_by('element__order__created_at')
+        invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by('element__order__created_at')
         if request.method == "POST":
             if "invoice_description" in request.POST:
                 invoice.description = request.POST.get("invoice_description")
@@ -541,7 +541,7 @@ def proforma(request, proforma_id, person_id, order_id):
         proforma =""
         new = True
     all_orders_elements = OrderElement.objects.exclude(status__id='6').exclude(order__is_client=False).filter(order__person=person).order_by("id")
-    proformed_elements = ProformaElement.objects.exclude(element__status__id='6').filter(proforma__person=person).order_by("id")
+    proformed_elements = ProformaElement.objects.exclude(element__status__percent='0').filter(proforma__person=person).order_by("id")
     unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True))
     def set_value(proforma): # calculate and save the value of the proforma
         proforma_elements = ProformaElement.objects.filter(proforma=proforma).order_by("id")
@@ -552,7 +552,7 @@ def proforma(request, proforma_id, person_id, order_id):
     if proforma_id > 0:  # if proforma exists
         proforma_serial = proforma.serial
         proforma_number = proforma.number
-        proforma_elements = ProformaElement.objects.exclude(element__status__id='6').filter(proforma=proforma).order_by('element__order__created_at')
+        proforma_elements = ProformaElement.objects.exclude(element__status__percent='0').filter(proforma=proforma).order_by('element__order__created_at')
         if request.method == "POST":
             if "proforma_description" in request.POST:
                 proforma.description = request.POST.get("proforma_description")

@@ -192,7 +192,7 @@ def c_order(request, order_id, client_id):
                 element.status = statuses[int(request.POST.get("e_status")) - 1]
                 element.save()
                 # setting order status to minimum form elements
-                status_elements = sorted(elements, key=lambda x: x.status.id)
+                status_elements = sorted(elements, key=lambda x: x.status.percent)
                 order.status = status_elements[0].status
                 element = ""  # clearing the active element
             if "delete_element_id" in request.POST:  # delete en element
@@ -208,7 +208,7 @@ def c_order(request, order_id, client_id):
             # Calculating the order value
             order.value = 0
             for e in elements:
-                if e.status.id < 6:
+                if e.status.percent > 0:
                     order.value += (e.price * e.quantity)
                     try:
                         # Calculating the invoice value if element is invoiced
@@ -217,7 +217,7 @@ def c_order(request, order_id, client_id):
                         invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
                         invoice.value = 0
                         for ie in invoice_elements:
-                            if ie.element.status.id < 6:
+                            if ie.element.status.percent > 0:
                                 invoice.value += (ie.element.price * ie.element.quantity)
                         invoice.save()
                     except:
