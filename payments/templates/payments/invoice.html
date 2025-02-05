@@ -93,7 +93,7 @@
 									<div class="col-sm-4">
 										{% load tz %}
 										{% if new == False %}
-										<input type="date" class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
+										<input type="date" {% if last == False %}disabled=""{% endif %} class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
 										{% else %}
 										<input type="date" class="form-control" name="invoice_date" value="{% now 'Y-m-d' %}">
 										{% endif %}

@@ -221,9 +221,12 @@ def invoice(request, invoice_id, person_id, order_id):
         invoice_date = invoice.created_at
         is_client = invoice.is_client
         new = False
+        last_invoice = Invoice.objects.latest('id')
+        last = True if last_invoice.id == invoice.id else False
     else:
         invoice =""
         new = True
+        last = True
         if is_client == False:
             invoice_serial = ""
             invoice_number = ""
@@ -335,6 +338,7 @@ def invoice(request, invoice_id, person_id, order_id):
                 # Save the invoice value
                 set_value(invoice)
                 new = False
+                last = True
                 return redirect(
                     "invoice",
                     invoice_id = invoice.id,
@@ -353,6 +357,7 @@ def invoice(request, invoice_id, person_id, order_id):
             "invoice_elements": invoice_elements,
             "uninvoiced_elements": uninvoiced_elements,
             "new": new,
+            "last": last,
             "date_plus_five": date_plus_five
         },
     )
