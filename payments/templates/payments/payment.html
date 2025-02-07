@@ -5,7 +5,12 @@
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
 			<i class="mdi mdi-cash"></i>
-		</span> Payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} {%if is_client %}from{% else %}to{% endif %} {{ person.firstname }} {{ person.lastname }}
+		</span>
+		{% if payment.cancellation_to %}
+		Cancellation payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} for payment #{{ payment.cancellation_to.id }}
+		{% else %}
+		Payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} {%if is_client %}from{% else %}to{% endif %} {{ person.firstname }} {{ person.lastname }}
+		{% endif %}
 	</h3>
 </div> 
 {% load static %} 
@@ -170,7 +175,7 @@
 									</td>
 									<td style="text-align: right;">
 										{% if payment.is_client %}
-										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_receipt/{{payment.id}}/');">
+										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/{% if payment.cancellation_to %}print_cancellation_receipt{% else %}print_receipt{% endif%}/{{payment.id}}/');">
 											<i class="mdi mdi-printer btn-icon-prepend"></i>
 										</button>
 										{% endif %}

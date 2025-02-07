@@ -10,7 +10,7 @@
     <div class="table pb">
         <div class="tr">
             <div class="td left top invoice-title">
-                <b>Quittung Nr.</b><br>{{ payment.serial}}-{{ leading_number }}<br>
+                <b>Stornoquittung Nr.</b><br>{{ payment.serial}}-{{ leading_number }}<br>
             </div>
             <div class="td right top" style="width: 40%;">
                 <div class="table">
@@ -39,8 +39,13 @@
     <div class="table line-up">
         {% for e in payment_elements %}
         <div class="tr">
-            <div class="td">Rechnung Nr. {{ e.invoice.serial }}-{{ e.invoice.number }} {% if e.invoice.description != "" %}({{ e.invoice.description }}){% endif %} vom {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
-            <div class="td right pl">{{ e.invoice.value }} {{ e.invoice.currency.symbol }}</div>
+            {% if payment.value == e.invoice.value %}
+            <div class="td">Stornorechnung Nr. {{ e.invoice.serial }}-{{ e.invoice.number }} {% if e.invoice.description != "" %}({{ e.invoice.description }}){% endif %} vom {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
+            <div class="td right pl">von {{ e.invoice.value }} {{ e.invoice.currency.symbol }}</div>
+            {% else %}
+            <div class="td">Teilstornierung für Stornorechnung Nr. {{ e.invoice.serial }}-{{ e.invoice.number }} vom {{ e.invoice.created_at|date:"d.m.Y"}}</div>  
+            <div class="td right pl">von {{ e.invoice.value }} {{ e.invoice.currency.symbol }}</div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -48,7 +53,7 @@
         <div class="tr">
             <div class="td pb">
                 <b>Buchungsvermerke:</b><br>
-                {{ payment.description }}
+                Stornierung
             </div>
         </div>
     </div>

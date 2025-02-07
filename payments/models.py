@@ -36,6 +36,8 @@ class Payment(models.Model):
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
+    cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
     )

@@ -157,14 +157,13 @@
 								<td width="10%">
 									<label class="badge badge-{{e.element.status.style}}"> {{e.element.status.name}} </label>
 								</td>
-								<td>{% if invoice.cancellation_to == None %}
+								<td>
 									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
 										<input type="hidden" name="invoice_element_id" value="{{e.id}}">
 										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
 											<i class="mdi mdi-minus btn-icon-prepend"></i>
 										</button>
 									</form>
-									{% endif %}
 								</td>
 							</tr>
 							{% endfor %}
@@ -187,7 +186,7 @@
 		</div>
 	</div>
 </div>
-{% if invoice.cancelled_from is None and invoice.cancellation_to is None %}
+
 {% if uninvoiced_elements %}
 <div class="row">
 	<div class="col-12 grid-margin">
@@ -238,6 +237,6 @@
 	</div>
 </div>
 {% endif %}
-{% endif %}
+
 {% endif %}
 {% endblock %}

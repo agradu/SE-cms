@@ -135,8 +135,11 @@ def payment(request, payment_id, person_id, invoice_id):
         for e in payment_elements:
             to_pay += e.invoice.value
         payment.value = to_pay
-        if len(payment_elements) < 2 and 0 < value < to_pay:
-            payment.value = value
+        if len(payment_elements) < 2 and 0 < abs(value) < abs(to_pay):
+            if payment.value > 0:
+                payment.value = value
+            else:
+                payment.value = 0 - abs(value)
         payment.save()
     if payment_id > 0:  # if payment exists
         receipt_serial = payment.serial
@@ -314,4 +317,33 @@ def print_receipt(request, payment_id):
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename=Beleg-{payment.serial}-{payment.number}.pdf'
+    return response
+
+@login_required(login_url="/login/")
+def print_cancellation_receipt(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    payment_elements = PaymentElement.objects.filter(payment=payment).order_by("id")
+    leading_number = payment.number.rjust(4,'0')
+
+    # Open the logo image
+    with open('static/images/logo-se.jpeg', 'rb') as f:
+        svg_content = f.read()
+    # Encode the image în base64
+    logo_base64 = base64.b64encode(svg_content).decode('utf-8')
+    # Open the CSS content
+    with open('static/css/invoice.css', 'rb') as f:
+        invoice_content = f.read()
+
+    context = {
+        "payment": payment,
+        "leading_number": leading_number,
+        "payment_elements": payment_elements,
+        "logo_base64": logo_base64,
+        "value_in_words": num2words(payment.value, lang='de').capitalize()
+    }
+    html_content = render_to_string("payments/print_cancellation_receipt.html", context)
+
+    pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_content)])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=Stornobeleg-{payment.serial}-{payment.number}.pdf'
     return response

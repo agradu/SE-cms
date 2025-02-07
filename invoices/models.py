@@ -45,7 +45,6 @@ class Invoice(models.Model):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
         return f"Invoice {self.serial}{self.number} from {formatted_created_at} - {self.person} - {self.description}"
 
-
 class InvoiceElement(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     element = models.ForeignKey(OrderElement, on_delete=models.CASCADE)
@@ -85,7 +84,6 @@ class Proforma(models.Model):
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
         return f"Proforma {self.serial}{self.number} from {formatted_created_at} - {self.person} - {self.description}"
-
 
 class ProformaElement(models.Model):
     proforma = models.ForeignKey(Proforma, on_delete=models.CASCADE)

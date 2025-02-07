@@ -65,7 +65,7 @@ def invoices(request):
         i_payed = 0
         i_payments = PaymentElement.objects.filter(invoice=i)
         for p in i_payments:
-            if p.payment.value < p.invoice.value:
+            if abs(p.payment.value) < abs(p.invoice.value):
                 i_payed += p.payment.value
             else:
                 i_payed += p.invoice.value
@@ -148,46 +148,73 @@ def cancellation_invoice(request, invoice_id):
     cancelled_invoice.cancelled_from = cancellation_invoice
     cancelled_invoice.save()
 
-    test_payment = PaymentElement.objects.filter(invoice=cancelled_invoice)
-    p_value = 0
-    for p in test_payment:
-        p_value += p.payment.value
+    # Căutăm o plată existentă asociată facturii anulate
+    cancelled_payment = Payment.objects.filter(
+        person=cancelled_invoice.person,
+        is_client=cancelled_invoice.is_client,
+        currency=cancelled_invoice.currency
+    ).first()
 
-    cancelled_payment = Payment(
-        person = cancelled_invoice.person,
-        is_client = cancelled_invoice.is_client,
-        modified_by = request.user,
-        created_by = request.user,
-        currency = cancelled_invoice.currency,
-        value = cancelled_invoice.value - p_value,
-        description = "Stornierte Zahlung"
-    )
-    cancelled_payment.save()
+    # Dacă nu există, creăm un nou obiect Payment
+    if not cancelled_payment:
+        cancelled_payment = Payment(
+            person=cancelled_invoice.person,
+            is_client=cancelled_invoice.is_client,
+            modified_by=request.user,
+            created_by=request.user,
+            currency=cancelled_invoice.currency,
+            value=cancelled_invoice.value,
+            description="Stornierte Zahlung"
+        )
+        cancelled_payment.save()
+
+        cancelled_payment_element = PaymentElement(
+            payment = cancelled_payment,
+            invoice = cancelled_invoice
+        )
+        cancelled_payment_element.save()
+
+    # Determinăm tipul plății
+    if cancelled_payment:
+        p_type = cancelled_payment.type
+    else:
+        p_type = "bank"
+
+    if p_type == "cash":
+        p_serial = serials.receipt_serial
+        p_number = serials.receipt_number
+    else:
+        p_serial = ""
+        p_number = ""
 
     cancellation_payment = Payment(
+        serial = p_serial,
+        number = p_number,
         person = cancellation_invoice.person,
         is_client = cancellation_invoice.is_client,
         modified_by = request.user,
         created_by = request.user,
         currency = cancellation_invoice.currency,
-        value = cancellation_invoice.value + p_value,
-        description = "Stornozahlung"
+        value = - cancelled_payment.value,
+        description = "Stornozahlung",
+        type = p_type
     )
     cancellation_payment.save()
-
-    cancelled_payment_element = PaymentElement(
-        payment = cancelled_payment,
-        invoice = cancelled_invoice
-    )
-    cancelled_payment_element.save()
 
     cancellation_payment_element = PaymentElement(
         payment = cancellation_payment,
         invoice = cancellation_invoice
     )
     cancellation_payment_element.save()
-    
+    # Making the payments connected
+    cancellation_payment.cancellation_to = cancelled_payment
+    cancellation_payment.save()
+    cancelled_payment.cancellation_to = cancellation_payment
+    cancelled_payment.save()
+
     serials.invoice_number += 1
+    if p_type == "cash":
+        serials.receipt_number += 1
     serials.save()
     for element in invoice_elements:
         c_element = InvoiceElement(
@@ -232,12 +259,31 @@ def invoice(request, invoice_id, person_id, order_id):
             invoice_number = ""
     all_orders_elements = OrderElement.objects.exclude(status__percent__lt=1).filter(order__person=person).order_by("id")
     invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
-    uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))      
+    uninvoiced_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
+    # If the current invoice is a cancellation and there is a canceled invoice
+    if invoice_id > 0 and invoice.cancellation_to:
+        cancelled_invoice = invoice.cancellation_to
+        # Items that were on the canceled invoice
+        cancelled_elements = InvoiceElement.objects.filter(invoice=cancelled_invoice)
+        # Items that are already billed in the current invoice
+        invoiced_element_ids = InvoiceElement.objects.filter(invoice=invoice).values_list('element__id', flat=True)
+        # Items that are on the canceled invoice BUT are NOT on the current invoice
+        cancelled_uninvoiced_elements = cancelled_elements.exclude(element_id__in=invoiced_element_ids)
+        # We convert to Order Element so it can be added to uninvoiced elements
+        cancelled_uninvoiced_order_elements = OrderElement.objects.filter(
+            id__in=cancelled_uninvoiced_elements.values_list('element__id', flat=True)
+        )
+        # We add these elements to uninvoiced_elements
+        uninvoiced_elements = uninvoiced_elements | cancelled_uninvoiced_order_elements
+
+        
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         invoice.value = 0
         for e in invoice_elements:
             invoice.value += (e.element.price * e.element.quantity)
+        if invoice.cancellation_to != None:
+            invoice.value = 0 - invoice.value
         invoice.save()
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
@@ -272,17 +318,29 @@ def invoice(request, invoice_id, person_id, order_id):
                 try: # delete an element
                     element = InvoiceElement.objects.get(id=invoice_element_id)
                     if InvoiceElement.objects.filter(invoice=invoice).count() > 1:
+                        element_value = element.element.quantity * element.element.price
                         element.delete()
+                        if invoice.cancellation_to:
+                            i_payment = PaymentElement.objects.get(invoice=invoice).payment
+                            i_payment.value += element_value
+                            i_payment.save()
+                            print("i_payment =",i_payment)
                 except:
                     print("Element",invoice_element_id,"is missing!")
             if "uninvoiced_element_id" in request.POST:
                 uninvoiced_element_id = int(request.POST.get("uninvoiced_element_id"))
                 try: # add an element
                     element = uninvoiced_elements.get(id=uninvoiced_element_id)
+                    element_value = element.quantity * element.price
                     InvoiceElement.objects.get_or_create(
                         invoice=invoice,
                         element=element
                     )
+                    if invoice.cancellation_to:
+                        i_payment = PaymentElement.objects.get(invoice=invoice).payment
+                        i_payment.value -= element_value
+                        i_payment.save()
+                        print("i_payment =",i_payment)
                 except:
                     print("Element",uninvoiced_element_id,"is missing!")
             # Setting the modiffied user and date
