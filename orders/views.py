@@ -580,7 +580,9 @@ def convert_offer(request, offer_id):
     serials.save()
 
     return redirect(
-        "c_orders",
+        "c_order",
+        order_id=order.pk,
+        client_id=order.person.pk
     )
 
 @login_required(login_url="/login/")

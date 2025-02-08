@@ -3,7 +3,7 @@
 {% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
-		<span class="page-title-icon bg-gradient-primary text-white me-2">
+		<span class="page-title-icon bg-gradient-warning text-white me-2">
 			<i class="mdi mdi-file-hidden"></i>
 		</span> Proforma {{ proforma.serial }}{{ proforma.number }} to {{ person.firstname }} {{ person.lastname }}
 	</h3>
@@ -62,11 +62,11 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Serial</label>
 									<div class="col-sm-4">
-										<input type="text" disabled="" class="form-control" name="proforma_serial" value="{{ proforma_serial }}">
+										<input type="text" readonly="" class="form-control" name="proforma_serial" value="{{ proforma_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
 									<div class="col-sm-4">
-										<input type="text" disabled="" class="form-control" name="proforma_number" value="{{ proforma_number }}">
+										<input type="text" readonly="" class="form-control" name="proforma_number" value="{{ proforma_number }}">
 									</div>
 								</div>
 							</div>
@@ -76,7 +76,7 @@
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Description</label>
 									<div class="col-sm-10">
-										<input type="text" {% if proforma.invoice %}disabled=""{% endif %} class="form-control" name="proforma_description" value="{{ proforma.description }}">
+										<input type="text" {% if proforma.invoice %}readonly=""{% endif %} class="form-control" name="proforma_description" value="{{ proforma.description }}">
 									</div>
 								</div>
 							</div>
@@ -153,9 +153,20 @@
 								<td> <h4>PROFORMA</h4> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{proforma.value}} {{proforma.currency.symbol}}</h4> </td>
-								<td colspan="3" style="text-align: right;">
-									<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/print_proforma/{{proforma.id}}/');">
-									<i class="mdi mdi-printer btn-icon-prepend"></i></button>
+								<td colspan="2"></td>
+							</tr>
+							<tr id="list_end">
+								<td colspan="8" style="text-align: right;">
+									<button class="btn btn-gradient-primary" type="button" onclick="window.open('/payments/print_proforma/{{proforma.id}}/');" title="Download PDF">
+										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
+										Download the Proforma
+									</button>
+									{% if not proforma.invoice %}
+									<button class="btn btn-gradient-primary" type="button" onclick="if(confirm('Are you sure?')) { location.href='/clients/convert_offer/{{ offer.id }}/'; }" title="Convert it to invoice">
+										<i class="mdi mdi-file btn-icon-prepend"></i>
+										Convert to Invoice
+									</button>
+									{% endif%}
 								</td>
 							</tr>
 						</tbody>

@@ -167,15 +167,20 @@
 								</td>
 							</tr>
 							{% endfor %}
-							<tr id="list_end">
+							<tr>
 								<td colspan="3"> </td>
 								<td> <h4>INVOICE</h4> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{invoice.value}} {{invoice.currency.symbol}}</h4> </td>
-								<td colspan="3" style="text-align: right;">
+								<td colspan="3"></td>
+							</tr>
+							<tr id="list_end">
+								<td colspan="8" style="text-align: right;">
 									{% if invoice.is_client %}
-									<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/{% if invoice.cancellation_to %}print_cancellation_invoice{% else %}print_invoice{% endif%}/{{invoice.id}}/');">
-									<i class="mdi mdi-printer btn-icon-prepend"></i></button>
+									<button class="btn btn-gradient-primary" type="button" onclick="window.open('/payments/{% if invoice.cancellation_to %}print_cancellation_invoice{% else %}print_invoice{% endif%}/{{invoice.id}}/');" title="Download PDF">
+										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
+										Download the Proforma
+									</button>
 									{% endif %}
 								</td>
 							</tr>

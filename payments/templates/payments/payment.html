@@ -175,8 +175,8 @@
 									</td>
 									<td style="text-align: right;">
 										{% if payment.is_client %}
-										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/{% if payment.cancellation_to %}print_cancellation_receipt{% else %}print_receipt{% endif%}/{{payment.id}}/');">
-											<i class="mdi mdi-printer btn-icon-prepend"></i>
+										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/{% if payment.cancellation_to %}print_cancellation_receipt{% else %}print_receipt{% endif%}/{{payment.id}}/');" title="Download PDF">
+											<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
 										</button>
 										{% endif %}
 									</td>

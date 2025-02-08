@@ -3,7 +3,7 @@
 {% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
-		<span class="page-title-icon bg-gradient-primary text-white me-2">
+		<span class="page-title-icon bg-gradient-warning text-white me-2">
 			<i class="mdi mdi-star"></i>
 		</span> Offer {{ offer.serial }}{{ offer.number }} for {{ client.firstname }} {{ client.lastname }}
 	</h3>
@@ -107,7 +107,7 @@
 								</div>
 								<label class="col-sm-2 col-form-label">Description</label>
 								<div class="col-sm-5">
-									<input type="text" class="form-control" name="offer_description" value="{{ offer.description }}"{% if offer.order %} disabled=""{% endif %}>
+									<input type="text" class="form-control" name="offer_description" value="{{ offer.description }}"{% if offer.order %} readonly=""{% endif %}>
 								</div>
 							</div>
 						</div>
@@ -295,10 +295,20 @@
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{offer.value}} {{offer.currency.symbol}}</h4> </td>
-								<td colspan="3" style="text-align: right;">
-									<button class="btn btn-gradient-primary btn-icon type="button" onclick="window.open('/clients/print_offer/{{offer.id}}/');">
-										<i class="mdi mdi-printer btn-icon-prepend"></i>
+								<td colspan="3"></td>
+							</tr>
+							<tr id="list_end">
+								<td colspan="8" style="text-align: right;">
+									<button class="btn btn-gradient-primary" type="button" onclick="window.open('/clients/print_offer/{{offer.id}}/');" title="Download PDF">
+										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
+										Download the offer
 									</button>
+									{% if not offer.order %}
+									<button class="btn btn-gradient-primary" type="button" onclick="if(confirm('Are you sure?')) { location.href='/clients/convert_offer/{{ offer.id }}/'; }" title="Convert it to order">
+										<i class="mdi mdi-cart btn-icon-prepend"></i>
+										Convert it to order
+									</button>
+									{% endif%}
 								</td>
 							</tr>
 						</tbody>

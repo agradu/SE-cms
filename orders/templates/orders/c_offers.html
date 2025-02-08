@@ -3,7 +3,7 @@
 {% block content %} 
 <div class="page-header">
 	<h3 class="page-title">
-		<span class="page-title-icon bg-gradient-primary text-white me-2">
+		<span class="page-title-icon bg-gradient-warning text-white me-2">
 			<i class="mdi mdi-star"></i>
 		</span> Offers for clients
 	</h3>
@@ -93,7 +93,7 @@
 								<td> {{ o.offer.modified_at|date:"d.m.Y"}} - {{ o.offer.modified_at|time:"H:i"}} </td>
 								<td> 
 									{% if o.offer.order == None %}
-									<button type="button" title="Convert in order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/convert_offer/{{ o.offer.id }}/';">
+									<button type="button" title="Convert it to order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/convert_offer/{{ o.offer.id }}/';">
 									<i class="mdi mdi-cart-outline"></i>
 									</button>
 									{% endif %}

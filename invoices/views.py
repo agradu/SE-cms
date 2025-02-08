@@ -773,5 +773,8 @@ def convert_proforma(request, proforma_id):
     proforma.save()
 
     return redirect(
-        "invoices",
+        "invoice",
+        invoice_id=invoice.pk,
+        person_id=invoice.person.pk,
+        order_id=0
     )
