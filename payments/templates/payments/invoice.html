@@ -179,7 +179,7 @@
 									{% if invoice.is_client %}
 									<button class="btn btn-gradient-primary" type="button" onclick="window.open('/payments/{% if invoice.cancellation_to %}print_cancellation_invoice{% else %}print_invoice{% endif%}/{{invoice.id}}/');" title="Download PDF">
 										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
-										Download the Proforma
+										Download the Invoice
 									</button>
 									{% endif %}
 								</td>
