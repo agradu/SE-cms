@@ -61,7 +61,7 @@
 				<h4 class="card-title">Payment details</h4>
 				<p>Payment created by <b class="text-primary">{{payment.created_by.first_name}} {{payment.created_by.last_name}}</b> and modified by <b class="text-success">{{payment.modified_by.first_name}} {{payment.modified_by.last_name}}</b>. </p>
 				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %}
+					<form method="post" class="col-md-12" action="#list_end"> {% csrf_token %}
 						<div class="row">
 							<div class="col-md-12">
 								<div class="form-group row">
@@ -74,11 +74,11 @@
 									</div>
 									<label class="col-sm-2 col-form-label">Serial</label>
 									<div class="col-sm-2">
-										<input type="text"{% if is_client or payment.type == 'bank' %}disabled=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
+										<input type="text"{% if is_client or payment.type == 'bank' %}readonly=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
 									<div class="col-sm-2">
-										<input type="text"{% if is_client or payment.type == 'bank' %}disabled=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
+										<input type="text"{% if is_client or payment.type == 'bank' %}readonly=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
 									</div>
 								</div>
 							</div>
@@ -155,7 +155,7 @@
 							</tr>
 							{% endfor %}
 							<form method="post"> {% csrf_token %}
-								<tr>
+								<tr id="#list_end">
 									<td> </td>
 									<td> </td>
 									<td> <h4>TOTAL PAYED:</h4> </td>

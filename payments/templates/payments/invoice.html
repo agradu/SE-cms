@@ -61,17 +61,17 @@
 				<p>Invoice created by <b class="text-primary">{{invoice.created_by.first_name}} {{invoice.created_by.last_name}}</b> and modified by <b class="text-success">{{invoice.modified_by.first_name}} {{invoice.modified_by.last_name}}</b>. </p>
 				{% if invoice.proforma %}<p class="text-success">This invoice corresponds to proforma <b>{{invoice.proforma.serial}}{{invoice.proforma.number}}</b></p>{% endif %}
 				<div class="row">
-					<form method="post" class="col-md-12"> {% csrf_token %}
+					<form method="post" class="col-md-12" action="#list_end"> {% csrf_token %}
 						<div class="row">
 							<div class="col-md-12">
 								<div class="form-group row">
 									<label class="col-sm-2 col-form-label">Serial</label>
 									<div class="col-sm-4">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_serial" value="{{ invoice_serial }}">
+										<input type="text"{% if is_client %}readonly=""{% endif %} class="form-control" name="invoice_serial" value="{{ invoice_serial }}">
 									</div>
 									<label class="col-sm-2 col-form-label">Number</label>
 									<div class="col-sm-4">
-										<input type="text"{% if is_client %}disabled=""{% endif %} class="form-control" name="invoice_number" value="{{ invoice_number }}">
+										<input type="text"{% if is_client %}readonly=""{% endif %} class="form-control" name="invoice_number" value="{{ invoice_number }}">
 									</div>
 								</div>
 							</div>
@@ -93,7 +93,7 @@
 									<div class="col-sm-4">
 										{% load tz %}
 										{% if new == False %}
-										<input type="date" {% if last == False %}disabled=""{% endif %} class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
+										<input type="date" {% if last == False %}readonly=""{% endif %} class="form-control" name="invoice_date" value="{{ invoice.created_at|date:'Y-m-d' }}">
 										{% else %}
 										<input type="date" class="form-control" name="invoice_date" value="{% now 'Y-m-d' %}">
 										{% endif %}
@@ -158,7 +158,7 @@
 									<label class="badge badge-{{e.element.status.style}}"> {{e.element.status.name}} </label>
 								</td>
 								<td>
-									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
+									<form method="post" action="#list_end"> {% csrf_token %}
 										<input type="hidden" name="invoice_element_id" value="{{e.id}}">
 										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
 											<i class="mdi mdi-minus btn-icon-prepend"></i>
@@ -167,7 +167,7 @@
 								</td>
 							</tr>
 							{% endfor %}
-							<tr>
+							<tr id="list_end">
 								<td colspan="3"> </td>
 								<td> <h4>INVOICE</h4> </td>
 								<td> <h4>TOTAL:</h4> </td>
@@ -220,7 +220,7 @@
 									<label class="badge badge-{{ue.status.style}}"> {{ue.status.name}} </label>
 								</td>
 								<td>
-									<form method="post" action="#ue{{ ue.id }}"> {% csrf_token %}
+									<form method="post" action="#list_end"> {% csrf_token %}
 										<input type="hidden" name="uninvoiced_element_id" value="{{ue.id}}">
 										<button class="btn btn-gradient-primary btn-icon" type="submit" title="Add to invoice">
 											<i class="mdi mdi-plus btn-icon-prepend"></i>

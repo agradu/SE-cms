@@ -93,17 +93,17 @@
 			<div class="card-body">
 				<h4 class="card-title">Offer details</h4>
 				<p>Offer created by <b class="text-primary">{{offer.created_by.first_name}} {{offer.created_by.last_name}}</b> and modified by <b class="text-success">{{offer.modified_by.first_name}} {{offer.modified_by.last_name}}</b>. </p>
-				<form method="post" action="/clients/offer/{% if offer.id %}{{ offer.id }}{% else %}0{% endif %}/{{ client.id }}/"> {% csrf_token %} 
+				<form method="post" action="/clients/offer/{% if offer.id %}{{ offer.id }}{% else %}0{% endif %}/{{ client.id }}/#list_end"> {% csrf_token %} 
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group row">
 								<label class="col-sm-1 col-form-label">Serial</label>
 								<div class="col-sm-1">
-									<input type="text" disabled="" class="form-control" name="offer_serial" value="{{ offer.serial }}">
+									<input type="text" readonly="" class="form-control" name="offer_serial" value="{{ offer.serial }}">
 								</div>
 								<label class="col-sm-1 col-form-label">Number</label>
 								<div class="col-sm-2">
-									<input type="text" disabled="" class="form-control" name="offer_number" value="{{ offer.number }}">
+									<input type="text" readonly="" class="form-control" name="offer_number" value="{{ offer.number }}">
 								</div>
 								<label class="col-sm-2 col-form-label">Description</label>
 								<div class="col-sm-5">
@@ -291,7 +291,7 @@
 								</tr>
 							</form>
 							{% endif %}
-							<tr>
+							<tr id="list_end">
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{offer.value}} {{offer.currency.symbol}}</h4> </td>

@@ -88,7 +88,7 @@
 			<div class="card-body">
 				<h4 class="card-title">Order details</h4>
 				<p>Order created by <b class="text-primary">{{order.created_by.first_name}} {{order.created_by.last_name}}</b> and modified by <b class="text-success">{{order.modified_by.first_name}} {{order.modified_by.last_name}}</b>. </p>
-				<form method="post" action="/providers/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ provider.id }}/">
+				<form method="post" action="/providers/order/{% if order.id %}{{ order.id }}{% else %}0{% endif %}/{{ provider.id }}/#list_end">
 				{% csrf_token %}
 				<div class="row">
 					<div class="col-md-12">
@@ -298,7 +298,7 @@
 									</td>
 								</tr>
 							</form>
-							<tr>
+							<tr id="list_end">
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
