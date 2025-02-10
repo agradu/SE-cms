@@ -55,7 +55,7 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th><a href="/clients/offers/?sort=offer&search={{search}}">Offer</a></th>
+								<th><a href="/clients/offers/?sort=offer&search={{search}}" class="text-warning">Offer</a></th>
 								<th><a href="/clients/offers/?sort=client&search={{search}}">Client</a></th>
 								<th> Description </th>
 								<th><a href="/clients/offers/?sort=assignee&search={{search}}">Assignee</a></th>
@@ -71,7 +71,7 @@
 						<tbody> {% for o in client_offers %} 
 							<tr title="{{ o.order.description}}">
 								<td>
-									<a href="/clients/offer/{{ o.offer.id }}/{{ o.offer.person.id}}/"> {{ o.offer.serial}}{{ o.offer.number}} </a>
+									<a href="/clients/offer/{{ o.offer.id }}/{{ o.offer.person.id}}/" class="text-warning"> {{ o.offer.serial}}{{ o.offer.number}} </a>
 								</td>
 								<td>
 									<a href="/persons/{{ o.offer.person.id}}/"> {{ o.offer.person.firstname}} {{ o.offer.person.lastname}} {% if o.offer.person.company_name != "" %}- {{ o.offer.person.company_name}} {% endif %}</a>

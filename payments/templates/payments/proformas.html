@@ -56,7 +56,7 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="/payments/proformas/?sort=proforma&search={{search}}">Proforma</a> </th>
+								<th> <a href="/payments/proformas/?sort=proforma&search={{search}}" class="text-warning">Proforma</a> </th>
 								<th> <a href="/payments/proformas/?sort=person&search={{search}}">Person</a> </th>
 								<th> Orders </th>
 								<th> <a href="/payments/proformas/?sort=assignee&search={{search}}">Assignee</a> </th>
@@ -70,7 +70,7 @@
 						<tbody>
 							{% for i in person_proformas %} 
 							<tr>
-								<td title="{{ invoice.description }}"> <a href="/payments/proforma/{{ i.proforma.id}}/{{ i.proforma.person.id}}/0/">{{ i.proforma.serial}}{{ i.proforma.number}}</a> </td>
+								<td title="{{ invoice.description }}"> <a href="/payments/proforma/{{ i.proforma.id}}/{{ i.proforma.person.id}}/0/" class="text-warning">{{ i.proforma.serial}}{{ i.proforma.number}}</a> </td>
 								<td> <a href="/persons/{{ i.proforma.person.id}}/"> {{ i.proforma.person.firstname}} {{ i.proforma.person.lastname}} {% if i.proforma.person.company_name != "" %}- {{ i.proforma.person.company_name}} {% endif %}</a> </td>
 								<td> 
 									{% for o in i.orders %}

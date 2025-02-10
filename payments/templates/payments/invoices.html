@@ -76,7 +76,7 @@
 							<tr>
 								<td> <i class="mdi {% if i.invoice.is_client %}mdi-cart-outline{% else %}mdi-truck{% endif %} mdi-18px"></i> </td>
 								<td title="{{ invoice.description }}"> <a href="/payments/invoice/{{ i.invoice.id}}/{{ i.invoice.person.id}}/0/">{{ i.invoice.serial}}{{ i.invoice.number}}</a> </td>
-								<td> {% if i.proforma %}<a href="/payments/proforma/{{ i.proforma.id}}/{{ i.invoice.person.id}}/0/">{{ i.proforma.serial}}{{ i.proforma.number}}</a>{% endif %} </td>
+								<td> {% if i.proforma %}<a href="/payments/proforma/{{ i.proforma.id}}/{{ i.invoice.person.id}}/0/" class="text-warning">{{ i.proforma.serial}}{{ i.proforma.number}}</a>{% endif %} </td>
 								<td> <a href="/persons/{{ i.invoice.person.id}}/"> {{ i.invoice.person.firstname}} {{ i.invoice.person.lastname}} {% if i.invoice.person.company_name != "" %}- {{ i.invoice.person.company_name}} {% endif %}</a> </td>
 								<td> 
 									{% for o in i.orders %}
