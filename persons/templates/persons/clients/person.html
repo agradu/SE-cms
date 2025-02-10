@@ -135,12 +135,25 @@
 				<div class="row">
 					<div class="col-md-12">
 						<div class="form-group row">
-							<div class="col-sm-2">
+							<div class="col-sm-12">
 								<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-								  <i class="mdi mdi-account btn-icon-prepend"></i> Save Client</button>
-							</div>
-							<div class="col-sm-8">
+								  <i class="mdi mdi-account btn-icon-prepend"></i> Save the person
+								</button>
 								{{ update }}
+								{% if person.firstname or person.lastname or person.company_name %}
+								<button class="btn btn-gradient-warning btn-icon-text" type="button" onclick="window.open('/clients/offer/0/{{ person.id}}/');">
+									<i class="mdi mdi-star btn-icon-prepend"></i>
+									Register an Offer
+								</button>
+								<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/clients/order/0/{{ person.id}}/');">
+									<i class="mdi mdi-cart btn-icon-prepend"></i>
+									Register an order as client
+								</button>
+								<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/providers/order/0/{{ person.id}}/');">
+									<i class="mdi mdi-truck btn-icon-prepend"></i>
+									Register an order as provider
+								</button>
+								{% endif %}
 							</div>
 						  </tr>
 						</div>

@@ -63,13 +63,13 @@
 								<td> {{ p.client.created_at|date:"d.m.Y"}} - {{ p.client.created_at|time:"H:i"}} </td>
 								<td> {{ p.client.modified_at|date:"d.m.Y"}} - {{ p.client.modified_at|time:"H:i"}} </td>
 								<td>
-									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
-										<i class="mdi mdi-cart-outline"></i>
+									<button type="button" title="Create an offer" class="btn btn-gradient-warning btn-rounded btn-icon" onclick="location.href='/clients/offer/0/{{ p.client.id}}/';">
+										<i class="mdi mdi-star"></i>
 									</button>
 								</td>
 								<td>
-									<button type="button" title="Create an offer" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/offer/0/{{ p.client.id}}/';">
-										<i class="mdi mdi-star"></i>
+									<button type="button" title="Create an order" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/clients/order/0/{{ p.client.id}}/';">
+										<i class="mdi mdi-cart-outline"></i>
 									</button>
 								</td>
 							</tr>
