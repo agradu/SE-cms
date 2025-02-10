@@ -78,7 +78,7 @@
 								</td>
 								<td> {% for e in o.elements %} <i class="mdi {{ e.service.icon }} mdi-18px"></i> {% endfor %} </td>
 								<td>
-									<img src="{{ o.offer.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ o.offer.modified_by.first_name}} {{ o.offer.modified_by.last_name}}
+									<img src="{{ o.offer.modified_by.profile_picture.url }}" class="me-2" alt="image" title="{{ o.offer.modified_by.first_name}} {{ o.offer.modified_by.last_name}}">
 								</td>
 								<td> {{ o.offer.created_at|date:"d.m.Y"}} - {{ o.offer.created_at|time:"H:i"}} </td>
 								<td> {{ o.offer.deadline|date:"d.m.Y"}} - {{ o.offer.deadline|time:"H:i"}} </td>

@@ -84,7 +84,7 @@
 									{% endfor %}
 								</td>
 								<td>
-									<img src="{{ i.invoice.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ i.invoice.modified_by.first_name}} {{ i.invoice.modified_by.last_name}}
+									<img src="{{ i.invoice.modified_by.profile_picture.url }}" class="me-2" alt="image" title="{{ i.invoice.modified_by.first_name}} {{ i.invoice.modified_by.last_name}}">
 								</td>
 								<td> {{ i.invoice.created_at|date:"d.m.Y"}} - {{ i.invoice.created_at|time:"H:i"}} </td>
 								<td> {{ i.invoice.deadline|date:"d.m.Y"}} </td>
