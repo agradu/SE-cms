@@ -299,15 +299,32 @@
 									</td>
 								</tr>
 							</form>
-							<tr id="list_end">
+							<tr>
 								<td colspan="3"> </td>
 								<td> <h4>TOTAL:</h4> </td>
 								<td style="text-align: right;"> <h4>{{order.value}} {{order.currency.symbol}}</h4> </td>
-								<td colspan="3" style="text-align: right;">
-									<button class="btn btn-gradient-primary btn-icon
-									" type="button" onclick="window.open('/clients/print_order/{{order.id}}/');" title="Download PDF">
+								<td colspan="3"></td>
+							</tr>
+							<tr id="list_end">
+								<td colspan="8" style="text-align: right;">
+									<button class="btn btn-gradient-primary" type="button" onclick="window.open('/clients/print_order/{{order.id}}/');" title="Download PDF">
 										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
+										Download the order
 									</button>
+									{% if elements %}
+									{% if not is_proformed and not is_invoiced %}
+									<button class="btn btn-gradient-warning" type="button" onclick="if(confirm('Are you sure?')) { location.href='/payments/proforma/0/{{ order.person.id }}/{{ order.id }}/'; }" title="Make a proforma">
+										<i class="mdi mdi-file-hidden btn-icon-prepend"></i>
+										Make a proforma
+									</button>
+									{% endif %}
+									{% if not is_invoiced %}
+									<button class="btn btn-gradient-success" type="button" onclick="if(confirm('Are you sure?')) { location.href='/payments/invoice/0/{{ order.person.id }}/{{ order.id }}/'; }" title="Make an invoice">
+										<i class="mdi mdi-file btn-icon-prepend"></i>
+										Make an invoice
+									</button>
+									{% endif%}
+									{% endif%}
 								</td>
 							</tr>
 						</tbody>

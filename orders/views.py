@@ -134,6 +134,7 @@ def c_order(request, order_id, client_id):
     elements = []
     element = ""
     is_invoiced = False
+    is_proformed = False
     date_now = timezone.now()
     if order_id != 0:  # if order exists
         new = False
@@ -141,6 +142,7 @@ def c_order(request, order_id, client_id):
         client = order.person
         elements = OrderElement.objects.filter(order=order).order_by("id")
         is_invoiced = InvoiceElement.objects.filter(element__order=order).exists()
+        is_proformed = ProformaElement.objects.filter(element__order=order).exists()
         if request.method == "POST":
             if "search" in request.POST:
                 search = request.POST.get("search")
@@ -296,6 +298,7 @@ def c_order(request, order_id, client_id):
             "new": new,
             "element_selected": element,
             "is_invoiced": is_invoiced,
+            "is_proformed": is_proformed,
         },
     )
 
