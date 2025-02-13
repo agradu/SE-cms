@@ -603,7 +603,7 @@ def proforma(request, proforma_id, person_id, order_id):
     else:
         proforma =""
         new = True
-    all_orders_elements = OrderElement.objects.exclude(status__percent__lt=1).exclude(order__is_client=False).filter(order__person=person).order_by("id")
+    all_orders_elements = OrderElement.objects.exclude(status__percent__lt=1).exclude(status__percent__gt=100).exclude(order__is_client=False).filter(order__person=person).order_by("id")
     proformed_elements = ProformaElement.objects.exclude(element__status__percent='0').filter(proforma__person=person).order_by("id")
     unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True))
     def set_value(proforma): # calculate and save the value of the proforma
@@ -738,7 +738,7 @@ def print_proforma(request, proforma_id):
 @login_required(login_url="/login/")
 def convert_proforma(request, proforma_id):
     proforma = get_object_or_404(Proforma, id=proforma_id)
-    proforma_elements = ProformaElement.objects.exclude(element__status__id='6').filter(proforma=proforma).order_by("id")
+    proforma_elements = ProformaElement.objects.exclude(element__status__percent__lt=1).filter(proforma=proforma).order_by("id")
     serials = get_object_or_404(Serial, id=1)
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")

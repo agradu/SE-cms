@@ -162,7 +162,7 @@
 										Download the Proforma
 									</button>
 									{% if not proforma.invoice %}
-									<button class="btn btn-gradient-primary" type="button" onclick="if(confirm('Are you sure?')) { location.href='/clients/convert_offer/{{ offer.id }}/'; }" title="Convert it to invoice">
+									<button class="btn btn-gradient-primary" type="button" onclick="if(confirm('Are you sure?')) { location.href='/payments/convert/{{proforma.id}}/'; }" title="Convert it to invoice">
 										<i class="mdi mdi-file btn-icon-prepend"></i>
 										Convert to Invoice
 									</button>
