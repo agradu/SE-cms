@@ -1,30 +1,14 @@
 from django.db import models
 from persons.models import Person
 from invoices.models import Invoice
-from services.models import Currency
+from services.models import DocumentBase, Currency
 from django.conf import settings
 from django.utils import timezone
 
 # Create your models here.
 
 
-class Payment(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+class Payment(DocumentBase):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     type_choices = [("cash", "Cash"), ("bank", "Bank")]
     type = models.CharField(
@@ -33,16 +17,10 @@ class Payment(models.Model):
         default="bank",
     )
     is_client = models.BooleanField(default=True)
-    serial = models.CharField(max_length=10, blank=True)
-    number = models.CharField(max_length=20, blank=True)
-    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
     cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")
-    currency = models.ForeignKey(
-        Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
-    )
     payment_date = models.DateField(default=timezone.now)
-    description = models.CharField(max_length=255, null=True, blank=True)
+    is_recurrent = models.BooleanField(default=False)
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")

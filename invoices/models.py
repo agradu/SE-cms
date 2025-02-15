@@ -4,42 +4,18 @@ from orders.models import OrderElement
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
-from services.models import Currency
+from services.models import DocumentBase, Currency
 
 # Create your models here.
 
 
-class Invoice(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+class Invoice(DocumentBase):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
-    serial = models.CharField(max_length=10, blank=True)
-    number = models.CharField(max_length=20, blank=True)
     deadline = models.DateField(default=timezone.now)
-    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
     cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")
-    currency = models.ForeignKey(
-        Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
-    )
-    description = models.CharField(max_length=255, null=True, blank=True)
     is_recurrent = models.BooleanField(default=False)
-
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
@@ -52,34 +28,11 @@ class InvoiceElement(models.Model):
     def __str__(self):
         return f"Invoice element {self.element} from invoice {self.invoice.serial}{self.invoice.number}"
 
-class Proforma(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+class Proforma(DocumentBase):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, default=None)
-    serial = models.CharField(max_length=10, blank=True)
-    number = models.CharField(max_length=20, blank=True)
     deadline = models.DateField(default=timezone.now)
-    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    currency = models.ForeignKey(
-        Currency, on_delete=models.SET_NULL, null=True, blank=True, default=None
-    )
-    description = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")
