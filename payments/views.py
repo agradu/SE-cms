@@ -109,6 +109,7 @@ def payment(request, payment_id, person_id, invoice_id):
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
     payment_value = 0
+    is_recurrent = False
     if invoice_id > 0:
         invoice = get_object_or_404(Invoice, id=invoice_id)
         is_client = invoice.is_client
@@ -242,6 +243,7 @@ def payment(request, payment_id, person_id, invoice_id):
                     modified_by = request.user,
                     created_by = request.user,
                     currency = invoice.currency,
+                    is_recurrent = False,
                 )
                 payment.save()
                 # Add all unpayed elements to this payment
