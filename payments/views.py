@@ -243,7 +243,7 @@ def payment(request, payment_id, person_id, invoice_id):
                     modified_by = request.user,
                     created_by = request.user,
                     currency = invoice.currency,
-                    is_recurrent = False,
+                    is_recurrent = is_recurrent,
                 )
                 payment.save()
                 # Add all unpayed elements to this payment
