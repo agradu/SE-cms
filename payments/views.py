@@ -29,15 +29,15 @@ def payments(request):
     reg_start = request.GET.get("r_start") or date_before.strftime("%Y-%m-%d")
     reg_end = request.GET.get("r_end") or date_now.strftime("%Y-%m-%d")
     page = request.GET.get("page", 1)
+    sort = request.GET.get("sort", "payment")
+    search_client = request.GET.get("client", "").strip()
+    search_description = request.GET.get("description", "").strip()
     
     if request.method == "POST":
         search_client = request.POST.get("search_client", "").strip()
         search_description = request.POST.get("search_description", "").strip()
         reg_start = request.POST.get("reg_start") or reg_start
         reg_end = request.POST.get("reg_end") or reg_end
-    else:
-        search_client = ""
-        search_description = ""
 
     # Ensure valid search terms
     if len(search_client) < 3:
@@ -70,7 +70,6 @@ def payments(request):
     ]
 
     # Sorting logic
-    sort = request.GET.get("sort")
     sort_keys = {
         "type": lambda x: x["payment"].type,
         "payment": lambda x: x["payment"].id,
@@ -87,6 +86,7 @@ def payments(request):
 
     paginator = Paginator(person_payments, 10)
     payments_on_page = paginator.get_page(page)
+    print(sort)
 
     return render(
         request,

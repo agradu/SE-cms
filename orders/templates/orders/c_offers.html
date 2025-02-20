@@ -55,16 +55,16 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th><a href="/clients/offers/?sort=offer&search={{search}}" class="text-warning">Offer</a></th>
-								<th><a href="/clients/offers/?sort=client&search={{search}}">Client</a></th>
+								<th><a href="/clients/offers/?sort=offer&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}" class="text-warning">Offer</a></th>
+								<th><a href="/clients/offers/?sort=client&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Client</a></th>
 								<th> Description </th>
-								<th><a href="/clients/offers/?sort=assignee&search={{search}}">Assignee</a></th>
-								<th><a href="/clients/offers/?sort=registered&search={{search}}">Registered</a></th>
-								<th><a href="/clients/offers/?sort=deadline&search={{search}}">Due Date</a></th>
-								<th><a href="/clients/offers/?sort=status&search={{search}}">Status</a></th>
+								<th><a href="/clients/offers/?sort=assignee&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Assignee</a></th>
+								<th><a href="/clients/offers/?sort=registered&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Registered</a></th>
+								<th><a href="/clients/offers/?sort=deadline&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Due Date</a></th>
+								<th><a href="/clients/offers/?sort=status&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Status</a></th>
 								<th style="text-align: right;">Order</th>
-								<th style="text-align: right;"><a href="/clients/offers/?sort=value&search={{search}}">Value</a></th>
-								<th><a href="/clients/offers/?sort=update&search={{search}}">Last Update</a></th>
+								<th style="text-align: right;"><a href="/clients/offers/?sort=value&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Value</a></th>
+								<th><a href="/clients/offers/?sort=update&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Last Update</a></th>
 								<th></th>
 							</tr>
 						</thead>
@@ -105,15 +105,15 @@
 				<div class="table-responsive">
 					<table class="table">
 						<tbody> 
-							{% if client_orders.paginator.num_pages > 1 %} 
+							{% if client_offers.paginator.num_pages > 1 %} 
 							<tr>
 								<td>
 									<div class="btn-group btn-group-sm">
-										{% for pg in client_orders.paginator.page_range %}
-										{% if pg == client_orders.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/clients/offers/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										{% for pg in client_offers.paginator.page_range %}
+										{% if pg == client_offers.number %}
+										<button type="button" class="btn btn-primary" onclick="location.href='/clients/offers/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/offers/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/offers/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>

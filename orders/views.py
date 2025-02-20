@@ -9,102 +9,87 @@ from invoices.models import InvoiceElement, ProformaElement
 from services.models import Currency, Status, Service, UM, Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
 
 # Create your views here.
 
-
 @login_required(login_url="/login/")
 def c_orders(request):
-    # search elements
+    # Define date range defaults
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_client = ""
-    search_description = ""
+
+    # Extract GET parameters with fallbacks
+    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
+    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
+    page = request.GET.get("page", 1)
+    sort = request.GET.get("sort")
+    search_client = request.GET.get("client", "").strip()
+    search_description = request.GET.get("description", "").strip()
+
     if request.method == "POST":
-        search_client = request.POST.get("search_client")
-        search_description = request.POST.get("search_description")
-        if len(search_client) < 3:
-            search_client = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_client = request.POST.get("search_client", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+    # Validate search terms
+    search_client = search_client if len(search_client) >= 3 else ""
+    search_description = search_description if len(search_description) >= 3 else ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+    
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # CLIENT ORDERS
-    selected_orders = (
-        Order.objects.filter(is_client=True)
-        .filter(
-            Q(person__firstname__icontains=search_client)
-            | Q(person__lastname__icontains=search_client)
-            | Q(person__company_name__icontains=search_client)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+
+    # Query filtered orders
+    selected_orders = Order.objects.filter(
+        is_client=True,
+        created_at__range=(filter_start, filter_end),
+        description__icontains=search_description
+    ).filter(
+        Q(person__firstname__icontains=search_client) |
+        Q(person__lastname__icontains=search_client) |
+        Q(person__company_name__icontains=search_client)
     )
+
+    # Prepare orders list with invoicing details
     client_orders = []
     for o in selected_orders:
-        order_elements = OrderElement.objects.filter(order=o).order_by("id")
-        o_invoiced = 0
-        proformed = False
-        for e in order_elements:
-            try:
-                invoice_element = InvoiceElement.objects.get(element=e)
-                o_invoiced += (
-                    invoice_element.element.price * invoice_element.element.quantity
-                )
-            except:
-                invoice_element = None
-            try:
-                proforma_element = ProformaElement.objects.get(element=e)
-                proformed = True
-            except:
-                proformed = proformed
-        if o.value > 0:
-            invoiced = int(o_invoiced / o.value * 100)
-        else:
-            invoiced = 0
-        client_orders.append(
-            {"order": o, "elements": order_elements, "invoiced": invoiced, "proformed": proformed}
+        order_elements = list(OrderElement.objects.filter(order=o).order_by("id"))
+        invoiced_amount = sum(
+            InvoiceElement.objects.filter(element=e).first().element.price * e.quantity
+            for e in order_elements if InvoiceElement.objects.filter(element=e).exists()
         )
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "order":
-            return x["order"].id
-        elif sort == "client":
-            return x["order"].person.firstname
-        elif sort == "assignee":
-            return x["order"].modified_by.first_name
-        elif sort == "registered":
-            return x["order"].created_at
-        elif sort == "deadline":
-            return x["order"].deadline
-        elif sort == "status":
-            return x["order"].status.id
-        elif sort == "value":
-            return x["order"].value
-        elif sort == "invoiced":
-            return x["invoiced"]
-        elif sort == "update":
-            return x["order"].modified_at
-        else:
-            return x["order"].created_at
-    client_orders = sorted(client_orders, key=get_sort_key, reverse=(sort != "client" and sort != "status"))
+        
+        proformed = any(ProformaElement.objects.filter(element=e).exists() for e in order_elements)
+        invoiced = int((invoiced_amount / o.value * 100) if o.value > 0 else 0)
+        
+        client_orders.append({"order": o, "elements": order_elements, "invoiced": invoiced, "proformed": proformed})
+    
+    # Sorting logic
+    sort_keys = {
+        "order": lambda x: x["order"].id,
+        "client": lambda x: x["order"].person.firstname,
+        "assignee": lambda x: x["order"].modified_by.first_name,
+        "registered": lambda x: x["order"].created_at,
+        "deadline": lambda x: x["order"].deadline,
+        "status": lambda x: x["order"].status.id,
+        "value": lambda x: x["order"].value,
+        "invoiced": lambda x: x["invoiced"],
+        "update": lambda x: x["order"].modified_at,
+    }
+
+    client_orders.sort(key=sort_keys.get(sort, lambda x: x["order"].created_at), reverse=(sort not in ["client", "status"]))
+    
+    # Pagination
     paginator = Paginator(client_orders, 10)
     orders_on_page = paginator.get_page(page)
 
@@ -304,72 +289,67 @@ def c_order(request, order_id, client_id):
 
 @login_required(login_url="/login/")
 def c_offers(request):
-    # search elements
+    # Define date range defaults
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_client = ""
-    search_description = ""
+
+    # Extract GET parameters with fallbacks
+    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
+    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
+    page = request.GET.get("page", 1)
+    sort = request.GET.get("sort")
+    search_client = request.GET.get("client", "").strip()
+    search_description = request.GET.get("description", "").strip()
+
     if request.method == "POST":
-        search_client = request.POST.get("search_client")
-        search_description = request.POST.get("search_description")
-        if len(search_client) < 3:
-            search_client = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_client = request.POST.get("search_client", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+    # Validate search terms
+    search_client = search_client if len(search_client) >= 3 else ""
+    search_description = search_description if len(search_description) >= 3 else ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+    
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # CLIENT OFFERS
-    selected_offers = (
-        Offer.objects.filter(
-            Q(person__firstname__icontains=search_client)
-            | Q(person__lastname__icontains=search_client)
-            | Q(person__company_name__icontains=search_client)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+
+    # Query filtered offers
+    selected_offers = Offer.objects.filter(
+        created_at__range=(filter_start, filter_end),
+        description__icontains=search_description
+    ).filter(
+        Q(person__firstname__icontains=search_client) |
+        Q(person__lastname__icontains=search_client) |
+        Q(person__company_name__icontains=search_client)
     )
-    client_offers = []
-    for o in selected_offers:
-        offer_elements = OfferElement.objects.filter(offer=o).order_by("id")
-        o_invoiced = 0
-        client_offers.append(
-            {"offer": o, "elements": offer_elements, "order": o.order}
-        )
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "offer":
-            return x["offer"].id
-        elif sort == "client":
-            return x["offer"].person.firstname
-        elif sort == "assignee":
-            return x["offer"].modified_by.first_name
-        elif sort == "registered":
-            return x["offer"].created_at
-        elif sort == "deadline":
-            return x["offer"].deadline
-        elif sort == "status":
-            return x["offer"].status.id
-        elif sort == "value":
-            return x["offer"].value
-        elif sort == "update":
-            return x["offer"].modified_at
-        else:
-            return x["offer"].created_at
-    client_offers = sorted(client_offers, key=get_sort_key, reverse=(sort != "client"))
+
+    # Prepare offers list
+    client_offers = [
+        {"offer": o, "elements": list(OfferElement.objects.filter(offer=o).order_by("id")), "order": o.order}
+        for o in selected_offers
+    ]
+    
+    # Sorting logic
+    sort_keys = {
+        "offer": lambda x: x["offer"].id,
+        "client": lambda x: x["offer"].person.firstname,
+        "assignee": lambda x: x["offer"].modified_by.first_name,
+        "registered": lambda x: x["offer"].created_at,
+        "deadline": lambda x: x["offer"].deadline,
+        "status": lambda x: x["offer"].status.id,
+        "value": lambda x: x["offer"].value,
+        "update": lambda x: x["offer"].modified_at,
+    }
+    client_offers.sort(key=sort_keys.get(sort, lambda x: x["offer"].created_at), reverse=(sort not in ["client", "status"]))
+    
+    # Pagination
     paginator = Paginator(client_offers, 10)
     offers_on_page = paginator.get_page(page)
 
@@ -385,6 +365,7 @@ def c_offers(request):
             "reg_end": reg_end,
         },
     )
+
 
 @login_required(login_url="/login/")
 def c_offer(request, offer_id, client_id):
@@ -590,91 +571,76 @@ def convert_offer(request, offer_id):
 
 @login_required(login_url="/login/")
 def p_orders(request):
-    # search elements
-    """ search = request.GET.get("search")
-    if search == None:
-        search = "" """
+    # Define date range defaults
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_provider = ""
-    search_description = ""
+
+    # Extract GET parameters with fallbacks
+    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
+    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
+    page = request.GET.get("page", 1)
+    sort = request.GET.get("sort")
+    search_provider = request.GET.get("provider", "").strip()
+    search_description = request.GET.get("description", "").strip()
+
     if request.method == "POST":
-        search_provider = request.POST.get("search_provider")
-        search_description = request.POST.get("search_description")
-        if len(search_provider) < 3:
-            search_provider = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_provider = request.POST.get("search_provider", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+    # Validate search terms
+    search_provider = search_provider if len(search_provider) >= 3 else ""
+    search_description = search_description if len(search_description) >= 3 else ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+    
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # PROVIDERS ORDERS
-    selected_orders = (
-        Order.objects.filter(is_client=False)
-        .filter(
-            Q(person__firstname__icontains=search_provider)
-            | Q(person__lastname__icontains=search_provider)
-            | Q(person__company_name__icontains=search_provider)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+
+    # Query filtered orders
+    selected_orders = Order.objects.filter(
+        is_client=False,
+        created_at__range=(filter_start, filter_end),
+        description__icontains=search_description
+    ).filter(
+        Q(person__firstname__icontains=search_provider) |
+        Q(person__lastname__icontains=search_provider) |
+        Q(person__company_name__icontains=search_provider)
     )
+
+    # Prepare orders list with invoicing details
     provider_orders = []
     for o in selected_orders:
-        order_elements = OrderElement.objects.filter(order=o).order_by("id")
-        o_invoiced = 0
-        for e in order_elements:
-            try:
-                invoice_element = InvoiceElement.objects.get(element=e)
-                o_invoiced += (
-                    invoice_element.element.price * invoice_element.element.quantity
-                )
-            except:
-                invoice_element = None
-        if o.value > 0:
-            invoiced = int(o_invoiced / o.value * 100)
-        else:
-            invoiced = 0
-        provider_orders.append(
-            {"order": o, "elements": order_elements, "invoiced": invoiced}
+        order_elements = list(OrderElement.objects.filter(order=o).order_by("id"))
+        invoiced_amount = sum(
+            InvoiceElement.objects.filter(element=e).first().element.price * e.quantity
+            for e in order_elements if InvoiceElement.objects.filter(element=e).exists()
         )
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "order":
-            return x["order"].id
-        elif sort == "provider":
-            return x["order"].person.firstname
-        elif sort == "assignee":
-            return x["order"].modified_by.first_name
-        elif sort == "registered":
-            return x["order"].created_at
-        elif sort == "deadline":
-            return x["order"].deadline
-        elif sort == "status":
-            return x["order"].status.id
-        elif sort == "value":
-            return x["order"].value
-        elif sort == "invoiced":
-            return x["invoiced"]
-        elif sort == "update":
-            return x["order"].modified_at
-        else:
-            return x["order"].created_at
-    provider_orders = sorted(provider_orders, key=get_sort_key, reverse=(sort != "provider"))
+        invoiced = int((invoiced_amount / o.value * 100) if o.value > 0 else 0)
+        
+        provider_orders.append({"order": o, "elements": order_elements, "invoiced": invoiced})
+    
+    # Sorting logic
+    sort_keys = {
+        "order": lambda x: x["order"].id,
+        "provider": lambda x: x["order"].person.firstname,
+        "assignee": lambda x: x["order"].modified_by.first_name,
+        "registered": lambda x: x["order"].created_at,
+        "deadline": lambda x: x["order"].deadline,
+        "status": lambda x: x["order"].status.id,
+        "value": lambda x: x["order"].value,
+        "invoiced": lambda x: x["invoiced"],
+        "update": lambda x: x["order"].modified_at,
+    }
 
+    provider_orders.sort(key=sort_keys.get(sort, lambda x: x["order"].created_at), reverse=(sort not in ["provider", "status"]))
+    
+    # Pagination
     paginator = Paginator(provider_orders, 10)
     orders_on_page = paginator.get_page(page)
 

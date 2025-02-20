@@ -55,15 +55,15 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="/payments/payments/?sort=type">Type</a> </th>
-								<th> <a href="/payments/payments/?sort=payment">Payment</a> </th>
-								<th> <a href="/payments/payments/?sort=person">Payer</a> </th>
-								<th> <a href="/payments/payments/?sort=receipt">Receipt</a> </th>
+								<th> <a href="/payments/payments/?sort=type&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Type</a> </th>
+								<th> <a href="/payments/payments/?sort=payment&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Payment</a> </th>
+								<th> <a href="/payments/payments/?sort=person&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Payer</a> </th>
+								<th> <a href="/payments/payments/?sort=receipt&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Receipt</a> </th>
 								<th> Invoice </th>
-								<th> <a href="/payments/payments/?sort=assignee">Assignee</a> </th>
-								<th> <a href="/payments/payments/?sort=registered">Registered</a> </th>
-								<th style="text-align: right;"> <a href="/payments/payments/?sort=value">Value</a> </th>
-								<th> <a href="/payments/payments/?sort=update">Last Update</a> </th>
+								<th> <a href="/payments/payments/?sort=assignee&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Assignee</a> </th>
+								<th> <a href="/payments/payments/?sort=registered&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Registered</a> </th>
+								<th style="text-align: right;"> <a href="/payments/payments/?sort=value&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Value</a> </th>
+								<th> <a href="/payments/payments/?sort=update&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Last Update</a> </th>
 							</tr>
 						</thead>
 						<tbody>
@@ -99,9 +99,9 @@
 										<div class="btn-group btn-group-sm">
 											{% for pg in person_payments.paginator.page_range %}
 											{% if pg == person_payments.number %}
-											<button type="button" class="btn btn-primary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+											<button type="button" class="btn btn-primary" onclick="location.href='/payments/payments/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 											{% else %}
-											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/payments/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+											<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/payments/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 											{% endif %}
 											{% endfor %} </div>
 									</td>

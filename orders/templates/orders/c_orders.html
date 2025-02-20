@@ -55,16 +55,16 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th><a href="/clients/orders/?sort=order&search={{search}}">Order</a></th>
-								<th><a href="/clients/orders/?sort=client&search={{search}}">Client</a></th>
+								<th><a href="/clients/orders/?sort=order&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Order</a></th>
+								<th><a href="/clients/orders/?sort=client&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Client</a></th>
 								<th> Description </th>
-								<th><a href="/clients/orders/?sort=assignee&search={{search}}">Assignee</a></th>
-								<th><a href="/clients/orders/?sort=registered&search={{search}}">Registered</a></th>
-								<th><a href="/clients/orders/?sort=deadline&search={{search}}">Due Date</a></th>
-								<th><a href="/clients/orders/?sort=status&search={{search}}">Status</a></th>
-								<th style="text-align: right;"><a href="/clients/orders/?sort=value&search={{search}}">Value</a></th>
-								<th><a href="/clients/orders/?sort=invoiced&search={{search}}">Invoiced</a></th>
-								<th><a href="/clients/orders/?sort=update&search={{search}}">Last Update</a></th>
+								<th><a href="/clients/orders/?sort=assignee&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Assignee</a></th>
+								<th><a href="/clients/orders/?sort=registered&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Registered</a></th>
+								<th><a href="/clients/orders/?sort=deadline&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Due Date</a></th>
+								<th><a href="/clients/orders/?sort=status&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Status</a></th>
+								<th style="text-align: right;"><a href="/clients/orders/?sort=value&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Value</a></th>
+								<th><a href="/clients/orders/?sort=invoiced&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Invoiced</a></th>
+								<th><a href="/clients/orders/?sort=update&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Last Update</a></th>
 								<th colspan="2" width="5%"></th>
 							</tr>
 						</thead>
@@ -115,9 +115,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in client_orders.paginator.page_range %}
 										{% if pg == client_orders.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/clients/orders/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/orders/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>
