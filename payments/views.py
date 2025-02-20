@@ -16,43 +16,17 @@ from weasyprint import HTML, CSS
 import base64
 from decimal import Decimal
 from num2words import num2words
+from common.helpers import get_date_range, get_search_params, paginate_objects
 
 # Create your views here.
 
 @login_required(login_url="/login/")
 def payments(request):
-    # search elements
-    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=10)
+    # Get data and filters
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
+    search_client, search_description = get_search_params(request)
 
-    # Get filter values from request
-    reg_start = request.GET.get("r_start") or date_before.strftime("%Y-%m-%d")
-    reg_end = request.GET.get("r_end") or date_now.strftime("%Y-%m-%d")
-    page = request.GET.get("page", 1)
     sort = request.GET.get("sort", "payment")
-    search_client = request.GET.get("client", "").strip()
-    search_description = request.GET.get("description", "").strip()
-    
-    if request.method == "POST":
-        search_client = request.POST.get("search_client", "").strip()
-        search_description = request.POST.get("search_description", "").strip()
-        reg_start = request.POST.get("reg_start") or reg_start
-        reg_end = request.POST.get("reg_end") or reg_end
-
-    # Ensure valid search terms
-    if len(search_client) < 3:
-        search_client = ""
-    if len(search_description) < 3:
-        search_description = ""
-
-    # Convert date strings to datetime objects
-    parsed_start = parse_date(reg_start) or date_before.date()
-    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
-
-    parsed_end = parse_date(reg_end) or date_now.date()
-    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
-        hour=23, minute=59, second=59, microsecond=0
-    )
     
     # Query payments in a single filter operation
     selected_payments = Payment.objects.filter(
@@ -84,9 +58,8 @@ def payments(request):
     sort_key = sort_keys.get(sort, lambda x: x["payment"].created_at)
     person_payments.sort(key=sort_key, reverse=(sort != "person"))
 
-    paginator = Paginator(person_payments, 10)
-    payments_on_page = paginator.get_page(page)
-    print(sort)
+    # Pagination
+    payments_on_page = paginate_objects(request, person_payments)
 
     return render(
         request,

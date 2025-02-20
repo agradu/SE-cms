@@ -13,41 +13,17 @@ from django.utils.dateparse import parse_date
 from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
+from common.helpers import get_date_range, get_search_params, paginate_objects
 
 # Create your views here.
 
 @login_required(login_url="/login/")
 def c_orders(request):
-    # Define date range defaults
-    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=10)
+    # Get data and filters
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
+    search_client, search_description = get_search_params(request)
 
-    # Extract GET parameters with fallbacks
-    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
-    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
-    page = request.GET.get("page", 1)
     sort = request.GET.get("sort")
-    search_client = request.GET.get("client", "").strip()
-    search_description = request.GET.get("description", "").strip()
-
-    if request.method == "POST":
-        search_client = request.POST.get("search_client", "").strip()
-        search_description = request.POST.get("search_description", "").strip()
-        reg_start = request.POST.get("reg_start", reg_start)
-        reg_end = request.POST.get("reg_end", reg_end)
-
-    # Validate search terms
-    search_client = search_client if len(search_client) >= 3 else ""
-    search_description = search_description if len(search_description) >= 3 else ""
-
-    # Convert date strings to datetime objects
-    parsed_start = parse_date(reg_start) or date_before.date()
-    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
-    
-    parsed_end = parse_date(reg_end) or date_now.date()
-    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
-        hour=23, minute=59, second=59, microsecond=0
-    )
 
     # Query filtered orders
     selected_orders = Order.objects.filter(
@@ -90,8 +66,7 @@ def c_orders(request):
     client_orders.sort(key=sort_keys.get(sort, lambda x: x["order"].created_at), reverse=(sort not in ["client", "status"]))
     
     # Pagination
-    paginator = Paginator(client_orders, 10)
-    orders_on_page = paginator.get_page(page)
+    orders_on_page = paginate_objects(request, client_orders)
 
     return render(
         request,
@@ -289,36 +264,11 @@ def c_order(request, order_id, client_id):
 
 @login_required(login_url="/login/")
 def c_offers(request):
-    # Define date range defaults
-    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=10)
+    # Get data and filters
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
+    search_client, search_description = get_search_params(request)
 
-    # Extract GET parameters with fallbacks
-    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
-    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
-    page = request.GET.get("page", 1)
     sort = request.GET.get("sort")
-    search_client = request.GET.get("client", "").strip()
-    search_description = request.GET.get("description", "").strip()
-
-    if request.method == "POST":
-        search_client = request.POST.get("search_client", "").strip()
-        search_description = request.POST.get("search_description", "").strip()
-        reg_start = request.POST.get("reg_start", reg_start)
-        reg_end = request.POST.get("reg_end", reg_end)
-
-    # Validate search terms
-    search_client = search_client if len(search_client) >= 3 else ""
-    search_description = search_description if len(search_description) >= 3 else ""
-
-    # Convert date strings to datetime objects
-    parsed_start = parse_date(reg_start) or date_before.date()
-    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
-    
-    parsed_end = parse_date(reg_end) or date_now.date()
-    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
-        hour=23, minute=59, second=59, microsecond=0
-    )
 
     # Query filtered offers
     selected_offers = Offer.objects.filter(
@@ -350,8 +300,7 @@ def c_offers(request):
     client_offers.sort(key=sort_keys.get(sort, lambda x: x["offer"].created_at), reverse=(sort not in ["client", "status"]))
     
     # Pagination
-    paginator = Paginator(client_offers, 10)
-    offers_on_page = paginator.get_page(page)
+    offers_on_page = paginate_objects(request, client_offers)
 
     return render(
         request,
@@ -571,36 +520,11 @@ def convert_offer(request, offer_id):
 
 @login_required(login_url="/login/")
 def p_orders(request):
-    # Define date range defaults
-    date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
-    date_before = date_now - timedelta(days=10)
+    # Get data and filters
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
+    search_provider, search_description = get_search_params(request)
 
-    # Extract GET parameters with fallbacks
-    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
-    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
-    page = request.GET.get("page", 1)
     sort = request.GET.get("sort")
-    search_provider = request.GET.get("provider", "").strip()
-    search_description = request.GET.get("description", "").strip()
-
-    if request.method == "POST":
-        search_provider = request.POST.get("search_provider", "").strip()
-        search_description = request.POST.get("search_description", "").strip()
-        reg_start = request.POST.get("reg_start", reg_start)
-        reg_end = request.POST.get("reg_end", reg_end)
-
-    # Validate search terms
-    search_provider = search_provider if len(search_provider) >= 3 else ""
-    search_description = search_description if len(search_description) >= 3 else ""
-
-    # Convert date strings to datetime objects
-    parsed_start = parse_date(reg_start) or date_before.date()
-    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
-    
-    parsed_end = parse_date(reg_end) or date_now.date()
-    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
-        hour=23, minute=59, second=59, microsecond=0
-    )
 
     # Query filtered orders
     selected_orders = Order.objects.filter(
@@ -641,8 +565,7 @@ def p_orders(request):
     provider_orders.sort(key=sort_keys.get(sort, lambda x: x["order"].created_at), reverse=(sort not in ["provider", "status"]))
     
     # Pagination
-    paginator = Paginator(provider_orders, 10)
-    orders_on_page = paginator.get_page(page)
+    orders_on_page = paginate_objects(request, provider_orders)
 
     return render(
         request,

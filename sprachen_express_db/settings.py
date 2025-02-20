@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "reports",
     "users",
     "services",
+    "common",
 ]
 
 AUTH_USER_MODEL = "users.CustomUser"
