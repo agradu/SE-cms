@@ -10,6 +10,7 @@ from .models import Invoice, InvoiceElement, Proforma, ProformaElement
 from services.models import Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
@@ -19,95 +20,79 @@ import base64
 
 @login_required(login_url="/login/")
 def invoices(request):
-    # search elements
+    # Define date range defaults
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_client = ""
-    search_description = ""
+
+    # Extract GET and POST parameters with fallbacks
+    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
+    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
+    page = request.GET.get("page", 1)
+    sort = request.GET.get("sort")
+    search_client = request.GET.get("client", "").strip()
+    search_description = request.GET.get("description", "").strip()
+
     if request.method == "POST":
-        search_client = request.POST.get("search_client")
-        search_description = request.POST.get("search_description")
-        if len(search_client) < 3:
-            search_client = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_client = request.POST.get("search_client", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+    # Validate search terms
+    search_client = search_client if len(search_client) >= 3 else ""
+    search_description = search_description if len(search_description) >= 3 else ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+    
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # CLIENT/PROVIDER INVOICES
-    selected_invoices = (
-        Invoice.objects.filter(
-        Q(person__firstname__icontains=search_client)
-        | Q(person__lastname__icontains=search_client)
-        | Q(person__company_name__icontains=search_client)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+
+    # Query filtered invoices
+    selected_invoices = Invoice.objects.filter(
+        created_at__range=(filter_start, filter_end),
+        description__icontains=search_description
+    ).filter(
+        Q(person__firstname__icontains=search_client) |
+        Q(person__lastname__icontains=search_client) |
+        Q(person__company_name__icontains=search_client)
     )
+
+    # Prepare invoice list with payment details
     person_invoices = []
     for i in selected_invoices:
-        invoice_elements = InvoiceElement.objects.filter(invoice=i).order_by("id")
-        i_orders = []
-        for e in invoice_elements:
-            if e.element.order not in i_orders:
-                i_orders.append(e.element.order)
-        i_payed = 0
-        i_payments = PaymentElement.objects.filter(invoice=i)
-        for p in i_payments:
-            if abs(p.payment.value) < abs(p.invoice.value):
-                i_payed += p.payment.value
-            else:
-                i_payed += p.invoice.value
-        if i.value != 0:
-            payed = int(i_payed / i.value * 100)
-        else:
-            payed = 0
-        try:
-            proforma = Proforma.objects.get(invoice=i)
-        except Proforma.DoesNotExist:
-            proforma = None
+        invoice_elements = list(InvoiceElement.objects.filter(invoice=i).order_by("id"))
+        i_orders = list(set(e.element.order for e in invoice_elements))
+        
+        i_payed = sum(min(p.payment.value, p.invoice.value) for p in PaymentElement.objects.filter(invoice=i))
+        payed = int(i_payed / i.value * 100) if i.value else 0
+
+        proforma = Proforma.objects.filter(invoice=i).first()
+
         person_invoices.append(
             {"invoice": i, "payed": payed, "value": i.value, "orders": i_orders, "proforma": proforma}
         )
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "type":
-            return x["invoice"].is_client
-        elif sort == "invoice":
-            return (x["invoice"].serial, x["invoice"].number)
-        elif sort == "person":
-            return x["invoice"].person.firstname
-        elif sort == "assignee":
-            return x["invoice"].modified_by.first_name
-        elif sort == "registered":
-            return x["invoice"].created_at
-        elif sort == "deadline":
-            return x["invoice"].deadline
-        elif sort == "status":
-            return x["invoice"].status.percent
-        elif sort == "value":
-            return x["value"]
-        elif sort == "payed":
-            return x["payed"]
-        elif sort == "update":
-            return x["invoice"].modified_at
-        else:
-            return x["invoice"].created_at
-    person_invoices = sorted(person_invoices, key=get_sort_key, reverse=(sort != "person" and sort != "payed"))
 
+    # Sorting logic
+    sort_keys = {
+        "type": lambda x: x["invoice"].is_client,
+        "invoice": lambda x: (x["invoice"].serial, x["invoice"].number),
+        "person": lambda x: x["invoice"].person.firstname,
+        "assignee": lambda x: x["invoice"].modified_by.first_name,
+        "registered": lambda x: x["invoice"].created_at,
+        "deadline": lambda x: x["invoice"].deadline,
+        "status": lambda x: x["invoice"].status.percent,
+        "value": lambda x: x["value"],
+        "payed": lambda x: x["payed"],
+        "update": lambda x: x["invoice"].modified_at,
+    }
+    
+    person_invoices.sort(key=sort_keys.get(sort, lambda x: x["invoice"].created_at), reverse=(sort not in ["person", "payed"]))
+
+    # Pagination
     paginator = Paginator(person_invoices, 10)
     invoices_on_page = paginator.get_page(page)
 
@@ -496,76 +481,70 @@ def print_cancellation_invoice(request, invoice_id):
 
 @login_required(login_url="/login/")
 def proformas(request):
-    # search elements
+    # Define date range defaults
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_client = ""
-    search_description = ""
+
+    # Extract GET and POST parameters with fallbacks
+    reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
+    reg_end = request.GET.get("r_end", date_now.strftime("%Y-%m-%d"))
+    page = request.GET.get("page", 1)
+    sort = request.GET.get("sort")
+    search_client = request.GET.get("client", "").strip()
+    search_description = request.GET.get("description", "").strip()
+
     if request.method == "POST":
-        search_client = request.POST.get("search_client")
-        search_description = request.POST.get("search_description")
-        if len(search_client) < 3:
-            search_client = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_client = request.POST.get("search_client", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start", reg_start)
+        reg_end = request.POST.get("reg_end", reg_end)
+
+    # Validate search terms
+    search_client = search_client if len(search_client) >= 3 else ""
+    search_description = search_description if len(search_description) >= 3 else ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+    
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # CLIENT/PROVIDER PROFORMAS
-    selected_proformas = (
-        Proforma.objects.filter(
-        Q(person__firstname__icontains=search_client)
-        | Q(person__lastname__icontains=search_client)
-        | Q(person__company_name__icontains=search_client)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+
+    # Query filtered proformas
+    selected_proformas = Proforma.objects.filter(
+        created_at__range=(filter_start, filter_end),
+        description__icontains=search_description
+    ).filter(
+        Q(person__firstname__icontains=search_client) |
+        Q(person__lastname__icontains=search_client) |
+        Q(person__company_name__icontains=search_client)
     )
+
+    # Prepare proforma list
     person_proformas = []
     for p in selected_proformas:
-        proforma_elements = ProformaElement.objects.filter(proforma=p).order_by("id")
-        p_orders = []
-        for e in proforma_elements:
-            if e.element.order not in p_orders:
-                p_orders.append(e.element.order)
-        person_proformas.append(
-            {"proforma": p, "value": p.value, "orders": p_orders}
-        )
-    # sorting types
-    page = request.GET.get("page")
-    sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "proforma":
-            return (x["proforma"].serial, x["proforma"].number)
-        elif sort == "person":
-            return x["proforma"].person.firstname
-        elif sort == "assignee":
-            return x["proforma"].modified_by.first_name
-        elif sort == "registered":
-            return x["proforma"].created_at
-        elif sort == "deadline":
-            return x["proforma"].deadline
-        elif sort == "status":
-            return x["proforma"].status.id
-        elif sort == "value":
-            return x["value"]
-        elif sort == "update":
-            return x["proforma"].modified_at
-        else:
-            return x["proforma"].created_at
-    person_proformas = sorted(person_proformas, key=get_sort_key, reverse=(sort != "person" and sort != "payed"))
+        proforma_elements = list(ProformaElement.objects.filter(proforma=p).order_by("id"))
+        p_orders = list(set(e.element.order for e in proforma_elements))
+        
+        person_proformas.append({"proforma": p, "value": p.value, "orders": p_orders})
 
+    # Sorting logic
+    sort_keys = {
+        "proforma": lambda x: (x["proforma"].serial, x["proforma"].number),
+        "person": lambda x: x["proforma"].person.firstname,
+        "assignee": lambda x: x["proforma"].modified_by.first_name,
+        "registered": lambda x: x["proforma"].created_at,
+        "deadline": lambda x: x["proforma"].deadline,
+        "status": lambda x: x["proforma"].status.id,
+        "value": lambda x: x["value"],
+        "update": lambda x: x["proforma"].modified_at,
+    }
+    
+    person_proformas.sort(key=sort_keys.get(sort, lambda x: x["proforma"].created_at), reverse=(sort not in ["person", "payed"]))
+
+    # Pagination
     paginator = Paginator(person_proformas, 10)
     proformas_on_page = paginator.get_page(page)
 

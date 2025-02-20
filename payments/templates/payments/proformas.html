@@ -56,14 +56,14 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="/payments/proformas/?sort=proforma&search={{search}}" class="text-warning">Proforma</a> </th>
-								<th> <a href="/payments/proformas/?sort=person&search={{search}}">Person</a> </th>
+								<th> <a href="/payments/proformas/?sort=proforma&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}" class="text-warning">Proforma</a> </th>
+								<th> <a href="/payments/proformas/?sort=person&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Person</a> </th>
 								<th> Orders </th>
-								<th> <a href="/payments/proformas/?sort=assignee&search={{search}}">Assignee</a> </th>
-								<th> <a href="/payments/proformas/?sort=registered&search={{search}}">Registered</a> </th>
-								<th> <a href="/payments/proformas/?sort=deadline&search={{search}}">Due Date</a> </th>
-								<th style="text-align: right;"> <a href="/payments/proformas/?sort=value&search={{search}}">Value</a> </th>
-								<th> <a href="/payments/proformas/?sort=update&search={{search}}">Last Update</a> </th>
+								<th> <a href="/payments/proformas/?sort=assignee&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Assignee</a> </th>
+								<th> <a href="/payments/proformas/?sort=registered&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Registered</a> </th>
+								<th> <a href="/payments/proformas/?sort=deadline&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Due Date</a> </th>
+								<th style="text-align: right;"> <a href="/payments/proformas/?sort=value&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Value</a> </th>
+								<th> <a href="/payments/proformas/?sort=update&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Last Update</a> </th>
 								<th></th>
 							</tr>
 						</thead>
@@ -107,9 +107,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in person_proformas.paginator.page_range %}
 										{% if pg == person_proformas.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/payments/proformas/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/proformas/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/proformas/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/proformas/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>

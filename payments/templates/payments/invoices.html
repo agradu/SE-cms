@@ -56,17 +56,17 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th> <a href="/payments/invoices/?sort=type&search={{search}}">Type</a> </th>
-								<th> <a href="/payments/invoices/?sort=invoice&search={{search}}">Invoice</a> </th>
+								<th> <a href="/payments/invoices/?sort=type&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Type</a> </th>
+								<th> <a href="/payments/invoices/?sort=invoice&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Invoice</a> </th>
 								<th> Proforma</th>
-								<th> <a href="/payments/invoices/?sort=person&search={{search}}">Person</a> </th>
+								<th> <a href="/payments/invoices/?sort=person&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Person</a> </th>
 								<th> Orders </th>
-								<th> <a href="/payments/invoices/?sort=assignee&search={{search}}">Assignee</a> </th>
-								<th> <a href="/payments/invoices/?sort=registered&search={{search}}">Registered</a> </th>
-								<th> <a href="/payments/invoices/?sort=deadline&search={{search}}">Due Date</a> </th>
-								<th style="text-align: right;"> <a href="/payments/invoices/?sort=value&search={{search}}">Value</a> </th>
-								<th> <a href="/payments/invoices/?sort=payed&search={{search}}">Payed</a> </th>
-								<th> <a href="/payments/invoices/?sort=update&search={{search}}">Last Update</a> </th>
+								<th> <a href="/payments/invoices/?sort=assignee&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Assignee</a> </th>
+								<th> <a href="/payments/invoices/?sort=registered&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Registered</a> </th>
+								<th> <a href="/payments/invoices/?sort=deadline&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Due Date</a> </th>
+								<th style="text-align: right;"> <a href="/payments/invoices/?sort=value&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Value</a> </th>
+								<th> <a href="/payments/invoices/?sort=payed&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Payed</a> </th>
+								<th> <a href="/payments/invoices/?sort=update&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Last Update</a> </th>
 								<th></th>
 								<th></th>
 							</tr>
@@ -119,9 +119,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in person_invoices.paginator.page_range %}
 										{% if pg == person_invoices.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/payments/invoices/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/payments/invoices/?sort={{ sort }}&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %} </div>
 								</td>
