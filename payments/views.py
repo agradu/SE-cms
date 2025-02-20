@@ -10,6 +10,7 @@ from payments.models import Payment, PaymentElement
 from services.models import Currency, Status, Service, UM, Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from weasyprint import HTML, CSS
 import base64
@@ -23,66 +24,66 @@ def payments(request):
     # search elements
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
     date_before = date_now - timedelta(days=10)
-    if request.GET.get("r_start") != None:
-        reg_start = request.GET.get("r_start")
-        reg_end = request.GET.get("r_end")
-    else:
-        reg_start = date_before.strftime("%Y-%m-%d")
-        reg_end = date_now.strftime("%Y-%m-%d")
-    search_client = ""
-    search_description = ""
+
+    # Get filter values from request
+    reg_start = request.GET.get("r_start") or date_before.strftime("%Y-%m-%d")
+    reg_end = request.GET.get("r_end") or date_now.strftime("%Y-%m-%d")
+    page = request.GET.get("page", 1)
+    
     if request.method == "POST":
-        search_client = request.POST.get("search_client")
-        search_description = request.POST.get("search_description")
-        if len(search_client) < 3:
-            search_client = ""
-        if len(search_description) < 3:
-            search_description = ""
-        reg_start = request.POST.get("reg_start")
-        reg_end = request.POST.get("reg_end")
-    filter_start = datetime.strptime(reg_start, "%Y-%m-%d")
-    filter_start = timezone.make_aware(filter_start)
-    filter_end = datetime.strptime(reg_end, "%Y-%m-%d")
-    filter_end = timezone.make_aware(filter_end).replace(
+        search_client = request.POST.get("search_client", "").strip()
+        search_description = request.POST.get("search_description", "").strip()
+        reg_start = request.POST.get("reg_start") or reg_start
+        reg_end = request.POST.get("reg_end") or reg_end
+    else:
+        search_client = ""
+        search_description = ""
+
+    # Ensure valid search terms
+    if len(search_client) < 3:
+        search_client = ""
+    if len(search_description) < 3:
+        search_description = ""
+
+    # Convert date strings to datetime objects
+    parsed_start = parse_date(reg_start) or date_before.date()
+    filter_start = timezone.make_aware(datetime.combine(parsed_start, datetime.min.time()))
+
+    parsed_end = parse_date(reg_end) or date_now.date()
+    filter_end = timezone.make_aware(datetime.combine(parsed_end, datetime.max.time())).replace(
         hour=23, minute=59, second=59, microsecond=0
     )
-    # CLIENT/PROVIDER PAYMENTS
-    selected_payments = (
-        Payment.objects.filter(
-        Q(person__firstname__icontains=search_client)
-        | Q(person__lastname__icontains=search_client)
-        | Q(person__company_name__icontains=search_client)
-        )
-        .filter(description__icontains=search_description)
-        .filter(created_at__gte=filter_start, created_at__lte=filter_end)
+    
+    # Query payments in a single filter operation
+    selected_payments = Payment.objects.filter(
+        Q(person__firstname__icontains=search_client) |
+        Q(person__lastname__icontains=search_client) |
+        Q(person__company_name__icontains=search_client),
+        description__icontains=search_description,
+        created_at__range=(filter_start, filter_end)
     )
-    person_payments = []
-    for p in selected_payments:
-        invoices = PaymentElement.objects.filter(payment=p)
-        person_payments.append({"payment": p, "payed": p.value, "invoices":invoices})
-    # sorting types
-    page = request.GET.get("page")
+    
+    # Fetch payment elements efficiently
+    person_payments = [
+        {"payment": p, "payed": p.value, "invoices": PaymentElement.objects.filter(payment=p)}
+        for p in selected_payments
+    ]
+
+    # Sorting logic
     sort = request.GET.get("sort")
-    def get_sort_key(x):
-        if sort == "type":
-            return x["payment"].type
-        elif sort == "payment":
-            return x["payment"].id
-        elif sort == "person":
-            return x["payment"].person.firstname
-        elif sort == "receipt":
-            return (x["payment"].serial, x["payment"].number)
-        elif sort == "assignee":
-            return x["payment"].modified_by.first_name
-        elif sort == "registered":
-            return x["payment"].created_at
-        elif sort == "value":
-            return x["payment"].value
-        elif sort == "update":
-            return x["payment"].modified_at
-        else:
-            return x["payment"].created_at
-    person_payments = sorted(person_payments, key=get_sort_key, reverse=(sort != "person"))
+    sort_keys = {
+        "type": lambda x: x["payment"].type,
+        "payment": lambda x: x["payment"].id,
+        "person": lambda x: x["payment"].person.firstname,
+        "receipt": lambda x: (x["payment"].serial, x["payment"].number),
+        "assignee": lambda x: x["payment"].modified_by.first_name,
+        "registered": lambda x: x["payment"].created_at,
+        "value": lambda x: x["payment"].value,
+        "update": lambda x: x["payment"].modified_at,
+    }
+
+    sort_key = sort_keys.get(sort, lambda x: x["payment"].created_at)
+    person_payments.sort(key=sort_key, reverse=(sort != "person"))
 
     paginator = Paginator(person_payments, 10)
     payments_on_page = paginator.get_page(page)
