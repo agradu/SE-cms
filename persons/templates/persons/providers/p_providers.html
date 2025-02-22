@@ -67,9 +67,9 @@
 								<td>
 									<a href="/persons/{{ p.provider.id}}">{{ p.provider.firstname}} {{ p.provider.lastname}} {% if p.provider.company_name != "" %}- {{ p.provider.company_name}} {% endif %}</a>
 								</td>
-								<td title="Tel. {{ p.provider.phone }}"> <a href="https://wa.me/{{ p.provider.phone | slice:'2:' }}"  target="_blank">
-									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.provider.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a> </td>
-								<td title="{{ p.provider.email}}"> <a href="mailto:{{ p.provider.email }}"><i class="mdi mdi-email-outline"></i></a> </td>
+								<td title="Tel. {{ p.provider.phone }}"> {% if p.provider.phone %}<a href="https://wa.me/{{ p.provider.phone | slice:'2:' }}"  target="_blank">
+									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.provider.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a>{% endif %} </td>
+								<td title="{{ p.provider.email}}"> {% if p.provider.email %}<a href="mailto:{{ p.provider.email }}"><i class="mdi mdi-email-outline"></i></a>{% endif %} </td>
 								<script>
 									function openGoogleMapsPopup(address) {
 										const url = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
@@ -100,9 +100,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in selected_providers.paginator.page_range %}
 										{% if pg == selected_providers.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/providers/providers/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/providers/providers/?search_name={{ search_name|urlencode }}&search_service={{ search_service|urlencode }}&search_place={{ search_place|urlencode }}&page={{ pg }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/providers/providers/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/providers/providers/?search_name={{ search_name|urlencode }}&search_service={{ search_service|urlencode }}&search_place={{ search_place|urlencode }}&page={{ pg }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %}
 									</div>

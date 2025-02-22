@@ -53,9 +53,9 @@
 								<td>
 									<a href="/persons/{{ p.client.id}}/">{{ p.client.firstname}} {{ p.client.lastname}} {% if p.client.company_name != "" %}- {{ p.client.company_name}} {% endif %}</a>
 								</td>
-								<td title="Tel. {{ p.client.phone }}"> <a href="https://wa.me/{{ p.client.phone | slice:'2:' }}"  target="_blank">
-									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.client.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a> </td>
-								<td title="{{ p.client.email}}"> <a href="mailto:{{ p.client.email }}"><i class="mdi mdi-email-outline"></i></a> </td>
+								<td title="Tel. {{ p.client.phone }}"> {% if p.client.phone %}<a href="https://wa.me/{{ p.client.phone | slice:'2:' }}"  target="_blank">
+									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.client.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a>{% endif %} </td>
+								<td title="{{ p.client.email}}"> {% if p.client.email %} <a href="mailto:{{ p.client.email }}"><i class="mdi mdi-email-outline"></i></a>{% endif %} </td>
 								<td>
 									<img src="{{ p.client.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.modified_by.first_name}} {{ p.client.modified_by.last_name}}
 								</td>
@@ -85,9 +85,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in selected_clients.paginator.page_range %}
 										{% if pg == selected_clients.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/clients/clients/?search={{ search }}&page={{ pg }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/clients/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/clients/clients/?search={{ search }}&page={{ pg }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %}
 									</div>

@@ -12,18 +12,22 @@ from django.utils import timezone
 
 @login_required(login_url="/login/")
 def c_clients(request):
-    # search elements
-    search = ""
-    if request.method == "POST":
-        search = request.POST.get("search")
-        if len(search) > 2:
-            filtered_persons = Person.objects.filter(
-                Q(firstname__icontains=search)
-                | Q(lastname__icontains=search)
-                | Q(company_name__icontains=search)
-            ).order_by("firstname")[:30]
+    # default filter
+    filtered_persons = Person.objects.order_by("-created_at")[:30]
+    # finding search elements
+    search = request.POST.get("search","")
+    if search == "":
+        search = request.GET.get("search", "")
+    # limit the search string to minimum 3 chars
+    if len(search) > 2:
+        filtered_persons = Person.objects.filter(
+            Q(firstname__icontains=search)
+            | Q(lastname__icontains=search)
+            | Q(company_name__icontains=search)
+        ).order_by("firstname")[:30]
     else:
-        filtered_persons = Person.objects.order_by("-created_at")[:30]
+        search = ""
+
     selected_clients = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=True).count()
@@ -41,28 +45,34 @@ def c_clients(request):
 
 @login_required(login_url="/login/")
 def p_providers(request):
-    # search elements
-    search_name = ""
-    search_service = ""
-    search_place = ""
-    if request.method == "POST":
-        search_name = request.POST.get("search_name")
-        search_service = request.POST.get("search_service")
-        search_place = request.POST.get("search_place")
-        if len(search_name) > 2 or len(search_service) > 2 or len(search_place) > 2:
-            filtered_persons = (
-                Person.objects.filter(
-                    Q(firstname__icontains=search_name)
-                    | Q(lastname__icontains=search_name)
-                    | Q(company_name__icontains=search_name)
-                )
-                .filter(services__icontains=search_service)
-                .filter(address__icontains=search_place)
-                .exclude(services='')
-                .order_by("firstname")[:30]
+    # default filter
+    filtered_persons = Person.objects.exclude(services='').order_by("-created_at")[:30]
+    # Function to simplify getting parameters from POST or GET
+    def get_parameter(request, param_name):
+        if request.method == 'POST':
+            return request.POST.get(param_name, "")
+        return request.GET.get(param_name, "")
+
+    # Getting search parameters
+    search_name = get_parameter(request, "search_name")
+    search_service = get_parameter(request, "search_service")
+    search_place = get_parameter(request, "search_place")
+    # limit the search string to minimum 3 chars
+    if len(search_name) > 2 or len(search_service) > 2 or len(search_place) > 2:
+        filtered_persons = (
+            Person.objects.filter(
+                Q(firstname__icontains=search_name)
+                | Q(lastname__icontains=search_name)
+                | Q(company_name__icontains=search_name)
             )
+            .filter(services__icontains=search_service)
+            .filter(address__icontains=search_place)
+            .exclude(services='')
+            .order_by("firstname")[:30]
+        )
     else:
-        filtered_persons = Person.objects.exclude(services='').order_by("-created_at")[:30]
+        search_name = search_service = search_place = ""
+    
     selected_providers = []
     for person in filtered_persons:
         person_total_orders = Order.objects.filter(person=person, is_client=False).count()
