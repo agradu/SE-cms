@@ -57,7 +57,7 @@ def c_orders(request):
         "assignee": lambda x: x["order"].modified_by.first_name,
         "registered": lambda x: x["order"].created_at,
         "deadline": lambda x: x["order"].deadline,
-        "status": lambda x: x["order"].status.id,
+        "status": lambda x: x["order"].status.percent,
         "value": lambda x: x["order"].value,
         "invoiced": lambda x: x["invoiced"],
         "update": lambda x: x["order"].modified_at,
@@ -84,7 +84,7 @@ def c_orders(request):
 @login_required(login_url="/login/")
 def c_order(request, order_id, client_id):
     # Default parts
-    statuses = Status.objects.all().order_by("id")
+    statuses = Status.objects.all().order_by("percent")
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
@@ -293,7 +293,7 @@ def c_offers(request):
         "assignee": lambda x: x["offer"].modified_by.first_name,
         "registered": lambda x: x["offer"].created_at,
         "deadline": lambda x: x["offer"].deadline,
-        "status": lambda x: x["offer"].status.id,
+        "status": lambda x: x["offer"].status.percent,
         "value": lambda x: x["offer"].value,
         "update": lambda x: x["offer"].modified_at,
     }
@@ -314,7 +314,6 @@ def c_offers(request):
             "reg_end": reg_end,
         },
     )
-
 
 @login_required(login_url="/login/")
 def c_offer(request, offer_id, client_id):
@@ -360,10 +359,8 @@ def c_offer(request, offer_id, client_id):
                 try:
                     deadline_naive = datetime.strptime(f"{deadline_date} {deadline_time}", "%Y-%m-%d %H:%M")
                     offer.deadline = timezone.make_aware(deadline_naive)
-                    print ("DAAAAAAAAA VECHI")
                 except:
                     offer.deadline = date_now
-                    print ("NUUUUUUUUUUUU VECHI")
             if "element_id" in request.POST:
                 element_id = int(request.POST.get("element_id"))
                 if element_id > 0:  # edit an element
