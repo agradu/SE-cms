@@ -553,7 +553,7 @@ def p_orders(request):
         "assignee": lambda x: x["order"].modified_by.first_name,
         "registered": lambda x: x["order"].created_at,
         "deadline": lambda x: x["order"].deadline,
-        "status": lambda x: x["order"].status.id,
+        "status": lambda x: x["order"].status.percent,
         "value": lambda x: x["order"].value,
         "invoiced": lambda x: x["invoiced"],
         "update": lambda x: x["order"].modified_at,
@@ -580,7 +580,7 @@ def p_orders(request):
 @login_required(login_url="/login/")
 def p_order(request, order_id, provider_id):
     # Default parts
-    statuses = Status.objects.all().order_by("id")
+    statuses = Status.objects.all().order_by("percent")
     currencies = Currency.objects.all().order_by("id")
     ums = UM.objects.all().order_by("id")
     services = Service.objects.all().order_by("name")
