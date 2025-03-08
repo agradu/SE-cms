@@ -119,7 +119,7 @@ def c_order(request, order_id, client_id):
                 order.modified_at = date_now
             if "order_description" in request.POST:
                 order.description = request.POST.get("order_description")
-                order.status = statuses[int(request.POST.get("order_status")) - 1]
+                order.status = Status.objects.get(id=request.POST.get("order_status"))
                 for e in elements:
                     e.status = order.status
                     e.save()
@@ -614,7 +614,7 @@ def p_order(request, order_id, provider_id):
                 )
             if "order_description" in request.POST:
                 order.description = request.POST.get("order_description")
-                order.status = statuses[int(request.POST.get("order_status")) - 1]
+                order.status = Status.objects.get(id=request.POST.get("order_status"))
                 for e in elements:
                     e.status = order.status
                     e.save()
