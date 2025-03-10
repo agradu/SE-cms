@@ -151,7 +151,7 @@ def c_order(request, order_id, client_id):
                     element.price = float(e_price)
                 else:
                     element.price = float(1.0)
-                element.status = statuses[int(request.POST.get("e_status")) - 1]
+                element.status = statuses.get(request.POST.get("e_status"))
                 element.save()
                 # setting order status to minimum form elements
                 status_elements = sorted(elements, key=lambda x: x.status.percent)
