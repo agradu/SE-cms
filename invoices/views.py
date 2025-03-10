@@ -533,9 +533,8 @@ def proforma(request, proforma_id, person_id, order_id):
         new = True
     all_orders_elements = OrderElement.objects.exclude(status__percent__lt=1).exclude(status__percent__gt=100).exclude(order__is_client=False).filter(order__person=person).order_by("id")
     proformed_elements = ProformaElement.objects.exclude(element__status__percent='0').filter(proforma__person=person).order_by("id")
-    # unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True))
     invoiced_elements = InvoiceElement.objects.filter(invoice__person=person).order_by("id")
-    unproformed_elements = all_orders_elements.exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
+    unproformed_elements = all_orders_elements.exclude(id__in=proformed_elements.values_list('element__id', flat=True)).exclude(id__in=invoiced_elements.values_list('element__id', flat=True))
     def set_value(proforma): # calculate and save the value of the proforma
         proforma_elements = ProformaElement.objects.filter(proforma=proforma).order_by("id")
         proforma.value = 0
