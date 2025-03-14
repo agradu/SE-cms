@@ -2,8 +2,30 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Status, UM, Currency, Service
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+import paramiko
+from django.conf import settings
+import os
+if settings.STATICFILES_DIRS:
+    file_path = os.path.join(settings.STATICFILES_DIRS[0], 'images', 'logo-se.jpeg')
+else:
+    raise ValueError("STATICFILES_DIRS is empty or not defined.")
+print(file_path)
 
 # Create your views here.
+def upload_file_via_sftp(local_file_path, remote_file_path):
+    sftp_host = 'ssh.strato.de'  # adresa serverului SFTP
+    sftp_port = 22  # portul pentru SFTP, de obicei 22
+    sftp_username = '510777025.swh.strato-hosting.eu'  # numele de utilizator pentru SFTP
+    sftp_password = '@porumbel#'  # parola pentru SFTP
+    
+    transport = paramiko.Transport((sftp_host, sftp_port))
+    transport.connect(username=sftp_username, password=sftp_password)
+    
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    sftp.put(local_file_path, remote_file_path)
+    sftp.close()
+    transport.close()
+    print("File uploaded successfully")
 
 
 @login_required(login_url="/login/")
@@ -84,6 +106,7 @@ def status_detail(request, status_id):
             status.style = request.POST.get("style")
             status.percent = request.POST.get("percent")
             status.save()
+            upload_file_via_sftp(file_path, '/sprachen-express/logo-se.jpg')
         else:
             update = ""
     else:
