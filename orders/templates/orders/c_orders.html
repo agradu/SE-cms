@@ -90,13 +90,17 @@
 									{{ o.invoiced}} %
 								</td>
 								<td> {{ o.order.modified_at|date:"d.m.Y"}} - {{ o.order.modified_at|time:"H:i"}} </td>
-								<td> {% if o.proformed == False and o.invoiced == 0 and o.order.status.percent > 0 and o.order.status.percent < 101 %}
+								<td> {% if o.proformed == None and o.invoiced == 0 and o.order.status.percent > 0 and o.order.status.percent < 101 %}
 									<button type="button" title="Create a proforma" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/proforma/0/{{ o.order.person.id }}/{{ o.order.id }}/';">
 									<i class="mdi mdi-file-hidden"></i>
 									</button>
 									{% endif %}
 								</td>
-								<td> {% if o.invoiced < 100 and o.order.status.percent > 0 and o.order.status.percent < 101 %}
+								<td>{% if o.invoiced == 0 and o.proformed and o.order.status.percent < 101 %}
+									<button type="button" title="Convert proforma to invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/convert/{{ o.proformed.proforma.id }}/';">
+									<i class="mdi mdi-file-export"></i>
+									</button>
+									{% elif o.invoiced < 100 and o.order.status.percent > 0 and o.order.status.percent < 101 %}
 									<button type="button" title="Create an invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/invoice/0/{{ o.order.person.id }}/{{ o.order.id }}/';">
 									<i class="mdi mdi-file"></i>
 									</button>

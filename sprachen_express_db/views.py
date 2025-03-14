@@ -6,7 +6,7 @@ from django.db.models import Sum, Case, When, Value, F, DecimalField
 from django.db.models.functions import Coalesce
 from orders.models import Order, OrderElement
 from payments.models import Payment, PaymentElement
-from invoices.models import Invoice, InvoiceElement
+from invoices.models import Invoice, InvoiceElement, ProformaElement
 from datetime import datetime, timezone
 
 
@@ -26,6 +26,7 @@ def dashboard(request):
     for o in selected_orders:
         order_elements = OrderElement.objects.filter(order=o).order_by("id")
         o_status = o.status
+        proformed = next((ProformaElement.objects.filter(element=e).first() for e in order_elements if ProformaElement.objects.filter(element=e).exists()), None)
         o_invoiced = 0
         for e in order_elements:
             try:
@@ -51,6 +52,7 @@ def dashboard(request):
                 "elements": order_elements,
                 "status": o_status,
                 "invoiced": invoiced,
+                "proformed": proformed,
                 "alert": alert
             }
         )

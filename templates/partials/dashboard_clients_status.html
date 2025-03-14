@@ -27,7 +27,11 @@
 						<td class="text-{% if o.invoiced == 100 %}success{% elif o.invoiced == 0 %}danger{% else %}info{% endif %}">
 							{{ o.invoiced }} %
 						</td>
-						<td> {% if o.invoiced < 100 %}
+						<td>{% if o.invoiced == 0 and o.proformed and o.order.status.percent < 101 %}
+							<a href="/payments/convert/{{ o.proformed.proforma.id }}/" title="Convert proforma to invoice">
+							<i class="mdi mdi-file-export mdi-18px"></i>
+							</a>
+							{% elif o.invoiced < 100 and o.order.status.percent > 0 and o.order.status.percent < 101 %}
 							<a href="/payments/invoice/0/{{ o.order.person.id }}/{{ o.order.id }}/" title="Create an invoice">
 							<i class="mdi mdi-file mdi-18px"></i>
 							</a>

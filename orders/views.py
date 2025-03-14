@@ -45,8 +45,10 @@ def c_orders(request):
             for e in order_elements if InvoiceElement.objects.filter(element=e).exists()
         )
         
-        proformed = any(ProformaElement.objects.filter(element=e).exists() for e in order_elements)
+        # proformed = any(ProformaElement.objects.filter(element=e).exists() for e in order_elements)
+        proformed = next((ProformaElement.objects.filter(element=e).first() for e in order_elements if ProformaElement.objects.filter(element=e).exists()), None)
         invoiced = int((invoiced_amount / o.value * 100) if o.value > 0 else 0)
+        print(o, proformed, invoiced)
         
         client_orders.append({"order": o, "elements": order_elements, "invoiced": invoiced, "proformed": proformed})
     
