@@ -5,6 +5,8 @@ from django.core.paginator import Paginator
 import paramiko
 from django.conf import settings
 import os
+from dotenv import load_dotenv
+load_dotenv()
 if settings.STATICFILES_DIRS:
     file_path = os.path.join(settings.STATICFILES_DIRS[0], 'images', 'logo-se.jpeg')
 else:
@@ -16,7 +18,7 @@ def upload_file_via_sftp(local_file_path, remote_file_path):
     sftp_host = 'ssh.strato.de'  # adresa serverului SFTP
     sftp_port = 22  # portul pentru SFTP, de obicei 22
     sftp_username = '510777025.swh.strato-hosting.eu'  # numele de utilizator pentru SFTP
-    sftp_password = '@porumbel#'  # parola pentru SFTP
+    sftp_password = os.getenv("FTP_PASSWORD")  # parola pentru SFTP
     
     transport = paramiko.Transport((sftp_host, sftp_port))
     transport.connect(username=sftp_username, password=sftp_password)
