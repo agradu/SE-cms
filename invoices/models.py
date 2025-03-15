@@ -14,6 +14,7 @@ class Invoice(DocumentBase):
     cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
     cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")
     is_recurrent = models.BooleanField(default=False)
+    payed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime("%d.%m.%Y %H:%M")

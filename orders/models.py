@@ -10,6 +10,7 @@ from django.conf import settings
 class Order(DocumentBase):
     deadline = models.DateTimeField(default=timezone.now)
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)
+    invoiced = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         formatted_deadline = self.deadline.strftime("%d.%m.%Y %H:%M")
@@ -24,7 +25,6 @@ class OrderElement(DocumentElement):
 
 
 class Offer(DocumentBase):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, default=None)
     deadline = models.DateTimeField(default=timezone.now)
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)

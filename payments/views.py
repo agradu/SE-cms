@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, F
+from django.db.models import Q, Sum
 from persons.models import Person
 from orders.models import Order, OrderElement
 from invoices.models import Invoice, InvoiceElement
@@ -107,8 +107,10 @@ def payment(request, payment_id, person_id, invoice_id):
     def set_value(payment, value = 0): # calculate and save the value of the payment
         payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
         to_pay = 0
+        invoices_to_update = set()
         for e in payment_elements:
             to_pay += e.invoice.value
+            invoices_to_update.add(e.invoice)
         payment.value = to_pay
         if len(payment_elements) < 2 and 0 < abs(value) < abs(to_pay):
             if payment.value > 0:
@@ -116,6 +118,16 @@ def payment(request, payment_id, person_id, invoice_id):
             else:
                 payment.value = 0 - abs(value)
         payment.save()
+        # Update the payed amount for each invoice that has elements in this payment
+        for invoice in invoices_to_update:
+            invoice_payed_total = PaymentElement.objects.filter(
+                invoice=invoice
+            ).aggregate(
+                total_payed=Sum('payment__value')
+            )['total_payed'] or 0
+            invoice.payed = invoice_payed_total
+            invoice.save()
+            
     if payment_id > 0:  # if payment exists
         receipt_serial = payment.serial
         receipt_number = payment.number

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Sum, F
 from orders.models import Order, OrderElement
 from persons.models import Person
 from payments.models import Payment, PaymentElement
@@ -240,11 +240,24 @@ def invoice(request, invoice_id, person_id, order_id):
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         invoice.value = 0
+        orders_to_update = set()  # A set to track which orders have been updated
         for e in invoice_elements:
             invoice.value += (e.element.price * e.element.quantity)
+            orders_to_update.add(e.element.order)  # Add the order of the element to the set
         if invoice.cancellation_to != None:
             invoice.value = 0 - invoice.value
         invoice.save()
+        # Update the invoiced amount for each order that has elements in this invoice
+        for order in orders_to_update:
+            order_invoiced_total = InvoiceElement.objects.filter(
+                element__order=order
+            ).aggregate(
+                total_invoiced=Sum(F('element__price') * F('element__quantity'))
+            )['total_invoiced'] or 0
+
+            order.invoiced = order_invoiced_total
+            order.save()
+
     if invoice_id > 0:  # if invoice exists
         invoice_serial = invoice.serial
         invoice_number = invoice.number
