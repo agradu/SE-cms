@@ -13,7 +13,9 @@ class Command(BaseCommand):
         # Actualizare invoiced pentru Orders
         for order in Order.objects.all():
             order_invoiced_total = InvoiceElement.objects.filter(
-                element__order=order
+                element__order=order,
+                invoice__cancelled_from__isnull=True, # Exclude cancelled invoices
+                invoice__cancellation_to__isnull=True # Exclude cancelled invoices
             ).aggregate(
                 total_invoiced=Sum(F('element__price') * F('element__quantity'))
             )['total_invoiced'] or 0

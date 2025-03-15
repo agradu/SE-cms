@@ -101,11 +101,18 @@ def cancellation_invoice(request, invoice_id):
         currency = cancelled_invoice.currency,
         cancellation_to = cancelled_invoice,
         value = 0 - cancelled_invoice.value,
+        payed = 0 - cancelled_invoice.value,
         description = "Stornorechnung"
     )
     cancellation_invoice.save()
 
     cancelled_invoice.cancelled_from = cancellation_invoice
+    cancelled_invoice.save()
+
+    # Recalculate payed value for the cancelled invoice
+    cancelled_invoice.payed = cancelled_invoice.paymentelement_set.aggregate(
+        total=Sum(F('payment__value'))
+    )['total'] or 0
     cancelled_invoice.save()
 
     # Căutăm o plată existentă asociată facturii anulate
@@ -182,6 +189,25 @@ def cancellation_invoice(request, invoice_id):
             element = element.element
         )
         c_element.save()
+
+    orders_to_update = set()
+    for element in invoice_elements:
+        # Asigură-te că element.element.id este ID-ul corect al OrderElement
+        order_elements = OrderElement.objects.filter(id=element.element.id)
+        for order_element in order_elements:
+            orders_to_update.add(order_element.order)
+
+    for order in orders_to_update:
+        # Agregăm valorile facturilor pentru a obține totalul `invoiced`
+        order_invoiced_total = InvoiceElement.objects.filter(
+            element__order=order
+        ).aggregate(
+            total_invoiced=Sum(F('invoice__value'))
+        )['total_invoiced'] or 0
+
+        order.invoiced = order_invoiced_total
+        order.save()
+
     return redirect(
         "invoices",
     )
@@ -244,13 +270,15 @@ def invoice(request, invoice_id, person_id, order_id):
         for e in invoice_elements:
             invoice.value += (e.element.price * e.element.quantity)
             orders_to_update.add(e.element.order)  # Add the order of the element to the set
-        if invoice.cancellation_to != None:
-            invoice.value = 0 - invoice.value
+        if invoice.cancellation_to: # If this is a cancellation invoice, negate the value
+            invoice.value = -abs(invoice.value)
         invoice.save()
         # Update the invoiced amount for each order that has elements in this invoice
         for order in orders_to_update:
             order_invoiced_total = InvoiceElement.objects.filter(
-                element__order=order
+                element__order=order,
+                invoice__cancelled_from__isnull=True, # Exclude cancelled invoices
+                invoice__cancellation_to__isnull=True # Exclude cancelled invoices
             ).aggregate(
                 total_invoiced=Sum(F('element__price') * F('element__quantity'))
             )['total_invoiced'] or 0
