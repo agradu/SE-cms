@@ -40,15 +40,10 @@ def c_orders(request):
     client_orders = []
     for o in selected_orders:
         order_elements = list(OrderElement.objects.filter(order=o).order_by("id"))
-        invoiced_amount = sum(
-            InvoiceElement.objects.filter(element=e).first().element.price * e.quantity
-            for e in order_elements if InvoiceElement.objects.filter(element=e).exists()
-        )
         
         # proformed = any(ProformaElement.objects.filter(element=e).exists() for e in order_elements)
         proformed = next((ProformaElement.objects.filter(element=e).first() for e in order_elements if ProformaElement.objects.filter(element=e).exists()), None)
-        invoiced = int((invoiced_amount / o.value * 100) if o.value > 0 else 0)
-        print(o, proformed, invoiced)
+        invoiced = int(o.invoiced / o.value * 100) if o.value else 0
         
         client_orders.append({"order": o, "elements": order_elements, "invoiced": invoiced, "proformed": proformed})
     
@@ -540,11 +535,7 @@ def p_orders(request):
     provider_orders = []
     for o in selected_orders:
         order_elements = list(OrderElement.objects.filter(order=o).order_by("id"))
-        invoiced_amount = sum(
-            InvoiceElement.objects.filter(element=e).first().element.price * e.quantity
-            for e in order_elements if InvoiceElement.objects.filter(element=e).exists()
-        )
-        invoiced = int((invoiced_amount / o.value * 100) if o.value > 0 else 0)
+        invoiced = int(o.invoiced / o.value * 100) if o.value else 0
         
         provider_orders.append({"order": o, "elements": order_elements, "invoiced": invoiced})
     

@@ -42,10 +42,7 @@ def invoices(request):
     for i in selected_invoices:
         invoice_elements = list(InvoiceElement.objects.filter(invoice=i).order_by("id"))
         i_orders = list(set(e.element.order for e in invoice_elements))
-        
-        i_payed = sum(min(p.payment.value, p.invoice.value) for p in PaymentElement.objects.filter(invoice=i))
-        payed = int(i_payed / i.value * 100) if i.value else 0
-
+        payed = int(i.payed / i.value * 100) if i.value else 0
         proforma = Proforma.objects.filter(invoice=i).first()
 
         person_invoices.append(
