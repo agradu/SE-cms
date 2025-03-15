@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from persons.models import Person
 
 # Create your models here.
 
@@ -79,6 +80,8 @@ class TimestampedModel(models.Model):
         abstract = True
 
 class DocumentBase(TimestampedModel):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    is_client = models.BooleanField(default=True)
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)

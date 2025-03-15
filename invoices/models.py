@@ -10,8 +10,6 @@ from services.models import DocumentBase, Currency
 
 
 class Invoice(DocumentBase):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    is_client = models.BooleanField(default=True)
     deadline = models.DateField(default=timezone.now)
     cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
     cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")

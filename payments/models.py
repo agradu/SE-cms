@@ -9,14 +9,12 @@ from django.utils import timezone
 
 
 class Payment(DocumentBase):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
     type_choices = [("cash", "Cash"), ("bank", "Bank")]
     type = models.CharField(
         max_length=6,
         choices=type_choices,
         default="bank",
     )
-    is_client = models.BooleanField(default=True)
     cancellation_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancellation_to_%(class)s")
     cancelled_from = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, default=None, related_name="cancelled_from_%(class)s")
     payment_date = models.DateField(default=timezone.now)

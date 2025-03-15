@@ -8,8 +8,6 @@ from django.conf import settings
 
 
 class Order(DocumentBase):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    is_client = models.BooleanField(default=True)
     deadline = models.DateTimeField(default=timezone.now)
     status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=1)
 
