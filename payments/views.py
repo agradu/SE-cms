@@ -34,7 +34,7 @@ def payments(request):
         Q(person__lastname__icontains=search_client) |
         Q(person__company_name__icontains=search_client),
         description__icontains=search_description,
-        created_at__range=(filter_start, filter_end)
+        payment_date__range=(filter_start, filter_end)
     )
     
     # Fetch payment elements efficiently
@@ -50,7 +50,7 @@ def payments(request):
         "person": lambda x: x["payment"].person.firstname,
         "receipt": lambda x: (x["payment"].serial, x["payment"].number),
         "assignee": lambda x: x["payment"].modified_by.first_name,
-        "registered": lambda x: x["payment"].created_at,
+        "payed_at": lambda x: x["payment"].payment_date,
         "value": lambda x: x["payment"].value,
         "update": lambda x: x["payment"].modified_at,
     }
