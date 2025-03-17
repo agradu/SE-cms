@@ -42,107 +42,31 @@
 				</div>
 				<div class="custom-report-container">
 					<h1 class="report-title">Einnahmenbericht</h1>
-					<p>Verkäufe gesamt: 24 979,50 €</p>
+					<p>{{ range_type }}</p>
+					<p>Einkommen gesamt: <span class="text-primary">{{total_client_payed}} €</span> / Auszahlungen gesamt: <span class="text-danger">{{total_provider_payed}} €</span> </p>
 					<div class="bar-chart">
 						<div class="chart-grid">
-							<div class="grid-line">1000</div>
-							<div class="grid-line">800</div>
-							<div class="grid-line">500</div>
-							<div class="grid-line">250</div>
+							<div class="grid-line">{{max_value_4}}</div>
+							<div class="grid-line">{{max_value_3}}</div>
+							<div class="grid-line">{{max_value_2}}</div>
+							<div class="grid-line">{{max_value_1}}</div>
 							<div class="grid-line">0</div>
 						</div>
+						{% for r in revenue %}
 						<div class="bar" style="height: 100%;">
 							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 30%;"></div>
-							<div class="bar2" style="height: 25%;"></div>
+							<div class="bar1" style="height: {{r.client_payed_percent}}%;" title="{{r.client_payed}} €"></div>
+							<div class="bar2" style="height: {{r.provider_payed_percent}}%;" title="{{r.provider_payed}} €"></div>
 						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 100%;"></div>
-							<div class="bar2" style="height: 75%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 45%;"></div>
-							<div class="bar2" style="height: 15%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 26%;"></div>
-							<div class="bar2" style="height: 80%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 100%;"></div>
-							<div class="bar2" style="height: 75%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 45%;"></div>
-							<div class="bar2" style="height: 15%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 26%;"></div>
-							<div class="bar2" style="height: 80%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 100%;"></div>
-							<div class="bar2" style="height: 75%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 45%;"></div>
-							<div class="bar2" style="height: 15%;"></div>
-						</div>
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: 26%;"></div>
-							<div class="bar2" style="height: 80%;"></div>
-						</div>
+						{% endfor %}
 					</div>
 					<div class="bar-months">
+						{% for r in revenue %} 
 						<div class="bar">
 							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
+							<div class="bar-month">{{r.range}}</div>
 						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
-						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">01</div>
-						</div>
+						{% endfor %}
 					</div>
 				</div>
 				

@@ -11,73 +11,100 @@ from django.db.models.functions import TruncMonth
 
 @login_required(login_url="/login/")
 def revenue(request):
-    today = datetime.now().date()
-    start_of_last_week = today - timedelta(days=today.weekday() + 7)
-    end_of_last_week = start_of_last_week + timedelta(days=6)
-
     if request.method == 'POST':
         # Extragem datele de start și de sfârșit din POST request
-        date_start = datetime.strptime(request.POST.get('date_start'), "%Y-%m-%d")
-        date_end = datetime.strptime(request.POST.get('date_end'), "%Y-%m-%d")
+        date_start = timezone.make_aware(datetime.strptime(request.POST.get('date_start'), "%Y-%m-%d"))
+        date_end = timezone.make_aware(datetime.strptime(request.POST.get('date_end'), "%Y-%m-%d"))
     else:
-        date_start = start_of_last_week
-        date_end = today
+        date_start = timezone.localdate() - timedelta(days=timezone.localdate().weekday() + 7)
+        date_end = timezone.localdate()
 
     # Determinarea intervalului pentru raport
     difference = date_end - date_start
+    print("diferenta:",difference.days)
     if difference.days < 31:
-        range_type = 'day'
+        range_type = 'Täglich'
+    elif difference.days < 120:
+        range_type = 'Wöchentlich'
     elif difference.days < 365:
-        range_type = 'month'
+        range_type = 'Monatlich'
     else:
-        range_type = 'year'
+        range_type = 'Jährlich'
     
-    # Calcularea veniturilor
+    # Calcularea veniturilor și plăților
     revenue = []
     max_value = 0
-    total_invoiced = 0
-    total_payed = 0
+    total_client_invoiced = 0
+    total_client_payed = 0
+    total_provider_invoiced = 0
+    total_provider_payed = 0
     current_date = date_start
 
     while current_date <= date_end:
-        if range_type == 'day':
+        if range_type == 'Täglich':
             next_date = current_date + timedelta(days=1)
-        elif range_type == 'month':
+            display_date = current_date.strftime("%d")
+        elif range_type == 'Wöchentlich':
+            next_date = current_date + timedelta(days=8)
+            display_date = current_date.strftime("%V")
+        elif range_type == 'Monatlich':
             next_date = (current_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+            display_date = current_date.strftime("%m")
         else:
             next_date = current_date.replace(day=1, month=1) + timedelta(days=365)
+            display_date = current_date.strftime("%Y")
         
-        # Suma facturat și plătit în intervalul curent
-        invoiced_total = Invoice.objects.filter(
-            created_at__range=[current_date, next_date]).aggregate(Sum('value'))['value__sum'] or 0
-        payed_total = Payment.objects.filter(
-            payment_date__range=[current_date, next_date]).aggregate(Sum('value'))['value__sum'] or 0
+        # Suma facturat și plătit în intervalul curent pentru clienți
+        client_invoiced = Invoice.objects.filter(
+            created_at__range=[current_date, next_date], is_client=True
+        ).aggregate(Sum('value'))['value__sum'] or 0
+        client_payed = Payment.objects.filter(
+            payment_date__range=[current_date, next_date], is_client=True
+        ).aggregate(Sum('value'))['value__sum'] or 0
+        
+        # Suma facturat și plătit în intervalul curent pentru furnizori
+        provider_invoiced = Invoice.objects.filter(
+            created_at__range=[current_date, next_date], is_client=False
+        ).aggregate(Sum('value'))['value__sum'] or 0
+        provider_payed = Payment.objects.filter(
+            payment_date__range=[current_date, next_date], is_client=False
+        ).aggregate(Sum('value'))['value__sum'] or 0
 
         # Adăugarea în listă
         revenue.append({
-            'range': current_date.strftime("%Y-%m-%d"),
-            'invoiced': invoiced_total,
-            'payed': payed_total,
+            'range': display_date,
+            'client_invoiced': client_invoiced,
+            'client_payed': client_payed,
+            'provider_invoiced': provider_invoiced,
+            'provider_payed': provider_payed
         })
         
         current_date = next_date
-
-        # Actualizam valoarea maxima intalnita
-        max_value = max(max_value, invoiced_total, payed_total)
+        # Actualizam valoarea maxima întâlnită
+        max_value = max(max_value, client_invoiced, client_payed, provider_invoiced, provider_payed)
     
-    # Calculăm procentele
+    # Calculăm procentele și sumele totale
     for item in revenue:
-        item['invoiced_percent'] = int(item['invoiced'] / max_value * 100) if max_value > 0 else 0
-        item['payed_percent'] = int(item['payed'] / max_value * 100) if max_value > 0 else 0
-        total_invoiced += item['invoiced']
-        total_payed += item['payed']
-    
-    print(revenue, "total_invoiced:", total_invoiced, "total_payed:", total_payed)
+        item['client_invoiced_percent'] = int(item['client_invoiced'] / max_value * 100) if max_value > 0 else 0
+        item['client_payed_percent'] = int(item['client_payed'] / max_value * 100) if max_value > 0 else 0
+        item['provider_invoiced_percent'] = int(item['provider_invoiced'] / max_value * 100) if max_value > 0 else 0
+        item['provider_payed_percent'] = int(item['provider_payed'] / max_value * 100) if max_value > 0 else 0
+        total_client_invoiced += item['client_invoiced']
+        total_client_payed += item['client_payed']
+        total_provider_invoiced += item['provider_invoiced']
+        total_provider_payed += item['provider_payed']
 
     return render(request, "reports/revenue.html", {
         'revenue': revenue,
         'date_start': date_start.strftime("%Y-%m-%d"),
         'date_end': date_end.strftime("%Y-%m-%d"),
-        'total_invoiced': total_invoiced,
-        'total_payed': total_payed
+        'total_client_invoiced': total_client_invoiced,
+        'total_client_payed': total_client_payed,
+        'total_provider_invoiced': total_provider_invoiced,
+        'total_provider_payed': total_provider_payed,
+        'max_value_4': int(max_value),
+        'max_value_3': int(max_value/4*3),
+        'max_value_2': int(max_value/4*2),
+        'max_value_1': int(max_value/4),
+        'range_type': range_type
     })
