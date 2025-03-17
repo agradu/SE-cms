@@ -21,7 +21,6 @@ def revenue(request):
 
     # Determinarea intervalului pentru raport
     difference = date_end - date_start
-    print("diferenta:",difference.days)
     if difference.days < 31:
         range_type = 'Täglich'
     elif difference.days < 120:
@@ -45,10 +44,10 @@ def revenue(request):
             next_date = current_date + timedelta(days=1)
             display_date = current_date.strftime("%d")
         elif range_type == 'Wöchentlich':
-            next_date = current_date + timedelta(days=8)
+            next_date = current_date + timedelta(weeks=1)
             display_date = current_date.strftime("%V")
         elif range_type == 'Monatlich':
-            next_date = (current_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+            next_date = (current_date.replace(day=1) + timedelta(days=31)).replace(day=1)
             display_date = current_date.strftime("%m")
         else:
             next_date = current_date.replace(day=1, month=1) + timedelta(days=365)
@@ -56,18 +55,26 @@ def revenue(request):
         
         # Suma facturat și plătit în intervalul curent pentru clienți
         client_invoiced = Invoice.objects.filter(
-            created_at__range=[current_date, next_date], is_client=True
+            created_at__gte=current_date,
+            created_at__lt=next_date,
+            is_client=True
         ).aggregate(Sum('value'))['value__sum'] or 0
         client_payed = Payment.objects.filter(
-            payment_date__range=[current_date, next_date], is_client=True
+            created_at__gte=current_date,
+            created_at__lt=next_date,
+            is_client=True
         ).aggregate(Sum('value'))['value__sum'] or 0
         
         # Suma facturat și plătit în intervalul curent pentru furnizori
         provider_invoiced = Invoice.objects.filter(
-            created_at__range=[current_date, next_date], is_client=False
+            created_at__gte=current_date,
+            created_at__lt=next_date,
+            is_client=False
         ).aggregate(Sum('value'))['value__sum'] or 0
         provider_payed = Payment.objects.filter(
-            payment_date__range=[current_date, next_date], is_client=False
+            created_at__gte=current_date,
+            created_at__lt=next_date,
+            is_client=False
         ).aggregate(Sum('value'))['value__sum'] or 0
 
         # Adăugarea în listă
@@ -93,6 +100,7 @@ def revenue(request):
         total_client_payed += item['client_payed']
         total_provider_invoiced += item['provider_invoiced']
         total_provider_payed += item['provider_payed']
+        print(item['range'], item['client_payed'])
 
     return render(request, "reports/revenue.html", {
         'revenue': revenue,
