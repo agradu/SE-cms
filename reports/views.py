@@ -100,7 +100,6 @@ def revenue(request):
         total_client_payed += item['client_payed']
         total_provider_invoiced += item['provider_invoiced']
         total_provider_payed += item['provider_payed']
-        print(item['range'], item['client_payed'])
 
     return render(request, "reports/revenue.html", {
         'revenue': revenue,

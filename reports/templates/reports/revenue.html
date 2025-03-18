@@ -16,7 +16,7 @@
 			<div class="card-body">
 				<div class="table-responsive">
 					<form method="post"> 
-						{% csrf_token %} 
+						{% csrf_token %}
 						<table class="table">
 							<tbody>
 								<tr>
@@ -52,24 +52,21 @@
 							<div class="grid-line">{{max_value_1}}</div>
 							<div class="grid-line">0</div>
 						</div>
+						<div class="bars" style="height: 100%;">
 						{% for r in revenue %}
-						<div class="bar" style="height: 100%;">
-							<div class="bar-fill"></div>
-							<div class="bar1" style="height: {{r.client_payed_percent}}%;" title="{{r.client_payed}} €"></div>
-							<div class="bar2" style="height: {{r.provider_payed_percent}}%;" title="{{r.provider_payed}} €"></div>
-						</div>
-						{% endfor %}
-					</div>
-					<div class="bar-months">
-						{% for r in revenue %} 
 						<div class="bar">
-							<div class="bar-fill"></div>
-							<div class="bar-month">{{r.range}}</div>
+							<div class="bar-lines">
+								<div class="bar1" style="height: {% if r.client_payed_percent > 0 %}{{r.client_payed_percent}}{% else %}0.1{% endif %}%;" title="{{r.client_payed}} €"></div>
+								<div class="bar2" style="height: {% if r.provider_payed_percent > 0 %}{{r.provider_payed_percent}}{% else %}0.1{% endif %}%;" title="{{r.provider_payed}} €"></div>
+							</div>
+							<div class="bar-info">
+								<div class="range">{{r.range}}</div>
+							</div>
 						</div>
 						{% endfor %}
+						</div>
 					</div>
 				</div>
-				
 				<style>
 				.custom-report-container {
 					font-family: Arial, sans-serif;
@@ -78,13 +75,11 @@
 					width: 100%;
 					padding-top: 20px;
 					background: #FFF;
-				}
-				
+				}				
 				.report-title {
 					margin-top: 0;
 					font-size: 24px;
 				}
-				
 				.bar-chart {
 					position: relative;
 					display: flex;
@@ -94,17 +89,6 @@
 					text-align: left;
 					font-size: 9pt;
 				}
-				.bar-months {
-					position: relative;
-					display: flex;
-					margin-top: 10px;
-					padding-left: 30px;
-					font-size: 9pt;
-				}
-				.bar-month {
-					text-align: left;
-				}
-				
 				.chart-grid {
 					position: absolute;
 					top: 0;
@@ -113,7 +97,6 @@
 					bottom: 0;
 					z-index: 0;
 				}
-				
 				.grid-line {
 					position: absolute;
 					left: 0;
@@ -127,16 +110,23 @@
 				.grid-line:nth-child(4) { top: 75%; }
 				.grid-line:nth-child(5) { top: 100%; }
 				
-				.bar {
+				.bars {
 					display: flex;
 					flex: 1;
-					align-items: flex-end;
-					margin-right:  5px;
-					margin-left:  auto;
 					z-index: 1;
+					height: 100%;
 				}
-				.bar-fill {
-					flex-grow: 1;  /* Aceasta va ocupa spațiul rămas la stânga */
+				.bar {
+					margin-right:  auto;
+					margin-left:  auto;
+					padding-right: 1px;
+					padding-left: 1px;
+				}
+				.bar-lines {
+					width: 20px;
+					height: 100%;
+					display: flex;
+					align-items: flex-end;
 				}
 				.bar1 {
 					width: 10px;
@@ -145,6 +135,15 @@
 				.bar2 {
 					width: 10px;
 					background-color: #e74c3c;
+				}
+				.bar-infos {
+					font-size: 9pt;
+					position: absolute;
+					bottom: -10px;
+				}
+				.range {
+					text-align: center;
+					margin-top: 0px;
 				}
 				</style>
 			</div>
