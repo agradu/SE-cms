@@ -88,7 +88,7 @@ def revenue(request):
         
         current_date = next_date
         # Actualizam valoarea maxima întâlnită
-        max_value = max(max_value, client_invoiced, client_payed, provider_invoiced, provider_payed)
+        max_value = max(max_value, client_payed, provider_payed)
     
     # Calculăm procentele și sumele totale
     for item in revenue:
