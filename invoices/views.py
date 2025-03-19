@@ -707,12 +707,29 @@ def convert_proforma(request, proforma_id):
     proforma = get_object_or_404(Proforma, id=proforma_id)
     proforma_elements = ProformaElement.objects.exclude(element__status__percent__lt=1).filter(proforma=proforma).order_by("id")
     serials = get_object_or_404(Serial, id=1)
+
     def set_value(invoice): # calculate and save the value of the invoice
         invoice_elements = InvoiceElement.objects.filter(invoice=invoice).order_by("id")
         invoice.value = 0
+        orders_to_update = set()  # A set to track which orders have been updated
         for e in invoice_elements:
             invoice.value += (e.element.price * e.element.quantity)
+            orders_to_update.add(e.element.order)  # Add the order of the element to the set
+        if invoice.cancellation_to: # If this is a cancellation invoice, negate the value
+            invoice.value = -abs(invoice.value)
         invoice.save()
+        # Update the invoiced amount for each order that has elements in this invoice
+        for order in orders_to_update:
+            order_invoiced_total = InvoiceElement.objects.filter(
+                element__order=order,
+                invoice__cancelled_from__isnull=True, # Exclude cancelled invoices
+                invoice__cancellation_to__isnull=True # Exclude cancelled invoices
+            ).aggregate(
+                total_invoiced=Sum(F('element__price') * F('element__quantity'))
+            )['total_invoiced'] or 0
+
+            order.invoiced = order_invoiced_total
+            order.save()
 
     invoice = Invoice(
         description = proforma.description,
