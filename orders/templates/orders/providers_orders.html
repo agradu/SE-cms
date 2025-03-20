@@ -77,11 +77,11 @@
 										</thead>
 										<tbody>
 											{% for o in provider_orders %}
-                                            <tr title="Test">
+                                            <tr>
 												<td>{{ o.order.serial}}{{ o.order.number}}</td>
 												<td>
 													{% for e in o.elements %}
-                                                    <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {{ e.description}}<br>
+                                                    <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {{ e.service.name }} {{ e.description}}<br>
                                                     {% endfor %}
 												</td>
 												<td>
