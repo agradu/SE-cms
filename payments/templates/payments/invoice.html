@@ -39,7 +39,7 @@
 						<p><b>Contact:</b></p>
 					</div>
 					<div class="col-md-9">
-						<p><a href="mailto:{{ person.email }}"><i class="mdi mdi-email-outline"></i></a> {{ person.email }} / <a href="https://wa.me/{{ person.phone | slice:'2:' }}">
+						<p><a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ person.email }}" target="_blank"><i class="mdi mdi-email-outline"></i></a> {{ person.email }} / <a href="https://wa.me/{{ person.phone | slice:'2:' }}" target="_blank">
 							<i class="mdi mdi-whatsapp"></i></a> {{ person.phone }}<br>Address - {{ person.address }}</p>
 					</div>
 				</div>

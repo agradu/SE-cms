@@ -55,7 +55,7 @@
 								</td>
 								<td title="Tel. {{ p.client.phone }}"> {% if p.client.phone %}<a href="https://wa.me/{{ p.client.phone | slice:'2:' }}"  target="_blank">
 									<i class="mdi mdi-whatsapp"></i></a> <a href="tel:{{ p.client.phone }}"  target="_blank"><i class="mdi mdi-phone"></i></a>{% endif %} </td>
-								<td title="{{ p.client.email}}"> {% if p.client.email %} <a href="mailto:{{ p.client.email }}"><i class="mdi mdi-email-outline"></i></a>{% endif %} </td>
+								<td title="{{ p.client.email}}"> {% if p.client.email %} <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ p.client.email }}" target="_blank"><i class="mdi mdi-email-outline"></i></a>{% endif %} </td>
 								<td>
 									<img src="{{ p.client.modified_by.profile_picture.url }}" class="me-2" alt="image"> {{ p.client.modified_by.first_name}} {{ p.client.modified_by.last_name}}
 								</td>

@@ -63,7 +63,7 @@
 				<div class="row">
 					<div class="col-md-6">
 						<div class="form-group row">
-							<label class="col-sm-3 col-form-label">Phone</label>
+							<label class="col-sm-3 col-form-label">{% if person.phone %}<a href="https://wa.me/{{ person.phone | slice:'2:' }}" target="_blank" title="Open WhatsApp"><i class="mdi mdi-whatsapp"></i></a> {% endif %}Phone</label>
 							<div class="col-sm-9">
 								<input type="text" class="form-control" name="phone" value="{{ person.phone }}">
 							</div>
@@ -81,7 +81,7 @@
 				<div class="row">
 					<div class="col-md-6">
 						<div class="form-group row">
-							<label class="col-sm-3 col-form-label">E-mail</label>
+							<label class="col-sm-3 col-form-label">{% if person.email %}<a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ person.email }}" target="_blank"><i class="mdi mdi-email-outline"></i></a> {% endif %}E-mail</label>
 							<div class="col-sm-9">
 								<input type="email" class="form-control" name="email" value="{{ person.email }}">
 							</div>
