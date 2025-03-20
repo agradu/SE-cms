@@ -6,9 +6,10 @@ from orders.models import Order
 from appointments.models import Appointment
 from django.core.paginator import Paginator
 from django.utils import timezone
+import random
+import string
 
 # Create your views here.
-
 
 @login_required(login_url="/login/")
 def c_clients(request):
@@ -101,18 +102,18 @@ def person_detail(request, person_id):
         person = get_object_or_404(Person, id=person_id)
         if request.method == "POST":
             update = "Succesfuly updated"
-            person.firstname = request.POST.get("firstname")
-            person.lastname = request.POST.get("lastname")
+            person.firstname = request.POST.get("firstname").strip()
+            person.lastname = request.POST.get("lastname").strip()
             person.entity = request.POST.get("entity")
             person.gender = request.POST.get("gender")
             person.identity_card = request.POST.get("identity_card")
-            person.company_name = request.POST.get("company_name")
+            person.company_name = request.POST.get("company_name").strip()
             person.company_tax_code = request.POST.get("company_tax_code")
             person.company_iban = request.POST.get("company_iban")
             person.email = request.POST.get("email")
             person.phone = request.POST.get("phone")
-            person.address = request.POST.get("address")
-            person.services = request.POST.get("services")
+            person.address = request.POST.get("address").strip()
+            person.services = request.POST.get("services").strip()
             person.modified_at = date_now
             person.modified_by = request.user
             person.save()
@@ -123,6 +124,9 @@ def person_detail(request, person_id):
             firstname = request.POST.get("firstname")
             lastname = request.POST.get("lastname")
             company_name = request.POST.get("company_name")
+            token = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+            while Person.objects.filter(token=token).exists():
+                token = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
             if firstname != "" and lastname != "":
                 try:
                     person = (
@@ -135,18 +139,19 @@ def person_detail(request, person_id):
                 except:
                     update = "Person created"
                     person = Person(
-                        firstname=firstname,
-                        lastname=lastname,
-                        company_name=company_name,
+                        firstname=firstname.strip(),
+                        lastname=lastname.strip(),
+                        company_name=company_name.strip(),
+                        token=token,
                         entity=request.POST.get("entity"),
                         gender=request.POST.get("gender"),
                         identity_card=request.POST.get("identity_card"),
                         company_tax_code=request.POST.get("company_tax_code"),
                         company_iban=request.POST.get("company_iban"),
                         phone=request.POST.get("phone"),
-                        address=request.POST.get("address"),
+                        address=request.POST.get("address").strip(),
                         email=request.POST.get("email"),
-                        services=request.POST.get("services"),
+                        services=request.POST.get("services").strip(),
                         modified_at=date_now,
                         modified_by=request.user,
                         created_at=date_now,

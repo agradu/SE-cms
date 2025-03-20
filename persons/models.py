@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-
 # Create your models here.
 
 
@@ -51,6 +50,7 @@ class Person(models.Model):
     email = models.EmailField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     services = models.CharField(max_length=255, blank=True)
+    token = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         if self.company_name == "":
