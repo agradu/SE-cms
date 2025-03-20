@@ -13,11 +13,13 @@ from django.db.models.functions import TruncMonth
 def revenue(request):
     if request.method == 'POST':
         # Extragem datele de start și de sfârșit din POST request
-        date_start = timezone.make_aware(datetime.strptime(request.POST.get('date_start'), "%Y-%m-%d"))
-        date_end = timezone.make_aware(datetime.strptime(request.POST.get('date_end'), "%Y-%m-%d"))
+        date_start = datetime.strptime(request.POST.get('date_start'), "%Y-%m-%d")
+        date_end = datetime.strptime(request.POST.get('date_end'), "%Y-%m-%d")
     else:
-        date_start = timezone.localdate() - timedelta(days=timezone.localdate().weekday() + 7)
-        date_end = timezone.localdate()
+        date_start = datetime.combine(timezone.localdate() - timedelta(days= 14), datetime.min.time())
+        date_end = datetime.combine(timezone.localdate(), datetime.min.time())
+    date_start = timezone.make_aware(date_start)
+    date_end = timezone.make_aware(date_end)
 
     # Determinarea intervalului pentru raport
     difference = date_end - date_start

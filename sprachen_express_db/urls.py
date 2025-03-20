@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth.views import LoginView
 from django.urls import path, include
 from . import views
+from django.shortcuts import render
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -32,3 +33,16 @@ urlpatterns = [
     path("", include("services.urls")),
     path("", include("users.urls")),
 ]
+
+def custom_page_not_found(request, exception):
+    return render(request, "error-404.html", status=404)
+
+def custom_permission_denied(request, exception):
+    return render(request, "error-404.html", status=403)
+
+def custom_bad_request(request, exception):
+    return render(request, "error-404.html", status=400)
+
+handler404 = custom_page_not_found
+handler403 = custom_permission_denied
+handler400 = custom_bad_request
