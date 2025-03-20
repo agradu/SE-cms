@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import Order, OrderElement, Offer, OfferElement
 from persons.models import Person
-from invoices.models import InvoiceElement, ProformaElement
+from invoices.models import Invoice, InvoiceElement, ProformaElement
+from payments.models import Payment, PaymentElement
 from services.models import Currency, Status, Service, UM, Serial
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
@@ -567,6 +568,54 @@ def p_orders(request):
             "search_description": search_description,
             "reg_start": reg_start,
             "reg_end": reg_end,
+        },
+    )
+
+def provider_orders(request, token):
+    # Get data and filters
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
+    try:
+        person = Person.objects.get(token=token)
+    except Person.DoesNotExist:
+        # Handle the error, maybe redirect or show an error message
+        return HttpResponse("Person not found", status=404)
+
+    # Query filtered orders
+    selected_orders = Order.objects.filter(
+        is_client=False,
+        person=person,
+        created_at__range=(filter_start, filter_end),
+    ).order_by("-created_at")
+
+    # Prepare orders list with invoicing details
+    provider_orders = []
+    for o in selected_orders:
+        order_elements = list(OrderElement.objects.filter(order=o).order_by("id"))
+        # Fetch all invoices associated with the order through its elements
+        order_invoices = Invoice.objects.filter(
+            invoiceelement__element__in=order_elements
+        ).distinct().order_by("id")    
+        # Prepare a list of all unique invoices to fetch related payments
+        invoice_ids = order_invoices.values_list('id', flat=True)
+        # Fetch all payments associated with the collected invoices
+        order_payments = Payment.objects.filter(
+            paymentelement__invoice__id__in=invoice_ids
+        ).distinct().order_by("id")
+        provider_orders.append({
+            "order": o,
+            "elements": order_elements,
+            "invoices": list(order_invoices),
+            "payments": list(order_payments)
+        })
+
+    return render(
+        request,
+        "orders/providers_orders.html",
+        {
+            "provider_orders": provider_orders,
+            "reg_start": reg_start,
+            "reg_end": reg_end,
+            "person": person,
         },
     )
 

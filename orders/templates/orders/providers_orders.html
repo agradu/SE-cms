@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title>Aufträge zu {{ person.firstname }} {{ person.lastname }} - {{ person.company_name }}</title>
+		<!-- plugins:css -->
+		<link rel="stylesheet" href="{% static 'vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendors/css/vendor.bundle.base.css' %}">
+		<!-- endinject -->
+		<!-- Plugin css for this page -->
+		<!-- End plugin css for this page -->
+		<!-- inject:css -->
+		<!-- endinject -->
+		<!-- Layout styles -->
+		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <!-- End layout styles -->
+        <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+	</head>
+	<body>
+		<div class="container-scroller">
+			<div class="content-wrapper">
+				<div class="page-header">
+					<h3 class="page-title">
+						<span class="page-title-icon bg-gradient-primary text-white me-2">
+							<i class="mdi mdi-cart"></i>
+						</span> Aufträge zu {{ person.firstname }} {{ person.lastname }} - {{ person.company_name }}
+					</h3>
+				</div>
+				<div class="row">
+					<div class="col-12 grid-margin">
+						<div class="card">
+							<div class="card-body">
+								<div class="table-responsive">
+									<form method="post">
+										{% csrf_token %}
+										<table class="table">
+											<tbody>
+												<tr>
+													<td>
+														<div class="input-group input-group-sm">
+															<input type="date" class="form-control" name="reg_start" value="{{ reg_start }}">
+														</div>
+													</td>
+													<td>
+														<div class="col input-group input-group-sm">
+															<input type="date" class="form-control" name="reg_end" value="{{ reg_end }}">
+														</div>
+													</td>
+													<td>
+														<div class="col input-group input-group-sm">
+															<button type="submit" class="btn btn-gradient-primary me-2">Suche</button>
+														</div>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</form>
+								</div>
+								<div class="table-responsive">
+									<table class="table table-hover">
+										<thead>
+											<tr>
+												<th>Auftrag</th>
+												<th>Beschreibung</th>
+												<th>Zuschtändig</th>
+												<th>Registriert</th>
+												<th>Frist</th>
+												<th>Aktualisiert</th>
+												<th>Zustand</th>
+												<th style="text-align: right;">Wert</th>
+												<th style="text-align: right;">Abgerechnet</th>
+												<th style="text-align: right;">Bezahlt</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for o in provider_orders %}
+                                            <tr title="Test">
+												<td>{{ o.order.serial}}{{ o.order.number}}</td>
+												<td>
+													{% for e in o.elements %}
+                                                    <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {{ e.description}}<br>
+                                                    {% endfor %}
+												</td>
+												<td>
+													<img src="{{ o.order.modified_by.profile_picture.url }}" class="me-2" alt="image" title="{{ o.order.modified_by.first_name}} {{ o.order.modified_by.last_name}}">
+												</td>
+												<td>{{ o.order.created_at|date:"d.m.Y"}}</td>
+												<td>{{ o.order.deadline|date:"d.m.Y"}}</td>
+												<td>{{ o.order.modified_at|date:"d.m.Y"}}</td>
+												<td>
+													<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
+												</td>
+												<td style="text-align: right;"> {{ o.order.value }} {{ o.order.currency.symbol }}</td>
+												<td class="text-success" style="text-align: right;">
+                                                    {% for i in o.invoices %}
+                                                    {{ i.serial}}{{ i.number}} - {{ i.created_at|date:"d.m.Y"}} - {{ i.value}} {{ i.currency.symbol }}<br>
+                                                    {% endfor %}
+                                                </td>
+												<td class="text-success" style="text-align: right;">
+                                                    {% for p in o.payments %}
+                                                    {{ p.created_at|date:"d.m.Y"}} - {{ p.value}} {{ p.currency.symbol }}<br>
+                                                    {% endfor %}
+												</td>
+											</tr>
+                                            {% endfor %}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- container-scroller -->
+	</body>
+</html>

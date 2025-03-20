@@ -11,6 +11,7 @@ urlpatterns = [
         "clients/offer/<int:offer_id>/<int:client_id>/", views.c_offer, name="c_offer"
     ),
     path("providers/orders/", views.p_orders, name="p_orders"),
+    path("orders/<str:token>/", views.provider_orders, name="provider_orders"),
     path(
         "providers/order/<int:order_id>/<int:provider_id>/",
         views.p_order,
