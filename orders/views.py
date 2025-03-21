@@ -573,12 +573,19 @@ def p_orders(request):
 
 def provider_orders(request, token):
     # Get data and filters
-    filter_start, filter_end, reg_start, reg_end = get_date_range(request)
     try:
         person = Person.objects.get(token=token)
     except Person.DoesNotExist:
         # Handle the error, maybe redirect or show an error message
         return HttpResponse("Person not found", status=404)
+    
+    if Order.objects.filter(person=person, is_client=False).exists():
+        latest_order = Order.objects.filter(person=person).latest('created_at')
+        date_end = latest_order.created_at
+    else:
+        date_end = 0
+
+    filter_start, filter_end, reg_start, reg_end = get_date_range(request, 30, date_end)
 
     # Query filtered orders
     selected_orders = Order.objects.filter(

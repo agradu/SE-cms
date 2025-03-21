@@ -4,9 +4,11 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils.dateparse import parse_date
 
-def get_date_range(request, default_days=10):
+def get_date_range(request, default_days=10, date_end=0):
     """Gets and parses the start and end dates from the request."""
     date_now = timezone.now().replace(hour=23, minute=59, second=59, microsecond=0)
+    if date_end != 0:
+        date_now = date_end
     date_before = date_now - timedelta(days=default_days)
 
     reg_start = request.GET.get("r_start", date_before.strftime("%Y-%m-%d"))
