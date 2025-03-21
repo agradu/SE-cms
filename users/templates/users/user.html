@@ -133,4 +133,50 @@
 		</div>
 	</div>
 </div>
+<div class="row">
+	<div class="col-12 grid-margin">
+		<div class="card">
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-4">
+						<h4 class="card-title">User progress</h4>
+						<ul class="list-star">
+							<li>People: {{ total.persons_reg }} registered  / {{ total.persons_edit }} edited</li>
+							<li>Offers: {{ total.offers_reg }} registered  / {{ total.offers_edit }} edited</li>
+							<li>Orders: {{ total.orders_reg }} registered  / {{ total.orders_edit }} edited</li>
+							<li>Proformas: {{ total.proformas_reg }} registered  / {{ total.proformas_edit }} edited</li>
+							<li>Invoices: {{ total.invoices_reg }} registered  / {{ total.invoices_edit }} edited</li>
+							<li>Payments: {{ total.payments_reg }} registered  / {{ total.payments_edit }} edited</li>
+							<li>Appointments: {{ total.appointments_reg }} registered  / {{ total.appointments_edit }} edited</li>
+						</ul>
+					</div>
+					<div class="col-md-4">
+						<h4 class="card-title">Actions last month</h4>
+						<ul class="list-ticked">
+							<li>People: {{ last_month.persons_reg }} registered  / {{ last_month.persons_edit }} edited</li>
+							<li>Offers: {{ last_month.offers_reg }} registered  / {{ last_month.offers_edit }} edited</li>
+							<li>Orders: {{ last_month.orders_reg }} registered  / {{ last_month.orders_edit }} edited</li>
+							<li>Proformas: {{ last_month.proformas_reg }} registered  / {{ last_month.proformas_edit }} edited</li>
+							<li>Invoices: {{ last_month.invoices_reg }} registered  / {{ last_month.invoices_edit }} edited</li>
+							<li>Payments: {{ last_month.payments_reg }} registered  / {{ last_month.payments_edit }} edited</li>
+							<li>Appointments: {{ last_month.appointments_reg }} registered  / {{ last_month.appointments_edit }} edited</li>
+						</ul>
+					</div>
+					<div class="col-md-4">
+						<h4 class="card-title">Actions this month</h4>
+						<ul class="list-arrow">
+							<li>People: {{ this_month.persons_reg }} registered  / {{ this_month.persons_edit }} edited</li>
+							<li>Offers: {{ this_month.offers_reg }} registered  / {{ this_month.offers_edit }} edited</li>
+							<li>Orders: {{ this_month.orders_reg }} registered  / {{ this_month.orders_edit }} edited</li>
+							<li>Proformas: {{ this_month.proformas_reg }} registered  / {{ this_month.proformas_edit }} edited</li>
+							<li>Invoices: {{ this_month.invoices_reg }} registered  / {{ this_month.invoices_edit }} edited</li>
+							<li>Payments: {{ this_month.payments_reg }} registered  / {{ this_month.payments_edit }} edited</li>
+							<li>Appointments: {{ this_month.appointments_reg }} registered  / {{ this_month.appointments_edit }} edited</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 {% endblock %}
