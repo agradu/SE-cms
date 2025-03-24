@@ -154,10 +154,12 @@
 									<i class="mdi mdi-cart btn-icon-prepend"></i>
 									Register an order as client
 								</button>
+								{% if person.services %}
 								<button class="btn btn-gradient-primary btn-icon-text" type="button" onclick="window.open('/providers/order/0/{{ person.id}}/', '_self');">
 									<i class="mdi mdi-truck btn-icon-prepend"></i>
 									Register an order as provider
 								</button>
+								{% endif %}
 								{% endif %}
 							</div>
 						  </tr>

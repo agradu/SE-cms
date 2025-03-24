@@ -96,7 +96,7 @@
 									</button>
 									{% endif %}
 								</td>
-								<td>{% if o.invoiced == 0 and o.proformed and o.order.status.percent < 101 %}
+								<td>{% if o.invoiced == 0 and o.proformed and o.order.status.percent > 0 and o.order.status.percent < 101 %}
 									<button type="button" title="Convert proforma to invoice" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="location.href='/payments/convert/{{ o.proformed.proforma.id }}/';">
 									<i class="mdi mdi-file-export"></i>
 									</button>

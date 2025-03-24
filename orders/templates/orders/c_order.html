@@ -311,7 +311,7 @@
 										<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
 										Download the order
 									</button>
-									{% if elements and order.status.percent < 101 %}
+									{% if elements and order.status.percent > 0 and order.status.percent < 101 %}
 									{% if not is_proformed and not is_invoiced %}
 									<button class="btn btn-gradient-warning" type="button" onclick="if(confirm('Are you sure?')) { location.href='/payments/proforma/0/{{ order.person.id }}/{{ order.id }}/'; }" title="Make a proforma">
 										<i class="mdi mdi-file-hidden btn-icon-prepend"></i>

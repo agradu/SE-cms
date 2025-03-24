@@ -647,12 +647,14 @@ def p_order(request, order_id, provider_id):
     providers = []
     elements = []
     element = ""
+    is_invoiced = False
     date_now = timezone.now()
     if order_id != 0:  # if order exists
         new = False
         order = get_object_or_404(Order, id=order_id)
         provider = order.person
         elements = OrderElement.objects.filter(order=order).order_by("id")
+        is_invoiced = InvoiceElement.objects.filter(element__order=order).exists()
         if request.method == "POST":
             if "search" in request.POST:
                 search = request.POST.get("search")
@@ -662,7 +664,7 @@ def p_order(request, order_id, provider_id):
                         | Q(lastname__icontains=search)
                         | Q(company_name__icontains=search)
                     )
-            if "new_provider" in request.POST:
+            if "new_provider" in request.POST and is_invoiced == False:
                 new_provider = request.POST.get("new_provider")
                 provider = get_object_or_404(Person, id=new_provider)
                 order.person = provider
@@ -793,6 +795,7 @@ def p_order(request, order_id, provider_id):
             "statuses": statuses,
             "ums": ums,
             "services": services,
+            "is_invoiced": is_invoiced,
             "new": new,
             "element_selected": element
         },
