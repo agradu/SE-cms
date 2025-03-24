@@ -94,12 +94,12 @@
 												<td style="text-align: right;"> {{ o.order.value }} {{ o.order.currency.symbol }}</td>
 												<td class="text-success" style="text-align: right;">
                                                     {% for i in o.invoices %}
-                                                    Rech. {{ i.serial}}{{ i.number}} - {{ i.created_at|date:"d.m.Y"}} - {{ i.value}} {{ i.currency.symbol }}<br>
+                                                    Rech. {{ i.serial}}{{ i.number}} vom {{ i.created_at|date:"d.m.Y"}} - {{ i.value}} {{ i.currency.symbol }}<br>
                                                     {% endfor %}
                                                 </td>
 												<td class="text-success" style="text-align: right;">
                                                     {% for p in o.payments %}
-                                                    {{ p.created_at|date:"d.m.Y"}} - {{ p.value}} {{ p.currency.symbol }}<br>
+                                                    am {{ p.created_at|date:"d.m.Y"}} - {{ p.value}} {{ p.currency.symbol }}<br>
                                                     {% endfor %}
 												</td>
 											</tr>
