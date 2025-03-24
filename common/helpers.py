@@ -32,16 +32,19 @@ def get_date_range(request, default_days=10, date_end=0):
 def get_search_params(request):
     """Extract and validate search terms from the request."""
     search_client = request.GET.get("client", "").strip()
+    search_provider = request.GET.get("provider", "").strip()
     search_description = request.GET.get("description", "").strip()
 
     if request.method == "POST":
         search_client = request.POST.get("search_client", "").strip()
+        search_provider = request.POST.get("search_provider", "").strip()
         search_description = request.POST.get("search_description", "").strip()
 
     search_client = search_client if len(search_client) >= 3 else ""
+    search_provider = search_provider if len(search_provider) >= 3 else ""
     search_description = search_description if len(search_description) >= 3 else ""
 
-    return search_client, search_description
+    return search_client, search_provider, search_description
 
 
 def paginate_objects(request, object_list, per_page=10):

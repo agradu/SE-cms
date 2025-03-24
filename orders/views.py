@@ -22,7 +22,7 @@ from common.helpers import get_date_range, get_search_params, paginate_objects
 def c_orders(request):
     # Get data and filters
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
-    search_client, search_description = get_search_params(request)
+    search_client, search_provider, search_description = get_search_params(request)
 
     sort = request.GET.get("sort")
 
@@ -264,7 +264,7 @@ def c_order(request, order_id, client_id):
 def c_offers(request):
     # Get data and filters
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
-    search_client, search_description = get_search_params(request)
+    search_client, search_provider, search_description = get_search_params(request)
 
     sort = request.GET.get("sort")
 
@@ -517,8 +517,7 @@ def convert_offer(request, offer_id):
 def p_orders(request):
     # Get data and filters
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
-    search_client, search_description = get_search_params(request)
-    search_provider = search_client
+    search_client, search_provider, search_description = get_search_params(request)
 
     sort = request.GET.get("sort")
 
