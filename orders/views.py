@@ -592,6 +592,7 @@ def provider_orders(request, token):
         is_client=False,
         person=person,
         created_at__range=(filter_start, filter_end),
+        status__percent__gt=0
     ).order_by("-created_at")
 
     # Prepare orders list with invoicing details
