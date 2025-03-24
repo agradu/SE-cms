@@ -68,7 +68,6 @@
 												<th>Zuständig</th>
 												<th>Registriert</th>
 												<th>Frist</th>
-												<th>Aktualisiert</th>
 												<th>Zustand</th>
 												<th style="text-align: right;">Wert</th>
 												<th style="text-align: right;">Abgerechnet</th>
@@ -89,7 +88,6 @@
 												</td>
 												<td>{{ o.order.created_at|date:"d.m.Y"}}</td>
 												<td>{{ o.order.deadline|date:"d.m.Y"}}</td>
-												<td>{{ o.order.modified_at|date:"d.m.Y"}}</td>
 												<td>
 													<label class="badge badge-{{ o.order.status.style}}">{{ o.order.status.name}}</label>
 												</td>
