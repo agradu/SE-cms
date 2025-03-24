@@ -64,7 +64,7 @@
 										<thead>
 											<tr>
 												<th>Auftrag</th>
-												<th>Beschreibung</th>
+												<th>Details</th>
 												<th>Zuständig</th>
 												<th>Registriert</th>
 												<th>Frist</th>
@@ -78,7 +78,7 @@
 										<tbody>
 											{% for o in provider_orders %}
                                             <tr>
-												<td>{{ o.order.serial}}{{ o.order.number}}</td>
+												<td>{{ o.order.description}}</td>
 												<td>
 													{% for e in o.elements %}
                                                     <i class="mdi {{ e.service.icon }} mdi-18px text-{{ e.status.style }}"></i> {{ e.service.name }} {{ e.description}}<br>
