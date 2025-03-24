@@ -33,6 +33,10 @@ def users(request):
 def user_detail(request, user_id):
     if user_id != 0:
         user = get_object_or_404(CustomUser, id=user_id)
+        if request.user.is_superuser == False and user != request.user:
+            return redirect(
+                "users",
+            )
         if request.method == "POST":
             update = "Succesfuly updated"
             user.username = request.POST.get("username")
@@ -70,6 +74,10 @@ def user_detail(request, user_id):
         else:
             update = ""
     else:
+        if request.user.is_superuser == False:
+            return redirect(
+                "users",
+            )
         if request.method == "POST":
             username = request.POST.get("username")
             try:
@@ -136,12 +144,15 @@ def user_detail(request, user_id):
         first_day_last_month = last_month.replace(day=1)
 
         def count_query(model, created=True):
-            if flag == "total":
-                return model.objects.filter(created_by=user).count() if created else model.objects.filter(modified_by=user).count()
-            elif flag == "last_month":
-                return model.objects.filter(created_by=user, created_at__range=[first_day_last_month, last_month]).count() if created else model.objects.filter(modified_by=user, modified_at__range=[first_day_last_month, last_month]).count()
-            elif flag == "this_month":
-                return model.objects.filter(created_by=user, created_at__range=[first_day_this_month, now]).count() if created else model.objects.filter(modified_by=user, modified_at__range=[first_day_this_month, now]).count()
+            if user != "":
+                if flag == "total":
+                    return model.objects.filter(created_by=user).count() if created else model.objects.filter(modified_by=user).count()
+                elif flag == "last_month":
+                    return model.objects.filter(created_by=user, created_at__range=[first_day_last_month, last_month]).count() if created else model.objects.filter(modified_by=user, modified_at__range=[first_day_last_month, last_month]).count()
+                elif flag == "this_month":
+                    return model.objects.filter(created_by=user, created_at__range=[first_day_this_month, now]).count() if created else model.objects.filter(modified_by=user, modified_at__range=[first_day_this_month, now]).count()
+            else:
+                return 0
 
         stats = {
             'persons_reg': count_query(Person, True),
@@ -159,8 +170,8 @@ def user_detail(request, user_id):
             'appointments_reg': count_query(Appointment, True),
             'appointments_edit': count_query(Appointment, False),
         }
-
         return stats
+    
     return render(request, "users/user.html", {
         "us": user, 
         "update": update,

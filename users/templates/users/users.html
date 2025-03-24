@@ -59,7 +59,15 @@
 									{% endif %}	
 								</td>
 								<td> <img src="{{ us.profile_picture.url }}" class="me-2" alt="image"> </td>
-								<td> <a href="{% url 'user_detail' us.id %}">{{ us.first_name }} {{ us.last_name }}</a> </td>
+								<td> 
+									{% if user.is_superuser or user.is_staff %}
+									<a href="{% url 'user_detail' us.id %}">{{ us.first_name }} {{ us.last_name }}</a> 
+									{% elif user == us %}
+									<a href="{% url 'user_detail' us.id %}">{{ us.first_name }} {{ us.last_name }}</a>	
+									{% else %}
+									{{ us.first_name }} {{ us.last_name }}
+									{% endif %}	
+								</td>
 								<td> {{ us.phone }} </td>
 								<td> {{ us.email }} </td>
 								<td> {{ us.date_joined|date:"d.m.Y H:i" }} </td>
@@ -87,6 +95,7 @@
 							</td>
 						  </tr>
 						  {% endif %}
+						  {% if user.is_superuser or user.is_staff %}
 						  <tr>
 							<td>
 							  <div class="input-group input-group-sm">
@@ -95,6 +104,7 @@
 							  </div>
 							</td>
 						  </tr>
+						  {% endif %}
 					  </tbody>
 					</table>
 				</div>
