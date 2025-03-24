@@ -61,11 +61,13 @@ def revenue(request):
             created_at__lt=next_date,
             is_client=True
         ).aggregate(Sum('value'))['value__sum'] or 0
+        print(client_invoiced)
         client_payed = Payment.objects.filter(
-            created_at__gte=current_date,
-            created_at__lt=next_date,
+            payment_date__gte=current_date,
+            payment_date__lt=next_date,
             is_client=True
         ).aggregate(Sum('value'))['value__sum'] or 0
+        print(client_payed)
         
         # Suma facturat și plătit în intervalul curent pentru furnizori
         provider_invoiced = Invoice.objects.filter(
@@ -73,11 +75,13 @@ def revenue(request):
             created_at__lt=next_date,
             is_client=False
         ).aggregate(Sum('value'))['value__sum'] or 0
+        print(provider_invoiced)
         provider_payed = Payment.objects.filter(
-            created_at__gte=current_date,
-            created_at__lt=next_date,
+            payment_date__gte=current_date,
+            payment_date__lt=next_date,
             is_client=False
         ).aggregate(Sum('value'))['value__sum'] or 0
+        print(provider_payed)
 
         # Adăugarea în listă
         revenue.append({
