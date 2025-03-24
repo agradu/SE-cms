@@ -24,7 +24,7 @@ from common.helpers import get_date_range, get_search_params, paginate_objects
 def payments(request):
     # Get data and filters
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
-    search_client, search_description = get_search_params(request)
+    search_client, search_provider, search_description = get_search_params(request)
 
     sort = request.GET.get("sort", "payment")
     
