@@ -517,7 +517,8 @@ def convert_offer(request, offer_id):
 def p_orders(request):
     # Get data and filters
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
-    search_provider, search_description = get_search_params(request)
+    search_client, search_description = get_search_params(request)
+    search_provider = search_client
 
     sort = request.GET.get("sort")
 
