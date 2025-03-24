@@ -587,6 +587,9 @@ def provider_orders(request, token):
 
     filter_start, filter_end, reg_start, reg_end = get_date_range(request, 30, date_end)
 
+    value_total = 0
+    payed_total = 0
+
     # Query filtered orders
     selected_orders = Order.objects.filter(
         is_client=False,
@@ -615,6 +618,10 @@ def provider_orders(request, token):
             "invoices": list(order_invoices),
             "payments": list(order_payments)
         })
+        value_total += o.value
+        for p in order_payments:
+            payed_total += p.value
+
 
     return render(
         request,
@@ -624,6 +631,7 @@ def provider_orders(request, token):
             "reg_start": reg_start,
             "reg_end": reg_end,
             "person": person,
+            "unpayed_total": value_total - payed_total
         },
     )
 
