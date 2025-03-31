@@ -210,7 +210,7 @@ def c_order(request, order_id, client_id):
                 )
             if "order_description" in request.POST:
                 description = request.POST.get("order_description")
-                status = statuses[int(request.POST.get("order_status")) - 1]
+                status = Status.objects.get(id=request.POST.get("order_status"))
                 currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
@@ -752,7 +752,7 @@ def p_order(request, order_id, provider_id):
                 )
             if "order_description" in request.POST:
                 description = request.POST.get("order_description")
-                status = statuses[int(request.POST.get("order_status")) - 1]
+                status = Status.objects.get(id=request.POST.get("order_status"))
                 currency = currencies[int(request.POST.get("order_currency")) - 1]
                 deadline_date = request.POST.get("deadline_date")
                 deadline_time = request.POST.get("deadline_time")
