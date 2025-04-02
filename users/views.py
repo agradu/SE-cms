@@ -139,9 +139,9 @@ def user_detail(request, user_id):
             user = ""
     def get_stats_by_user(user, flag):
         now = timezone.now()
-        first_day_this_month = now.replace(day=1)
+        first_day_this_month = now.replace(day=1, hour=0, minute=0, second=1, microsecond=0)
         last_month = now.replace(day=1) - timedelta(days=1)
-        first_day_last_month = last_month.replace(day=1)
+        first_day_last_month = last_month.replace(day=1, hour=0, minute=0, second=1, microsecond=0)
 
         def count_query(model, created=True):
             if user != "":
