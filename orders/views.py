@@ -168,20 +168,19 @@ def c_order(request, order_id, client_id):
             # Calculating the order value
             order.value = 0
             for e in elements:
-                if e.status.percent > 0:
-                    order.value += (e.price * e.quantity)
-                    try:
-                        # Calculating the invoice value if element is invoiced
-                        invoice_element = InvoiceElement.objects.get(element=e)
-                        invoice = invoice_element.invoice
-                        invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
-                        invoice.value = 0
-                        for ie in invoice_elements:
-                            if ie.element.status.percent > 0:
-                                invoice.value += (ie.element.price * ie.element.quantity)
-                        invoice.save()
-                    except:
-                        invoice = ""
+                order.value += (e.price * e.quantity)
+                try:
+                    # Calculating the invoice value if element is invoiced
+                    invoice_element = InvoiceElement.objects.get(element=e)
+                    invoice = invoice_element.invoice
+                    invoice_elements = InvoiceElement.objects.filter(invoice=invoice)
+                    invoice.value = 0
+                    for ie in invoice_elements:
+                        if ie.element.status.percent > 0:
+                            invoice.value += (ie.element.price * ie.element.quantity)
+                    invoice.save()
+                except:
+                    invoice = ""
             order.save()
 
     else:  # if order is new

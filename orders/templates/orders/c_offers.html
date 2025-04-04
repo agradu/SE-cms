@@ -53,7 +53,7 @@
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
-						<thead>
+						<thead class="table-success">
 							<tr>
 								<th><a href="/clients/offers/?sort=offer&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}" class="text-warning">Offer</a></th>
 								<th><a href="/clients/offers/?sort=client&client={{ search_client }}&description={{ search_description }}&page={{ pg }}&r_start={{ reg_start }}&r_end={{ reg_end }}">Client</a></th>
@@ -86,7 +86,7 @@
 									<label class="badge badge-{{ o.offer.status.style}}">{{ o.offer.status.name}}</label>
 								</td>
 								<td style="text-align: right;"> {% if o.order %}
-									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.id}} </a>
+									<a href="/clients/order/{{ o.order.id }}/{{ o.order.person.id}}/"> {{ o.order.serial}}{{ o.order.number}} </a>
 									{% endif %}
 								</td>
 								<td style="text-align: right;"> {{ o.offer.value}} {{ o.offer.currency.symbol }}</td>
