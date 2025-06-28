@@ -588,6 +588,7 @@ def provider_orders(request, token):
 
     value_total = 0
     payed_total = 0
+    processed_payments = set()
 
     # Query filtered orders
     selected_orders = Order.objects.filter(
@@ -619,7 +620,9 @@ def provider_orders(request, token):
         })
         value_total += o.value
         for p in order_payments:
-            payed_total += p.value
+            if p.id not in processed_payments:
+                processed_payments.add(p.id)
+                payed_total += p.value
 
 
     return render(
