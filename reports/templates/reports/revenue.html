@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Sprachen Express - Revenue{% endblock %}
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="page-header">
 	<h3 class="page-title">
 		<span class="page-title-icon bg-gradient-primary text-white me-2">
@@ -44,108 +45,38 @@
 					<h1 class="report-title">Einnahmenbericht</h1>
 					<p>{{ range_type }}</p>
 					<p>Einkommen gesamt: <span class="text-primary">{{total_client_payed}} €</span> / Auszahlungen gesamt: <span class="text-danger">{{total_provider_payed}} €</span> </p>
-					<div class="bar-chart">
-						<div class="chart-grid">
-							<div class="grid-line">{{max_value_4}}</div>
-							<div class="grid-line">{{max_value_3}}</div>
-							<div class="grid-line">{{max_value_2}}</div>
-							<div class="grid-line">{{max_value_1}}</div>
-							<div class="grid-line">0</div>
-						</div>
-						<div class="bars" style="height: 100%;">
-						{% for r in revenue %}
-						<div class="bar">
-							<div class="bar-lines">
-								<div class="bar1" style="height: {% if r.client_payed_percent > 0 %}{{r.client_payed_percent}}{% else %}0.1{% endif %}%;" title="{{r.client_payed}} €"></div>
-								<div class="bar2" style="height: {% if r.provider_payed_percent > 0 %}{{r.provider_payed_percent}}{% else %}0.1{% endif %}%;" title="{{r.provider_payed}} €"></div>
-							</div>
-							<div class="bar-info">
-								<div class="range">{{r.range}}</div>
-							</div>
-						</div>
-						{% endfor %}
-						</div>
+					<div>
+					<canvas id="myChart"></canvas>
 					</div>
+					<script>
+					const ctx = document.getElementById('myChart');
+
+					new Chart(ctx, {
+						type: 'bar',
+						data: {
+						labels: [{% for r in revenue %}'{{r.range}}',{% endfor %}],
+						datasets: [{
+							label: 'Einkommen',
+							data: [{% for r in revenue %}{{r.client_payed}},{% endfor %}],
+							borderWidth: 1,
+							backgroundColor: 'rgba(0, 149, 255, 0.5)'
+						},{
+							label: 'Auszahlungen',
+							data: [{% for r in revenue %}{{r.provider_payed}},{% endfor %}],
+							borderWidth: 1,
+							backgroundColor: 'rgba(255, 0, 0, 0.5)'
+						}]
+						},
+						options: {
+						scales: {
+							y: {
+							beginAtZero: true
+							}
+						}
+						}
+					});
+					</script>
 				</div>
-				<style>
-				.custom-report-container {
-					font-family: Arial, sans-serif;
-					text-align: left;
-					color: #333;
-					width: 100%;
-					padding-top: 20px;
-					background: #FFF;
-				}				
-				.report-title {
-					margin-top: 0;
-					font-size: 24px;
-				}
-				.bar-chart {
-					position: relative;
-					display: flex;
-					height: 350px;
-					margin-top: 20px;
-					padding-left: 30px;
-					text-align: left;
-					font-size: 9pt;
-				}
-				.chart-grid {
-					position: absolute;
-					top: 0;
-					left: 0;
-					right: 0;
-					bottom: 0;
-					z-index: 0;
-				}
-				.grid-line {
-					position: absolute;
-					left: 0;
-					right: 0;
-					height: 1px;
-					background-color: #ccc;
-				}
-				.grid-line:nth-child(1) { top: 0%; }
-				.grid-line:nth-child(2) { top: 25%; }
-				.grid-line:nth-child(3) { top: 50%; }
-				.grid-line:nth-child(4) { top: 75%; }
-				.grid-line:nth-child(5) { top: 100%; }
-				
-				.bars {
-					display: flex;
-					flex: 1;
-					z-index: 1;
-					height: 100%;
-				}
-				.bar {
-					margin-right:  auto;
-					margin-left:  auto;
-					padding-right: 1px;
-					padding-left: 1px;
-				}
-				.bar-lines {
-					width: 20px;
-					height: 100%;
-					display: flex;
-					align-items: flex-end;
-				}
-				.bar1 {
-					width: 10px;
-					background-color: #3498db;
-				}
-				.bar2 {
-					width: 10px;
-					background-color: #e74c3c;
-				}
-				.bar-infos {
-					font-size: 9pt;
-					position: absolute;
-					bottom: -10px;
-				}
-				.range {
-					text-align: center;
-					margin-top: 0px;
-				}
-				</style>
 			</div>
 		</div>
 	</div>
