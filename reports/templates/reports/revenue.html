@@ -49,30 +49,17 @@
 					<canvas id="myChart"></canvas>
 					</div>
 					<script>
-					const ctx = document.getElementById('myChart');
-
+					const ctx = document.getElementById('myChart').getContext('2d');
+					const chartData = JSON.parse(`{{ chart_data|safe }}`);
 					new Chart(ctx, {
 						type: 'bar',
-						data: {
-						labels: [{% for r in revenue %}'{{r.range}}',{% endfor %}],
-						datasets: [{
-							label: 'Einkommen',
-							data: [{% for r in revenue %}{{r.client_payed}},{% endfor %}],
-							borderWidth: 1,
-							backgroundColor: 'rgba(0, 149, 255, 0.5)'
-						},{
-							label: 'Auszahlungen',
-							data: [{% for r in revenue %}{{r.provider_payed}},{% endfor %}],
-							borderWidth: 1,
-							backgroundColor: 'rgba(255, 0, 0, 0.5)'
-						}]
-						},
+						data: chartData,
 						options: {
-						scales: {
-							y: {
-							beginAtZero: true
+							scales: {
+								y: {
+									beginAtZero: true
+								}
 							}
-						}
 						}
 					});
 					</script>

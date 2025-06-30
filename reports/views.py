@@ -1,13 +1,17 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Max
+from django.db.models import Sum
 from payments.models import Payment
 from invoices.models import Invoice
-from orders.models import Order
 from django.utils import timezone
 from datetime import datetime, timedelta
-from decimal import Decimal
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import (
+    TruncDay,
+    TruncWeek,
+    TruncMonth,
+    TruncYear,
+)
+import json
 
 @login_required(login_url="/login/")
 def revenue(request):
@@ -32,92 +36,146 @@ def revenue(request):
     else:
         range_type = 'Jährlich'
     
-    # Calcularea veniturilor și plăților
-    revenue = []
-    max_value = 0
-    total_client_invoiced = 0
-    total_client_payed = 0
-    total_provider_invoiced = 0
-    total_provider_payed = 0
-    current_date = date_start
+    # Determine truncation and step depending on range_type
+    if range_type == 'Täglich':
+        trunc_func = TruncDay
+        step = timedelta(days=1)
+        fmt = "%d"
+    elif range_type == 'Wöchentlich':
+        trunc_func = TruncWeek
+        step = timedelta(weeks=1)
+        fmt = "%V"
+    elif range_type == 'Monatlich':
+        trunc_func = TruncMonth
+        step = timedelta(days=31)
+        fmt = "%m"
+    else:
+        trunc_func = TruncYear
+        step = timedelta(days=365)
+        fmt = "%Y"
 
-    while current_date <= date_end:
-        if range_type == 'Täglich':
-            next_date = current_date + timedelta(days=1)
-            display_date = current_date.strftime("%d")
-        elif range_type == 'Wöchentlich':
-            next_date = current_date + timedelta(weeks=1)
-            display_date = current_date.strftime("%V")
-        elif range_type == 'Monatlich':
-            next_date = (current_date.replace(day=1) + timedelta(days=31)).replace(day=1)
-            display_date = current_date.strftime("%m")
+    invoices = (
+        Invoice.objects.filter(created_at__gte=date_start, created_at__lt=date_end)
+        .annotate(bucket=trunc_func("created_at"))
+        .values("bucket", "is_client")
+        .annotate(total=Sum("value"))
+    )
+
+    payments = (
+        Payment.objects.filter(payment_date__gte=date_start, payment_date__lt=date_end)
+        .annotate(bucket=trunc_func("payment_date"))
+        .values("bucket", "is_client")
+        .annotate(total=Sum("value"))
+    )
+
+    invoice_dict = {}
+    for row in invoices:
+        key = row["bucket"]
+        entry = invoice_dict.setdefault(key, {"in": 0, "out": 0})
+        value = row["total"] or 0
+        if row["is_client"]:
+            if value >= 0:
+                entry["in"] += value
+            else:
+                entry["out"] += abs(value)  # => client invoice cu minus => out
         else:
-            next_date = current_date.replace(day=1, month=1) + timedelta(days=365)
-            display_date = current_date.strftime("%Y")
-        
-        # Suma facturat și plătit în intervalul curent pentru clienți
-        client_invoiced = Invoice.objects.filter(
-            created_at__gte=current_date,
-            created_at__lt=next_date,
-            is_client=True
-        ).aggregate(Sum('value'))['value__sum'] or 0
-        print(client_invoiced)
-        client_payed = Payment.objects.filter(
-            payment_date__gte=current_date,
-            payment_date__lt=next_date,
-            is_client=True
-        ).aggregate(Sum('value'))['value__sum'] or 0
-        print(client_payed)
-        
-        # Suma facturat și plătit în intervalul curent pentru furnizori
-        provider_invoiced = Invoice.objects.filter(
-            created_at__gte=current_date,
-            created_at__lt=next_date,
-            is_client=False
-        ).aggregate(Sum('value'))['value__sum'] or 0
-        print(provider_invoiced)
-        provider_payed = Payment.objects.filter(
-            payment_date__gte=current_date,
-            payment_date__lt=next_date,
-            is_client=False
-        ).aggregate(Sum('value'))['value__sum'] or 0
-        print(provider_payed)
+            if value >= 0:
+                entry["out"] += value
+            else:
+                entry["in"] += abs(value)  # => provider invoice cu minus => in
 
-        # Adăugarea în listă
+    payment_dict = {}
+    for row in payments:
+        key = row["bucket"]
+        entry = payment_dict.setdefault(key, {"in": 0, "out": 0})
+        value = row["total"] or 0
+        if row["is_client"]:
+            if value >= 0:
+                entry["in"] += value
+            else:
+                entry["out"] += abs(value)  # => client invoice cu minus => out
+        else:
+            if value >= 0:
+                entry["out"] += value
+            else:
+                entry["in"] += abs(value)  # => provider invoice cu minus => in
+
+    revenue = []
+    labels = []
+    max_value = 0
+    total_invoiced_in = 0
+    total_invoiced_out = 0
+    total_payed_in = 0
+    total_payed_out = 0
+
+    current_date = date_start
+    while current_date <= date_end:
+        if range_type == "Täglich":
+            bucket_date = current_date.date()
+            next_date = current_date + step
+        elif range_type == "Wöchentlich":
+            bucket_date = (current_date - timedelta(days=current_date.weekday())).date()
+            next_date = current_date + step
+        elif range_type == "Monatlich":
+            bucket_date = current_date.replace(day=1).date()
+            next_date = (current_date.replace(day=1) + step).replace(day=1)
+        else:
+            bucket_date = current_date.replace(month=1, day=1).date()
+            next_date = current_date.replace(month=1, day=1) + step
+
+        display_date = current_date.strftime(fmt)
+
+        invoiced_in = float(invoice_dict.get(bucket_date, {}).get("in", 0))
+        invoiced_out = float(invoice_dict.get(bucket_date, {}).get("out", 0))
+        payed_in = float(payment_dict.get(bucket_date, {}).get("in", 0))
+        payed_out = float(payment_dict.get(bucket_date, {}).get("out", 0))
+
         revenue.append({
-            'range': display_date,
-            'client_invoiced': client_invoiced,
-            'client_payed': client_payed,
-            'provider_invoiced': provider_invoiced,
-            'provider_payed': provider_payed
+            "range": display_date,
+            "invoiced_in": invoiced_in,
+            "invoiced_out": invoiced_out,
+            "payed_in": payed_in,
+            "payed_out": payed_out,
         })
-        
+
+        labels.append(display_date)
+        max_value = max(max_value, abs(payed_in), abs(payed_out))
+
+        total_invoiced_in += invoiced_in
+        total_invoiced_out += invoiced_out
+        total_payed_in += payed_in
+        total_payed_out += payed_out
+
         current_date = next_date
-        # Actualizam valoarea maxima întâlnită
-        max_value = max(max_value, client_payed, provider_payed)
-    
-    # Calculăm procentele și sumele totale
+
     for item in revenue:
-        item['client_invoiced_percent'] = int(item['client_invoiced'] / max_value * 100) if max_value > 0 else 0
-        item['client_payed_percent'] = int(item['client_payed'] / max_value * 100) if max_value > 0 else 0
-        item['provider_invoiced_percent'] = int(item['provider_invoiced'] / max_value * 100) if max_value > 0 else 0
-        item['provider_payed_percent'] = int(item['provider_payed'] / max_value * 100) if max_value > 0 else 0
-        total_client_invoiced += item['client_invoiced']
-        total_client_payed += item['client_payed']
-        total_provider_invoiced += item['provider_invoiced']
-        total_provider_payed += item['provider_payed']
+        item["invoiced_in_percent"] = int(item["invoiced_in"] / max_value * 100) if max_value else 0
+        item["invoiced_out_percent"] = int(item["invoiced_out"] / max_value * 100) if max_value else 0
+        item["payed_in_percent"] = int(item["payed_in"] / max_value * 100) if max_value else 0
+        item["payed_out_percent"] = int(item["payed_out"] / max_value * 100) if max_value else 0
+
+    chart_data = json.dumps({
+        "labels": labels,
+        "datasets": [
+            {
+                "label": "Einkommen",
+                "data": [float(r["payed_in"]) for r in revenue],
+                "backgroundColor": "rgba(0, 149, 255, 0.5)",
+                "borderWidth": 1
+            },
+            {
+                "label": "Auszahlungen",
+                "data": [float(r["payed_out"]) for r in revenue],
+                "backgroundColor": "rgba(255, 0, 0, 0.5)",
+                "borderWidth": 1
+            }
+        ]
+    })
 
     return render(request, "reports/revenue.html", {
         'revenue': revenue,
         'date_start': date_start.strftime("%Y-%m-%d"),
         'date_end': date_end.strftime("%Y-%m-%d"),
-        'total_client_invoiced': total_client_invoiced,
-        'total_client_payed': total_client_payed,
-        'total_provider_invoiced': total_provider_invoiced,
-        'total_provider_payed': total_provider_payed,
-        'max_value_4': int(max_value),
-        'max_value_3': int(max_value/4*3),
-        'max_value_2': int(max_value/4*2),
-        'max_value_1': int(max_value/4),
-        'range_type': range_type
+        'range_type': range_type,
+        "chart_data": chart_data,
     })
