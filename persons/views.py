@@ -8,6 +8,23 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 import random
 import string
+import phonenumbers
+
+
+def format_phone_number(raw_number, default_region='DE'):
+    try:
+        # Parsează numărul – dacă nu are prefix, presupune regiunea implicită
+        phone_obj = phonenumbers.parse(raw_number, default_region)
+        # Verifică dacă numărul e valid
+        if phonenumbers.is_valid_number(phone_obj):
+            # Obține numărul în format E.164 (ex: +49123456789)
+            e164 = phonenumbers.format_number(phone_obj, phonenumbers.PhoneNumberFormat.E164)
+            # Convertește + în 00 și elimină orice alt caracter
+            return e164.replace("+", "00")
+        else:
+            return ""
+    except phonenumbers.NumberParseException:
+        return ""
 
 # Create your views here.
 
@@ -111,7 +128,7 @@ def person_detail(request, person_id):
             person.company_tax_code = request.POST.get("company_tax_code")
             person.company_iban = request.POST.get("company_iban")
             person.email = request.POST.get("email")
-            person.phone = request.POST.get("phone")
+            person.phone = format_phone_number(request.POST.get("phone"))
             person.address = request.POST.get("address").strip()
             person.services = request.POST.get("services").strip()
             person.modified_at = date_now
@@ -148,7 +165,7 @@ def person_detail(request, person_id):
                         identity_card=request.POST.get("identity_card"),
                         company_tax_code=request.POST.get("company_tax_code"),
                         company_iban=request.POST.get("company_iban"),
-                        phone=request.POST.get("phone"),
+                        phone=format_phone_number(request.POST.get("phone")),
                         address=request.POST.get("address").strip(),
                         email=request.POST.get("email"),
                         services=request.POST.get("services").strip(),
