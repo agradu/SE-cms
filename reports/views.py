@@ -121,7 +121,8 @@ def revenue(request):
             next_date = (current_date.replace(day=1) + step).replace(day=1)
         else:
             bucket_date = current_date.replace(month=1, day=1).date()
-            next_date = current_date.replace(month=1, day=1) + step
+            next_year = current_date.year + 1
+            next_date = current_date.replace(year=next_year, month=1, day=1)
 
         display_date = current_date.strftime(fmt)
 
