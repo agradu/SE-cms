@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Func
 from .models import Person
 from orders.models import Order
 from appointments.models import Appointment
@@ -9,6 +9,15 @@ from django.utils import timezone
 import random
 import string
 import phonenumbers
+from django.db.models.functions import Lower
+class Unaccent(Func):
+    function = 'unaccent'
+    arity = 1
+
+    def as_sql(self, compiler, connection, **extra_context):
+        self.source_expressions[0].output_field = None  # prevenim forțarea de tip
+        sql, params = compiler.compile(self.source_expressions[0])
+        return f'unaccent({sql}::text)', params
 
 
 def format_phone_number(raw_number, default_region='DE'):
@@ -38,10 +47,15 @@ def c_clients(request):
         search = request.GET.get("search", "")
     # limit the search string to minimum 3 chars
     if len(search) > 2:
-        filtered_persons = Person.objects.filter(
-            Q(firstname__icontains=search)
-            | Q(lastname__icontains=search)
-            | Q(company_name__icontains=search)
+        search = search.lower()
+        filtered_persons = Person.objects.annotate(
+            firstname_unaccent=Unaccent(Lower('firstname')),
+            lastname_unaccent=Unaccent(Lower('lastname')),
+            company_unaccent=Unaccent(Lower('company_name'))
+        ).filter(
+            Q(firstname_unaccent__icontains=search)
+            | Q(lastname_unaccent__icontains=search)
+            | Q(company_unaccent__icontains=search)
         ).order_by("firstname")[:30]
     else:
         search = ""
@@ -77,14 +91,25 @@ def p_providers(request):
     search_place = get_parameter(request, "search_place")
     # limit the search string to minimum 3 chars
     if len(search_name) > 2 or len(search_service) > 2 or len(search_place) > 2:
+        search_name = search_name.lower()
+        search_service = search_service.lower()
+        search_place = search_place.lower()
+
         filtered_persons = (
-            Person.objects.filter(
-                Q(firstname__icontains=search_name)
-                | Q(lastname__icontains=search_name)
-                | Q(company_name__icontains=search_name)
+            Person.objects.annotate(
+                firstname_unaccent=Unaccent(Lower('firstname')),
+                lastname_unaccent=Unaccent(Lower('lastname')),
+                company_unaccent=Unaccent(Lower('company_name')),
+                services_unaccent=Unaccent(Lower('services')),
+                address_unaccent=Unaccent(Lower('address'))
             )
-            .filter(services__icontains=search_service)
-            .filter(address__icontains=search_place)
+            .filter(
+                Q(firstname_unaccent__icontains=search_name)
+                | Q(lastname_unaccent__icontains=search_name)
+                | Q(company_unaccent__icontains=search_name)
+            )
+            .filter(services_unaccent__icontains=search_service)
+            .filter(address_unaccent__icontains=search_place)
             .exclude(services='')
             .order_by("firstname")[:30]
         )
