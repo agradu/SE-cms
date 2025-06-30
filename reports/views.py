@@ -176,8 +176,8 @@ def revenue(request):
         'revenue': revenue,
         'date_start': date_start.strftime("%Y-%m-%d"),
         'date_end': date_end.strftime("%Y-%m-%d"),
-        'total_payed_in': total_payed_in,
-        'total_payed_out': total_payed_out,
+        'total_payed_in': '%.2f' % total_payed_in,
+        'total_payed_out': '%.2f' % total_payed_out,
         'range_type': range_type,
         "chart_data": chart_data,
     })
