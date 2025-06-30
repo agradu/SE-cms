@@ -11,7 +11,7 @@
 		<div class="card">
 			<div class="card-body">
 				<div class="table-responsive">
-					<form method="post"> {% csrf_token %} <table class="table">
+					<form method="get"> {% csrf_token %} <table class="table">
 							<tbody>
 								<tr>
 									<td width="50%">
@@ -89,9 +89,9 @@
 									<div class="btn-group btn-group-sm">
 										{% for pg in selected_appointments.paginator.page_range %}
 										{% if pg == selected_appointments.number %}
-										<button type="button" class="btn btn-primary" onclick="location.href='/appointments/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-primary" onclick="location.href='/appointments/?page={{ pg }}&amp;search={{ search }}&amp;reg_start={{ reg_start }}&amp;reg_end={{ reg_end }}';">{{ pg }}</button>
 										{% else %}
-										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/appointments/?page={{ pg }}';">{{ pg }}</button>
+										<button type="button" class="btn btn-outline-secondary" onclick="location.href='/appointments/?page={{ pg }}&amp;search={{ search }}&amp;reg_start={{ reg_start }}&amp;reg_end={{ reg_end }}';">{{ pg }}</button>
 										{% endif %}
 										{% endfor %}
 									</div>

@@ -25,23 +25,19 @@ def appointments(request):
     filter_start = date_before
     filter_end = date_after.replace(hour=23, minute=59, second=59, microsecond=0)
 
-    if request.method == "POST":
-        search = request.POST.get("search", "")
-        reg_start = request.POST.get("reg_start", reg_start)
-        reg_end = request.POST.get("reg_end", reg_end)
+    # Acceptă GET sau POST pentru căutare
+    search = request.GET.get("search", "").strip() if request.method == "GET" else request.POST.get("search", "").strip()
+    reg_start = request.GET.get("reg_start", reg_start) if request.method == "GET" else request.POST.get("reg_start", reg_start)
+    reg_end = request.GET.get("reg_end", reg_end) if request.method == "GET" else request.POST.get("reg_end", reg_end)
 
-        if search:
-            try:
-                filter_start = timezone.make_aware(datetime.strptime(reg_start, "%Y-%m-%d"))
-                filter_end = timezone.make_aware(datetime.strptime(reg_end, "%Y-%m-%d"))
-                filter_end = filter_end.replace(hour=23, minute=59, second=59, microsecond=0)
-            except ValueError:
-                # Handle potential formatting errors or bad input
-                search = ""
-        else:
-            search = ""
-    else:
-        search = ""
+    try:
+        filter_start = timezone.make_aware(datetime.strptime(reg_start, "%Y-%m-%d"))
+        filter_end = timezone.make_aware(datetime.strptime(reg_end, "%Y-%m-%d"))
+        filter_end = filter_end.replace(hour=23, minute=59, second=59, microsecond=0)
+    except ValueError:
+        messages.warning(request, "Date format invalid. Showing default range.")
+        filter_start = date_before
+        filter_end = date_after.replace(hour=23, minute=59, second=59, microsecond=0)
 
     # Filter appointments
     query = Q(schedule__gte=filter_start, schedule__lte=filter_end)
