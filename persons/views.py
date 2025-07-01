@@ -10,14 +10,7 @@ import random
 import string
 import phonenumbers
 from django.db.models.functions import Lower
-class Unaccent(Func):
-    function = 'unaccent'
-    arity = 1
-
-    def as_sql(self, compiler, connection, **extra_context):
-        self.source_expressions[0].output_field = None  # prevenim forțarea de tip
-        sql, params = compiler.compile(self.source_expressions[0])
-        return f'unaccent({sql}::text)', params
+from common.helpers import Unaccent
 
 
 def format_phone_number(raw_number, default_region='DE'):

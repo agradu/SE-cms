@@ -9,6 +9,8 @@ from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.contrib import messages
+from django.db.models.functions import Lower
+from common.helpers import Unaccent
 
 # Create your views here.
 
@@ -40,19 +42,28 @@ def appointments(request):
         filter_end = date_after.replace(hour=23, minute=59, second=59, microsecond=0)
 
     # Filter appointments
-    query = Q(schedule__gte=filter_start, schedule__lte=filter_end)
+    appointments_queryset = Appointment.objects.annotate(
+        person_firstname_unaccent=Unaccent(Lower("person__firstname")),
+        person_lastname_unaccent=Unaccent(Lower("person__lastname")),
+        person_company_unaccent=Unaccent(Lower("person__company_name")),
+        with_firstname_unaccent=Unaccent(Lower("with_person__firstname")),
+        with_lastname_unaccent=Unaccent(Lower("with_person__lastname")),
+        with_company_unaccent=Unaccent(Lower("with_person__company_name")),
+    ).filter(
+        Q(schedule__gte=filter_start, schedule__lte=filter_end)
+    )
     if search:
-        search_query = (
-            Q(person__firstname__icontains=search) |
-            Q(person__lastname__icontains=search) |
-            Q(person__company_name__icontains=search) |
-            Q(with_person__firstname__icontains=search) |
-            Q(with_person__lastname__icontains=search) |
-            Q(with_person__company_name__icontains=search)
+        search = search.lower()
+        appointments_queryset = appointments_queryset.filter(
+            Q(person_firstname_unaccent__icontains=search) |
+            Q(person_lastname_unaccent__icontains=search) |
+            Q(person_company_unaccent__icontains=search) |
+            Q(with_firstname_unaccent__icontains=search) |
+            Q(with_lastname_unaccent__icontains=search) |
+            Q(with_company_unaccent__icontains=search)
         )
-        query = query & search_query
 
-    filtered_appointments = Appointment.objects.filter(query).order_by("schedule")
+    filtered_appointments = appointments_queryset.order_by("schedule")
 
     # Pagination
     page = request.GET.get("page")

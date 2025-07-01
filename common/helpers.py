@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Func
 from django.utils.dateparse import parse_date
+from django.db import models
 
 def get_date_range(request, default_days=10, date_end=0):
     """Gets and parses the start and end dates from the request."""
@@ -52,3 +53,13 @@ def paginate_objects(request, object_list, per_page=10):
     page = request.GET.get("page", 1)
     paginator = Paginator(object_list, per_page)
     return paginator.get_page(page)
+
+class Unaccent(Func):
+    function = 'unaccent'
+    arity = 1
+    output_field = models.TextField()
+
+    def as_sql(self, compiler, connection, **extra_context):
+        self.source_expressions[0].output_field = None  # prevenim forțarea de tip
+        sql, params = compiler.compile(self.source_expressions[0])
+        return f'unaccent({sql}::text)', params
