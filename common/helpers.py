@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Func
 from django.utils.dateparse import parse_date
 from django.db import models
+from services.models import Status
 
 def get_date_range(request, default_days=10, date_end=0):
     """Gets and parses the start and end dates from the request."""
@@ -29,7 +30,6 @@ def get_date_range(request, default_days=10, date_end=0):
 
     return filter_start, filter_end, reg_start, reg_end
 
-
 def get_search_params(request):
     """Extract and validate search terms from the request."""
     search_client = request.GET.get("client", "").strip()
@@ -46,7 +46,6 @@ def get_search_params(request):
     search_description = search_description if len(search_description) >= 3 else ""
 
     return search_client, search_provider, search_description
-
 
 def paginate_objects(request, object_list, per_page=10):
     """Applies pagination to a list of objects."""

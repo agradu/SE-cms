@@ -491,7 +491,6 @@ def print_cancellation_invoice(request, invoice_id):
     response['Content-Disposition'] = f'filename=Stornorechnung-{invoice.serial}-{invoice.number}.pdf'
     return response
 
-
 @login_required(login_url="/login/")
 def proformas(request):
     # Get data and filters
