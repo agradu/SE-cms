@@ -27,6 +27,7 @@ class Payment(DocumentBase):
 class PaymentElement(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Inv. {self.invoice.serial}{self.invoice.number} from payment #{self.payment.id} ({self.payment.value}{self.payment.currency.symbol})"
