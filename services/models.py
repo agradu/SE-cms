@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from persons.models import Person
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
 
@@ -85,6 +86,13 @@ class DocumentBase(TimestampedModel):
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vat_rate = models.DecimalField(
+        max_digits=5,  # până la 99.99
+        decimal_places=2,
+        default=0.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    vat_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
 
