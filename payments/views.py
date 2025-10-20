@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from persons.models import Person
 from orders.models import Order, OrderElement
 from invoices.models import Invoice, InvoiceElement
@@ -17,6 +17,7 @@ import base64
 from decimal import Decimal
 from num2words import num2words
 from common.helpers import get_date_range, get_search_params, paginate_objects
+from .functions import update_invoice_payed, get_serial_and_number, parse_payment_date, set_payment_value
 
 # Create your views here.
 
@@ -76,216 +77,174 @@ def payments(request):
 
 @login_required(login_url="/login/")
 def payment(request, payment_id, person_id, invoice_id):
-    # Default parts
-    payment_elements = []
-    unpayed_elements = []
     date_now = timezone.now()
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.objects.get(id=1)
-    payment_value = 0
     is_recurrent = False
-    if invoice_id > 0:
-        invoice = get_object_or_404(Invoice, id=invoice_id)
-        is_client = invoice.is_client
-    else:
-        invoice = ""
-    if payment_id > 0:
+    new = payment_id == 0
+    payment = None
+    invoice = Invoice.objects.get(id=invoice_id) if invoice_id > 0 else None
+    is_client = invoice.is_client if invoice else True
+
+    if not new:
         payment = get_object_or_404(Payment, id=payment_id)
         is_client = payment.is_client
-        new = False
+        payment_elements = PaymentElement.objects.filter(payment=payment).order_by("invoice__created_at")
+        attached_invoice_ids = list(payment_elements.values_list("invoice_id", flat=True))
     else:
-        payment =""
-        new = True
-        if is_client == False:
-            receipt_serial = ""
-            receipt_number = ""
-    all_invoices = Invoice.objects.filter(person=person).order_by("id")
-    payed_elements = PaymentElement.objects.filter(payment__person=person).order_by("id")
-    unpayed_elements = all_invoices.exclude(
-            id__in=payed_elements.values_list('invoice__id', flat=True)
-        ).filter(is_client=is_client)
-    
-    def set_value(payment, value=0):
-        payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
-        
-        total_invoice_value = sum(e.invoice.value for e in payment_elements)
-        invoices_to_update = set()
-        
-        # Dacă e o singură factură și se permite plată parțială
-        if len(payment_elements) == 1 and 0 < abs(value) < abs(total_invoice_value):
-            element = payment_elements.first()
-            element.value = value if value > 0 else -abs(value)
-            element.save()
-            payment.value = element.value
-            invoices_to_update.add(element.invoice)
+        payment_elements = []
+        attached_invoice_ids = []
+        if invoice:
+            total_payed = PaymentElement.objects.filter(invoice=invoice).aggregate(total=Sum("value"))["total"] or 0
+            if total_payed < invoice.value:
+                remaining = invoice.value - total_payed
+                default_type = "bank"
+                serial, number = get_serial_and_number(is_client, default_type, serials, assign=False)
+                payment = Payment.objects.create(
+                    description="",
+                    type=default_type,
+                    serial=serial,
+                    number=number,
+                    person=person,
+                    payment_date=date_now,
+                    is_client=is_client,
+                    modified_by=request.user,
+                    created_by=request.user,
+                    currency=invoice.currency,
+                    is_recurrent=is_recurrent,
+                    value=remaining
+                )
+                PaymentElement.objects.create(payment=payment, invoice=invoice, value=remaining)
+                update_invoice_payed(invoice)
+                payment_elements = PaymentElement.objects.filter(payment=payment).order_by("invoice__created_at")
+                attached_invoice_ids = [invoice.id]
+                new = False  # IMPORTANT!
+
+    unpayed_elements = Invoice.objects.filter(
+        person=person,
+        is_client=is_client
+    ).exclude(
+        id__in=attached_invoice_ids
+    ).annotate(
+        total_payed=Sum("paymentelement__value")
+    ).filter(
+        Q(total_payed__lt=F("value")) | Q(total_payed__isnull=True)
+    )
+
+    if request.method == "POST":
+        form = request.POST
+        payment_date = parse_payment_date(form.get("payment_date", ""), date_now)
+        desc = form.get("payment_description", "")
+        p_type = form.get("payment_type", payment.type if payment else "bank")
+
+        # Setare serial & număr dacă este cash
+        if new:
+            if not invoice or invoice.id in attached_invoice_ids:
+                return redirect("payment", payment_id=0, person_id=person.id, invoice_id=invoice.id if invoice else 0)
+
+            total_payed = PaymentElement.objects.filter(invoice=invoice).aggregate(total=Sum("value"))["total"] or 0
+            if total_payed >= invoice.value:
+                return redirect("payment", payment_id=0, person_id=person.id, invoice_id=invoice.id)
+
+            remaining = invoice.value - total_payed
+            serial, number = get_serial_and_number(is_client, p_type, serials, assign=True)
+
+            payment = Payment.objects.create(
+                description=desc,
+                type=p_type,
+                serial=serial,
+                number=number,
+                person=person,
+                payment_date=payment_date,
+                is_client=is_client,
+                modified_by=request.user,
+                created_by=request.user,
+                currency=invoice.currency if invoice else "EUR",
+                is_recurrent=is_recurrent,
+                value=remaining
+            )
+            PaymentElement.objects.create(payment=payment, invoice=invoice, value=remaining)
+            update_invoice_payed(invoice)
+            new = False  # IMPORTANT
+
         else:
-            total_payment_value = 0
-            for element in payment_elements:
-                invoice_value = element.invoice.value
-                element.value = invoice_value
-                element.save()
-                total_payment_value += invoice_value
-                invoices_to_update.add(element.invoice)
-            payment.value = total_payment_value
+            old_type = payment.type
+            old_serial = payment.serial
+            old_number = payment.number
 
-        payment.save()
-
-        # Actualizează suma plătită pe fiecare factură
-        for invoice in invoices_to_update:
-            invoice.payed = PaymentElement.objects.filter(invoice=invoice).aggregate(
-                total=Sum("value")
-            )["total"] or 0
-            invoice.save()
-            
-    if payment_id > 0:  # if payment exists
-        receipt_serial = payment.serial
-        receipt_number = payment.number
-        payment_elements = PaymentElement.objects.filter(payment=payment).order_by('invoice__created_at')
-        if request.method == "POST":
-            if "payment_description" in request.POST:
-                payment.description = request.POST.get("payment_description")
-                payment.type = request.POST.get("payment_type")
-                if payment.is_client and payment.type == "cash":
-                    receipt_serial = serials.receipt_serial
-                    receipt_number = serials.receipt_number-1
-                    if receipt_number < 1:
-                        receipt_number = 1
-                elif payment.is_client and payment.type == "bank":
-                    receipt_serial = ""
-                    receipt_number = ""
-                else:
-                    receipt_serial = request.POST.get("receipt_serial")
-                    receipt_number = request.POST.get("receipt_number")
-                    if receipt_serial == None:
-                        receipt_serial = payment.serial
-                    if receipt_number == None:
-                        receipt_number = payment.number
-                payment.serial = receipt_serial
-                payment.number = receipt_number
-                payment_date = request.POST.get("payment_date")
-                try:
-                    payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
-                    payment.payment_date = timezone.make_aware(payment_date_naive)
-                except:
-                    payment.payment_date = date_now
-            if "payment_element_id" in request.POST:
-                payment_element_id = int(request.POST.get("payment_element_id"))
-                try: # delete an element
-                    element = PaymentElement.objects.get(id=payment_element_id)
-                    if PaymentElement.objects.filter(payment=payment).count() > 1:
-                        element.delete()
-                        # Save the payment value
-                        set_value(payment, payment_value)
-                except:
-                    print("Element",payment_element_id,"is missing!")
-            if "unpayed_element_id" in request.POST:
-                unpayed_element_id = int(request.POST.get("unpayed_element_id"))
-                try: # add an element
-                    element = unpayed_elements.get(id=unpayed_element_id)
-                    PaymentElement.objects.get_or_create(
-                        payment = payment,
-                        invoice = element
-                    )
-                    # Save the payment value
-                    set_value(payment, payment_value)
-                except:
-                    print("Element",unpayed_element_id,"is missing!")    
-            if "payment_value" in request.POST:
-                payment_value = Decimal(request.POST.get("payment_value"))
-                # Save the payment value
-                set_value(payment, payment_value)
-
-            # Setting the modiffied user and date
+            payment.description = desc
+            payment.type = p_type
+            payment.payment_date = payment_date
             payment.modified_by = request.user
             payment.modified_at = date_now
-            # Save the payment infos
+
+            if old_type == "cash" and p_type == "bank" and old_serial and old_number:
+                # Dacă e ultima plată de tip cash, corectează serialul
+                last_payment = Payment.objects.filter(type="cash", is_client=is_client).order_by("-id").first()
+                if last_payment and last_payment.id == payment.id:
+                    serials.receipt_number = max(1, serials.receipt_number - 1)
+                    serials.save()
+                payment.serial = ""
+                payment.number = ""
+
+            elif old_type == "bank" and p_type == "cash" and not payment.serial:
+                serial, number = get_serial_and_number(is_client, p_type, serials, assign=True)
+                payment.serial = serial
+                payment.number = number
+
             payment.save()
 
-    else:  # if payment is new
-        receipt_serial = ""
-        receipt_number = ""
-        invoice_value = invoice.value
-        if request.method == "POST":
-            if "payment_description" in request.POST:
-                payment_description = request.POST.get("payment_description")
-                payment_type = request.POST.get("payment_type")
-                if invoice.is_client and payment_type == "cash":
-                    receipt_serial = serials.receipt_serial
-                    receipt_number = serials.receipt_number
-                    serials.receipt_number += 1
-                    serials.save() 
-                else:
-                    receipt_serial = request.POST.get("receipt_serial")
-                    receipt_number = request.POST.get("receipt_number")
-                    if receipt_serial == None:
-                        receipt_serial = ""
-                    if receipt_number == None:
-                        receipt_number = ""  
-                payment_date = request.POST.get("payment_date")
-                try:
-                    payment_date_naive = datetime.strptime(f"{payment_date}", "%Y-%m-%d")
-                    payment_date = timezone.make_aware(payment_date_naive)
-                except:
-                    payment_date = date_now
-                payment = Payment(
-                    description = payment_description,
-                    type = payment_type,
-                    serial = receipt_serial,
-                    number = receipt_number,
-                    person = person,
-                    payment_date = payment_date,
-                    is_client = invoice.is_client,
-                    modified_by = request.user,
-                    created_by = request.user,
-                    currency = invoice.currency,
-                    is_recurrent = is_recurrent,
-                )
-                payment.save()
-                # Add all unpayed elements to this payment
-                for element in unpayed_elements:
-                    PaymentElement.objects.get_or_create(
-                        payment=payment,
-                        invoice=invoice
-                    )
-                # Save the payment value
-                set_value(payment)
+        # Scoatere element
+        if "payment_element_id" in form:
+            try:
+                elem_id = int(form["payment_element_id"])
+                if PaymentElement.objects.filter(payment=payment).count() > 1:
+                    PaymentElement.objects.get(id=elem_id).delete()
+            except:
+                pass
 
-                # Add the partial payed element if it exists
-                invoice_payment_elements = PaymentElement.objects.filter(invoice=invoice)
-                print("invoice_payment_elements:",invoice_payment_elements)
-                already_paid = 0
-                for element in invoice_payment_elements:
-                    already_paid += element.payment.value
-                rest_value = invoice.value - already_paid
-                if rest_value > 0:
-                    PaymentElement.objects.get_or_create(
-                        payment=payment,
-                        invoice=invoice
-                    )
-                # Save the payment value
-                set_value(payment, rest_value)
-                
-                new = False
-                return redirect(
-                    "payment",
-                    payment_id = payment.id,
-                    invoice_id = invoice.id,
-                    person_id = person.id,
-                )
+        # Adăugare factură neachitată
+        if "unpayed_element_id" in form:
+            try:
+                inv = Invoice.objects.get(id=int(form["unpayed_element_id"]))
+                total_payed = PaymentElement.objects.filter(invoice=inv).aggregate(total=Sum("value"))["total"] or 0
+                if total_payed < inv.value and not PaymentElement.objects.filter(payment=payment, invoice=inv).exists():
+                    PaymentElement.objects.get_or_create(payment=payment, invoice=inv)
+                    update_invoice_payed(inv)
+            except Invoice.DoesNotExist:
+                pass
+
+        # Setare valoare
+        if "payment_value" in form and payment:
+            try:
+                val = Decimal(form.get("payment_value"))
+                if val > 0 and PaymentElement.objects.filter(payment=payment).count() < 2:
+                    set_payment_value(payment, val)
+            except:
+                pass
+        else:
+            set_payment_value(payment)
+
+        if payment and payment.id:
+            return redirect("payment", payment_id=payment.id, person_id=person.id, invoice_id=invoice.id if invoice else 0)
+        else:
+            return redirect("payment", payment_id=0, person_id=person.id, invoice_id=invoice.id if invoice else 0)
+
     return render(
         request,
         "payments/payment.html",
         {
             "person": person,
             "payment": payment,
-            "receipt_serial": receipt_serial,
-            "receipt_number": receipt_number,
+            "receipt_serial": payment.serial if payment else "",
+            "receipt_number": payment.number if payment else "",
             "is_client": is_client,
             "payment_elements": payment_elements,
             "unpayed_elements": unpayed_elements,
-            "new": new
+            "new": new,
         },
     )
+
 
 @login_required(login_url="/login/")
 def print_receipt(request, payment_id):
