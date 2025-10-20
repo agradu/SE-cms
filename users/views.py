@@ -66,9 +66,10 @@ def user_detail(request, user_id):
             if profile_picture:
                 if user.profile_picture:
                     user.profile_picture.close()
-                    old_picture_path = user.profile_picture.path
-                    if os.path.isfile(old_picture_path):
-                        os.remove(old_picture_path)
+                    old_picture_name = user.profile_picture.name
+                    storage = user.profile_picture.storage
+                    if old_picture_name and storage.exists(old_picture_name):
+                        storage.delete(old_picture_name)
                 user.profile_picture = profile_picture
             user.phone = request.POST.get("phone")
             user.address = request.POST.get("address")
