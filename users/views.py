@@ -64,12 +64,23 @@ def user_detail(request, user_id):
             user.date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d")
             profile_picture = request.FILES.get("profile_picture")
             if profile_picture:
-                if user.profile_picture:
-                    user.profile_picture.close()
-                    old_picture_name = user.profile_picture.name
-                    storage = user.profile_picture.storage
-                    if old_picture_name and storage.exists(old_picture_name):
-                        storage.delete(old_picture_name)
+                existing_picture = getattr(user, "profile_picture", None)
+                if existing_picture:
+                    try:
+                        old_picture_name = existing_picture.name
+                    except (FileNotFoundError, ValueError):
+                        old_picture_name = None
+                    if old_picture_name:
+                        try:
+                            storage = existing_picture.storage
+                        except FileNotFoundError:
+                            storage = None
+                        if storage:
+                            try:
+                                if storage.exists(old_picture_name):
+                                    storage.delete(old_picture_name)
+                            except FileNotFoundError:
+                                pass
                 user.profile_picture = profile_picture
             user.phone = request.POST.get("phone")
             user.address = request.POST.get("address")
