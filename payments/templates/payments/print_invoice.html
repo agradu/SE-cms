@@ -80,7 +80,7 @@
         {% if proforma != "" %}
         <p>Rechnung ausgestellt gemäß der <b>Proforma Nr. {{proforma.serial}}-{{ leading_proforma }}</b>.</p>
         {% else %}
-        <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>George Adrian Radu - Sprachen Express</b>" als Begünstigter <br> und "<b>Rechnung Nr. {{ invoice.serial }}-{{ leading_invoice }}</b>" als Verwendungszweck.</p>
+        <p>Wenn Sie per Banküberweisung bezahlen, erfolgt die Überweisung auf das Konto <br><b>DE91 8601 0090 0991 6239 01</b> mit der Angaben "<b>George Adrian Radu - Sprachen Express</b>"  als Begünstigter <br> und "<b>Rechnung Nr. {{ invoice.serial }}-{{ leading_invoice }}</b>" als Verwendungszweck.</p>
         {% endif %}
         <p style="padding-bottom: 5pt; padding-top: 5pt">Mit freundlichen Grüßen<br><b class="text-bigger">{{ invoice.modified_by.first_name}} {{ invoice.modified_by.last_name}}</b></p>
         <p class="line-up center" style="padding-top: 5pt">
