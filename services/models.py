@@ -221,12 +221,11 @@ class DocumentElement(models.Model):
         return (q * p).quantize(TWOPLACES)
 
     def clean(self):
-        def clean(self):
-            super().clean()
+        super().clean()
 
-            if self.service:
-                # UM este derivat din service -> forțăm consistența
-                self.um = self.service.um
+        if self.service:
+            # UM derivat din service -> consistență
+            self.um = self.service.um
 
-            if self.price is not None and self.price < 0:
-                raise ValidationError({"price": "price nu poate fi negativ."})
+        if self.price is not None and self.price < 0:
+            raise ValidationError({"price": "price nu poate fi negativ."})

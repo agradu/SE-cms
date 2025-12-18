@@ -1,5 +1,5 @@
 from decimal import Decimal, InvalidOperation
-
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q, Sum, F, Value, DecimalField
@@ -78,7 +78,7 @@ def _enforce_no_partial_when_multiple(payment: Payment) -> None:
         remaining_excluding_this = (inv.value or Decimal("0")) - paid_other
 
         if el.value != remaining_excluding_this:
-            raise ValueError(
+            raise ValidationError(
                 "Când un payment conține mai multe facturi, fiecare trebuie plătită integral (NET)."
             )
 

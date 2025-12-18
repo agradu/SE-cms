@@ -14,6 +14,7 @@ from weasyprint import HTML, CSS
 import base64
 
 from .models import Order, OrderElement, Offer, OfferElement
+from payments.models import Payment, PaymentElement
 from persons.models import Person
 from invoices.models import Invoice, InvoiceElement, ProformaElement
 from services.models import Currency, Status, Service, UM, Serial

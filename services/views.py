@@ -5,13 +5,6 @@ from django.core.paginator import Paginator
 import paramiko
 from django.conf import settings
 import os
-from dotenv import load_dotenv
-load_dotenv()
-if settings.STATICFILES_DIRS:
-    file_path = os.path.join(settings.STATICFILES_DIRS[0], 'images', 'logo-se.jpeg')
-else:
-    raise ValueError("STATICFILES_DIRS is empty or not defined.")
-print(file_path)
 
 # Create your views here.
 def upload_file_via_sftp(local_file_path, remote_file_path):
@@ -153,7 +146,7 @@ def currency_detail(request, currency_id):
     else:
         if request.method == "POST":
             name = request.POST.get("name")
-            style = request.POST.get("style")
+            symbol = request.POST.get("symbol")
             try:
                 currency = Currency.objects.get(name=name)
                 update = "Currency name exists. Chose other."
@@ -161,7 +154,7 @@ def currency_detail(request, currency_id):
                 update = "Currency created"
                 currency = Currency(
                     name=name,
-                    style = request.POST.get("style"),
+                    symbol = request.POST.get("symbol"),
                 )
                 currency.save()
         else:

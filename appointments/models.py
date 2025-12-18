@@ -36,9 +36,8 @@ class Appointment(models.Model):
         Order, on_delete=models.SET_NULL, null=True, blank=True, default=None
     )
     description = models.CharField(max_length=255, blank=True)
-    status = status = models.ForeignKey(
-        Status, on_delete=models.SET_DEFAULT, default=2
-    )
+    status = models.ForeignKey(Status, on_delete=models.SET_DEFAULT, default=2)
+
 
     def __str__(self):
         formatted_schedule = self.schedule.strftime("%d.%m.%Y %H:%M")

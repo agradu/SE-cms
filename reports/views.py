@@ -4,7 +4,7 @@ from django.db.models import Sum
 from payments.models import Payment
 from invoices.models import Invoice
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import date as DateType, datetime as DateTimeType, datetime, timedelta
 from django.db.models.functions import (
     TruncDay,
     TruncWeek,
@@ -12,6 +12,21 @@ from django.db.models.functions import (
     TruncYear,
 )
 import json
+
+def _bucket_to_date(b):
+    if b is None:
+        return None
+    # dacă e datetime -> ia .date()
+    if isinstance(b, DateTimeType):
+        return b.date()
+    # dacă e deja date -> returnează direct
+    if isinstance(b, DateType):
+        return b
+    # fallback (nu ar trebui să ajungă aici)
+    try:
+        return b.date()
+    except Exception:
+        return None
 
 @login_required(login_url="/login/")
 def revenue(request):
@@ -70,7 +85,7 @@ def revenue(request):
 
     invoice_dict = {}
     for row in invoices:
-        key = row["bucket"]
+        key = _bucket_to_date(row["bucket"])
         entry = invoice_dict.setdefault(key, {"in": 0, "out": 0})
         value = row["total"] or 0
         if row["is_client"]:
@@ -86,7 +101,7 @@ def revenue(request):
 
     payment_dict = {}
     for row in payments:
-        key = row["bucket"]
+        key = _bucket_to_date(row["bucket"])
         entry = payment_dict.setdefault(key, {"in": 0, "out": 0})
         value = row["total"] or 0
         if row["is_client"]:
