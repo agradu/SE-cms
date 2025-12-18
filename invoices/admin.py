@@ -1,25 +1,30 @@
 from django.contrib import admin
 from .models import Invoice, InvoiceElement, Proforma, ProformaElement
 
-# Register your models here.
 
 class InvoiceElementInline(admin.TabularInline):
     model = InvoiceElement
-    extra = 0  # Numărul de câmpuri goale pentru a adăuga noi elemente
+    extra = 0
+    autocomplete_fields = ["element"]
 
+
+@admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    model = Invoice
     inlines = [InvoiceElementInline]
-
-admin.site.register(Invoice, InvoiceAdmin)
+    autocomplete_fields = ["person", "currency"]
+    search_fields = ["serial", "number", "description"]  # ✅
+    readonly_fields = ("vat_rate", "vat_value",)
 
 
 class ProformaElementInline(admin.TabularInline):
     model = ProformaElement
-    extra = 0  # Numărul de câmpuri goale pentru a adăuga noi elemente
+    extra = 0
+    autocomplete_fields = ["element"]
 
+
+@admin.register(Proforma)
 class ProformaAdmin(admin.ModelAdmin):
-    model = Proforma
     inlines = [ProformaElementInline]
-
-admin.site.register(Proforma, ProformaAdmin)
+    autocomplete_fields = ["person", "currency", "invoice"]
+    search_fields = ["serial", "number", "description"]  # ✅
+    readonly_fields = ("vat_rate", "vat_value",)
