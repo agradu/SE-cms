@@ -5,7 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
-
+from common.models import TimestampedModel
 from persons.models import Person
 
 
@@ -97,46 +97,6 @@ class Serial(models.Model):
         if save:
             self.save(update_fields=["offer_number"])
         return self.offer_number
-
-
-class TimestampedModel(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-    def touch(self):
-        self.modified_at = timezone.now()
-
-    def save(self, *args, **kwargs):
-        update_fields = kwargs.get("update_fields")
-
-        if self.pk:
-            self.modified_at = timezone.now()
-        else:
-            if not self.created_at:
-                self.created_at = timezone.now()
-            self.modified_at = timezone.now()
-
-        if update_fields:
-            kwargs["update_fields"] = set(update_fields) | {"modified_at"}
-
-        return super().save(*args, **kwargs)
 
 
 class DocumentBase(TimestampedModel):

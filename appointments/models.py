@@ -4,27 +4,11 @@ from django.utils import timezone
 from persons.models import Person
 from orders.models import Order
 from services.models import Status
-
+from common.models import TimestampedModel
 # Create your models here.
 
 
-class Appointment(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+class Appointment(TimestampedModel):
     person = models.ForeignKey(
         Person, related_name="person_%(class)s", on_delete=models.SET_NULL, null=True, blank=True, default=None
     )

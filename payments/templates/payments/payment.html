@@ -1,235 +1,322 @@
-{% extends "base.html" %} 
-{% block title %}Sprachen Express - Payment{% endblock %} 
-{% block content %} 
+{% extends "base.html" %}
+{% block title %}Sprachen Express - Payment{% endblock %}
+{% block content %}
+
 <div class="page-header">
-	<h3 class="page-title">
-		<span class="page-title-icon bg-gradient-primary text-white me-2">
-			<i class="mdi mdi-cash"></i>
-		</span>
-		{% if payment.cancellation_to %}
-		Cancellation payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} for payment #{{ payment.cancellation_to.id }}
-		{% else %}
-		Payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} {%if is_client %}from{% else %}to{% endif %} {{ person.firstname }} {{ person.lastname }}
-		{% endif %}
-	</h3>
-</div> 
-{% load static %} 
-<div class="row">
-	<div class="col-md-6 grid-margin stretch-card">
-		<div class="card">
-			<div class="card-body">
-				<h4 class="card-title">Person details</h4>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Name:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p>{{ person.firstname }} {{ person.lastname }}</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Company:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p>{{ person.company_name }}</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Contact:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p><a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ person.email }}" target="_blank"><i class="mdi mdi-email-outline"></i></a> {{ person.email }} / <a href="https://wa.me/{{ person.phone | slice:'2:' }}" target="_blank">
-							<i class="mdi mdi-whatsapp"></i></a> {{ person.phone }}<br>Address - {{ person.address }}</p>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-3">
-						<p><b>Services:</b></p>
-					</div>
-					<div class="col-md-9">
-						<p>{{ person.services }}</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-6 grid-margin stretch-card">
-		<div class="card">
-			<div class="card-body">
-				<h4 class="card-title">Payment details</h4>
-				<p>Payment created by <b class="text-primary">{{payment.created_by.first_name}} {{payment.created_by.last_name}}</b> and modified by <b class="text-success">{{payment.modified_by.first_name}} {{payment.modified_by.last_name}}</b>. </p>
-				<div class="row">
-					<form method="post" class="col-md-12" action="#list_end"> {% csrf_token %}
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-2 col-form-label">Type</label>
-									<div class="col-sm-2">
-										<select class="form-select" name="payment_type">
-											<option value="bank" {% if payment.type == "bank" %} selected{% endif %}>Bank</option>
-											<option value="cash" {% if payment.type == "cash" %} selected{% endif %}>Cash</option>
-										</select>
-									</div>
-									<label class="col-sm-2 col-form-label">Serial</label>
-									<div class="col-sm-2">
-										<input type="text"{% if is_client or payment.type == 'bank' %}readonly=""{% endif %} class="form-control" name="receipt_serial" value="{{ receipt_serial }}">
-									</div>
-									<label class="col-sm-2 col-form-label">Number</label>
-									<div class="col-sm-2">
-										<input type="text"{% if is_client or payment.type == 'bank' %}readonly=""{% endif %} class="form-control" name="receipt_number" value="{{ receipt_number }}">
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-2 col-form-label">Description</label>
-									<div class="col-sm-10">
-										<input type="text" class="form-control" name="payment_description" value="{{ payment.description }}">
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-md-12">
-								<div class="form-group row">
-									<label class="col-sm-3 col-form-label">Payment date</label>
-									<div class="col-sm-4">
-										{% load tz %}
-										{% if new == False %}
-										<input type="date" class="form-control" name="payment_date" value="{{ payment.payment_date|date:'Y-m-d' }}">
-										{% else %}
-										<input type="date" class="form-control" name="payment_date" value="{% now 'Y-m-d' %}">
-										{% endif %}
-									</div>
-									<div class="col-sm-5">
-										<button class="btn btn-gradient-primary btn-icon-text" type="submit">
-											<i class="mdi mdi-file-outline btn-icon-prepend"></i> Save the payment </button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-</div> 
-{% if new == False %} 
-<div class="row">
-	<div class="col-12 grid-margin">
-		<div class="card">
-			<div class="card-body">
-				<h4 class="card-title">Payment content</h4>
-				<div class="table-responsive mt-3">
-					<table class="table table-hover">
-						<thead>
-							<tr id="e_start">
-								<th> Invoice </th>
-								<th> Description </th>
-								<th> Date </th>
-								<th style="text-align: right;" width="15%"> Value </th>
-								<th colspan="2" width="10%"></th>
-							</tr>
-						</thead>
-						<tbody> 
-							{% for e in payment_elements %}
-							<tr id="e{{ e.id }}">
-								<td>
-									<a href="/payments/invoice/{{ e.invoice.id }}/{{ e.invoice.person.id}}/0">{{e.invoice.serial}}-{{e.invoice.number}}</a>
-								</td>
-								<td> {{e.invoice.description}} </td>
-								<td> {{ e.invoice.created_at|date:"d.m.Y"}} - {{ e.invoice.created_at|time:"H:i"}} </td>
-								<td style="text-align: right;"> {{e.invoice.value}} {{e.payment.currency.symbol}} </td>
-								<td style="text-align: right;" colspan="2">
-									<form method="post" action="#e{{ e.id }}"> {% csrf_token %}
-										<input type="hidden" name="payment_element_id" value="{{e.id}}">
-										<button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
-											<i class="mdi mdi-minus btn-icon-prepend"></i>
-										</button>
-									</form>
-								</td>
-							</tr>
-							{% endfor %}
-							<form method="post"> {% csrf_token %}
-								<tr id="#list_end">
-									<td> </td>
-									<td> </td>
-									<td> <h4>TOTAL PAYED:</h4> </td>
-									<td style="text-align: right;">
-										{% if payment_elements|length < 2 %}
-										<input type="text" class="form-control" name="payment_value" value="{{payment.value}}">
-										{% else %}
-										<h4>{{payment.value}} {{payment.currency.symbol}}</h4>
-										{% endif %}
-									</td>
-									<td>
-										{% if payment_elements|length < 2 %}
-										<button class="btn btn-gradient-primary btn-text" type="submit">
-											Set a smaller payment
-										</button>
-										{% endif %}
-									</td>
-									<td style="text-align: right;">
-										{% if payment.is_client %}
-										<button class="btn btn-gradient-primary btn-icon" type="button" onclick="window.open('/payments/{% if payment.cancellation_to %}print_cancellation_receipt{% else %}print_receipt{% endif%}/{{payment.id}}/');" title="Download PDF">
-											<i class="mdi mdi-file-pdf btn-icon-prepend"></i>
-										</button>
-										{% endif %}
-									</td>
-								</tr>
-							</form>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
+  <h3 class="page-title">
+    <span class="page-title-icon bg-gradient-primary text-white me-2">
+      <i class="mdi mdi-cash"></i>
+    </span>
+
+    {% if payment %}
+      {% if payment.cancellation_to %}
+        Cancellation payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %} for payment #{{ payment.cancellation_to.id }}
+      {% else %}
+        Payment #{{ payment.id }}{% if payment.serial and payment.number %} ({{ payment.serial }}-{{ payment.number }}){% endif %}
+        {% if is_client %}from{% else %}to{% endif %} {{ person.firstname }} {{ person.lastname }}
+      {% endif %}
+    {% else %}
+      New payment {% if is_client %}from{% else %}to{% endif %} {{ person.firstname }} {{ person.lastname }}
+    {% endif %}
+  </h3>
 </div>
+
+{% load static %}
+
+<div class="row">
+  <div class="col-md-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Person details</h4>
+
+        <div class="row">
+          <div class="col-md-3"><p><b>Name:</b></p></div>
+          <div class="col-md-9"><p>{{ person.firstname }} {{ person.lastname }}</p></div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3"><p><b>Company:</b></p></div>
+          <div class="col-md-9"><p>{{ person.company_name }}</p></div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3"><p><b>Contact:</b></p></div>
+          <div class="col-md-9">
+            <p>
+              <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ person.email }}" target="_blank">
+                <i class="mdi mdi-email-outline"></i>
+              </a>
+              {{ person.email }}
+              /
+              <a href="https://wa.me/{{ person.phone|slice:'2:' }}" target="_blank">
+                <i class="mdi mdi-whatsapp"></i>
+              </a>
+              {{ person.phone }}
+              <br>
+              Address - {{ person.address }}
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3"><p><b>Services:</b></p></div>
+          <div class="col-md-9"><p>{{ person.services }}</p></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Payment details</h4>
+
+        {% if payment %}
+          <p>
+            Payment created by
+            <b class="text-primary">{{ payment.created_by.first_name }} {{ payment.created_by.last_name }}</b>
+            and modified by
+            <b class="text-success">{{ payment.modified_by.first_name }} {{ payment.modified_by.last_name }}</b>.
+          </p>
+        {% else %}
+          <p>
+            Fill in the details and click <b>Save the payment</b> to create it.
+          </p>
+        {% endif %}
+
+        <div class="row">
+          <form method="post" class="col-md-12" action="#list_end">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group row">
+                  <label class="col-sm-2 col-form-label">Type</label>
+                  <div class="col-sm-2">
+                    {% with current_type=payment.type|default:"bank" %}
+                      <select class="form-select" name="payment_type">
+                        <option value="bank" {% if current_type == "bank" %}selected{% endif %}>Bank</option>
+                        <option value="cash" {% if current_type == "cash" %}selected{% endif %}>Cash</option>
+                      </select>
+                    {% endwith %}
+                  </div>
+
+                  <label class="col-sm-2 col-form-label">Serial</label>
+                  <div class="col-sm-2">
+                    {% with current_type=payment.type|default:"bank" %}
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="receipt_serial"
+                        value="{{ receipt_serial }}"
+                        {% if is_client or current_type == "bank" %}readonly=""{% endif %}
+                      >
+                    {% endwith %}
+                  </div>
+
+                  <label class="col-sm-2 col-form-label">Number</label>
+                  <div class="col-sm-2">
+                    {% with current_type=payment.type|default:"bank" %}
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="receipt_number"
+                        value="{{ receipt_number }}"
+                        {% if is_client or current_type == "bank" %}readonly=""{% endif %}
+                      >
+                    {% endwith %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group row">
+                  <label class="col-sm-2 col-form-label">Description</label>
+                  <div class="col-sm-10">
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="payment_description"
+                      value="{{ payment.description|default:'' }}"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group row">
+                  <label class="col-sm-3 col-form-label">Payment date</label>
+                  <div class="col-sm-4">
+                    {% load tz %}
+                    {% if payment %}
+                      <input type="date" class="form-control" name="payment_date" value="{{ payment.payment_date|date:'Y-m-d' }}">
+                    {% else %}
+                      <input type="date" class="form-control" name="payment_date" value="{% now 'Y-m-d' %}">
+                    {% endif %}
+                  </div>
+                  <div class="col-sm-5">
+                    <button class="btn btn-gradient-primary btn-icon-text" type="submit">
+                      <i class="mdi mdi-file-outline btn-icon-prepend"></i>
+                      {% if payment %}Save the payment{% else %}Create the payment{% endif %}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if new == False and payment %}
+<div class="row">
+  <div class="col-12 grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Payment content</h4>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover">
+            <thead>
+              <tr id="e_start">
+                <th>Invoice</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th style="text-align: right;" width="15%">Value</th>
+                <th colspan="2" width="10%"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for e in payment_elements %}
+              <tr id="e{{ e.id }}">
+                <td>
+                  <a href="/payments/invoice/{{ e.invoice.id }}/{{ e.invoice.person.id }}/0">
+                    {{ e.invoice.serial }}-{{ e.invoice.number }}
+                  </a>
+                </td>
+                <td>{{ e.invoice.description }}</td>
+                <td>{{ e.invoice.created_at|date:"d.m.Y" }} - {{ e.invoice.created_at|time:"H:i" }}</td>
+
+                {# IMPORTANT: show allocation value (PaymentElement.value), not invoice total #}
+                <td style="text-align: right;">
+                  {{ e.value }} {{ e.payment.currency.symbol }}
+                </td>
+
+                <td style="text-align: right;" colspan="2">
+                  <form method="post" action="#e{{ e.id }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_element_id" value="{{ e.id }}">
+                    <button class="btn btn-gradient-danger btn-icon" type="submit" title="Take it out">
+                      <i class="mdi mdi-minus btn-icon-prepend"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+
+              <form method="post" action="#list_end">
+                {% csrf_token %}
+                <tr id="list_end">
+                  <td></td>
+                  <td></td>
+                  <td><h4>TOTAL PAYED:</h4></td>
+                  <td style="text-align: right;">
+                    {% if payment_elements|length < 2 %}
+                      <input type="text" class="form-control" name="payment_value" value="{{ payment.value }}">
+                    {% else %}
+                      <h4>{{ payment.value }} {{ payment.currency.symbol }}</h4>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if payment_elements|length < 2 %}
+                      <button class="btn btn-gradient-primary btn-text" type="submit">
+                        Set a smaller payment
+                      </button>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: right;">
+                    {% if payment.is_client %}
+                      <button class="btn btn-gradient-primary btn-icon" type="button"
+                        onclick="window.open('/payments/{% if payment.cancellation_to %}print_cancellation_receipt{% else %}print_receipt{% endif %}/{{ payment.id }}/');"
+                        title="Download PDF">
+                        <i class="mdi mdi-file-pdf btn-icon-prepend"></i>
+                      </button>
+                    {% endif %}
+                  </td>
+                </tr>
+              </form>
+
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 {% if unpayed_elements %}
 <div class="row">
-	<div class="col-12 grid-margin">
-		<div class="card">
-			<div class="card-body">
-				<h4 class="card-title">Unpayed invoices</h4>
-				<div class="table-responsive mt-3">
-					<table class="table table-hover">
-						<thead>
-							<tr id="e_start">
-								<th> Invoice </th>
-								<th> Description </th>
-								<th> Date </th>
-								<th style="text-align: right;" width="15%"> Value </th>
-								<th  colspan="2" width="10%"></th>
-							</tr>
-						</thead>
-						<tbody> 
-							{% for ue in unpayed_elements %}
-							<tr id="ue{{ ue.id }}">
-								<td> <a href="/payments/invoice/{{ ue.id }}/{{ ue.person.id}}/0">{{ue.serial}}-{{ue.number}}</a> </td>
-								<td> {{ue.description}} </td>
-								<td> {{ ue.created_at|date:"d.m.Y"}} - {{ ue.created_at|time:"H:i"}} </td>
-								<td style="text-align: right;"> {{ue.value}} {{ue.currency.symbol}} </td>
-								<td style="text-align: right;" colspan="2">
-									<form method="post" action="#ue{{ ue.id }}"> {% csrf_token %}
-										<input type="hidden" name="unpayed_element_id" value="{{ue.id}}">
-										<button class="btn btn-gradient-primary btn-icon" type="submit" title="Add to invoice">
-											<i class="mdi mdi-plus btn-icon-prepend"></i>
-										</button>
-									</form>
-								</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div class="col-12 grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Unpayed invoices</h4>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover">
+            <thead>
+              <tr id="ue_start">
+                <th>Invoice</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th style="text-align: right;" width="15%">Value</th>
+                <th colspan="2" width="10%"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for ue in unpayed_elements %}
+              <tr id="ue{{ ue.id }}">
+                <td>
+                  <a href="/payments/invoice/{{ ue.id }}/{{ ue.person.id }}/0">
+                    {{ ue.serial }}-{{ ue.number }}
+                  </a>
+                </td>
+                <td>{{ ue.description }}</td>
+                <td>{{ ue.created_at|date:"d.m.Y" }} - {{ ue.created_at|time:"H:i" }}</td>
+                <td style="text-align: right;">{{ ue.value }} {{ ue.currency.symbol }}</td>
+                <td style="text-align: right;" colspan="2">
+                  <form method="post" action="#ue{{ ue.id }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="unpayed_element_id" value="{{ ue.id }}">
+                    <button class="btn btn-gradient-primary btn-icon" type="submit" title="Add to invoice">
+                      <i class="mdi mdi-plus btn-icon-prepend"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 {% endif %}
+
 {% endif %}
+
 {% endblock %}

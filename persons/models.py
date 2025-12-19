@@ -1,26 +1,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-# Create your models here.
+from common.models import TimestampedModel
 
 
-class Person(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="created_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="modified_by_%(class)s",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+class Person(TimestampedModel):
     person_choices = [
         ("pi", "Private individual"),
         ("sp", "Sole proprietor"),
