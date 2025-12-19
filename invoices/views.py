@@ -1,12 +1,14 @@
 from decimal import Decimal
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q, Sum, F, Value, DecimalField, Prefetch
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.db.models import Q, Sum, F, Value, DecimalField, ExpressionWrapper, Prefetch
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import datetime, timedelta
 
@@ -15,79 +17,28 @@ import base64
 
 from orders.models import Order, OrderElement
 from persons.models import Person
-from payments.models import PaymentElement
 from .models import Invoice, InvoiceElement, Proforma, ProformaElement
-from services.models import Serial
+from core.models import Serial
 from common.helpers import get_date_range, get_search_params, paginate_objects
 
-
-# ----------------------------
-# Helpers (view-level)
-# ----------------------------
-
-def _invoice_elements_total_expr(prefix: str = "element__") -> ExpressionWrapper:
-    """
-    Builds an expression for quantity * price.
-    prefix = "element__" (InvoiceElement -> OrderElement)
-    """
-    return ExpressionWrapper(
-        F(f"{prefix}quantity") * F(f"{prefix}price"),
-        output_field=DecimalField(max_digits=12, decimal_places=2),
-    )
+from .services import InvoiceService
 
 
-def _recalculate_order_invoiced_for_orders(order_ids: set[int]) -> None:
-    """
-    Updates Order.invoiced (NET) as sum of invoice-linked OrderElements totals,
-    excluding cancellation/cancelled invoices.
-    """
-    if not order_ids:
-        return
-
-    total_expr = _invoice_elements_total_expr(prefix="element__")
-
-    for oid in order_ids:
-        total = (
-            InvoiceElement.objects
-            .filter(
-                element__order_id=oid,
-                invoice__cancellation_to__isnull=True,
-                invoice__cancelled_from__isnull=True,
-            )
-            .aggregate(total=Coalesce(Sum(total_expr), Value(0, output_field=DecimalField())))
-            .get("total")
-            or Decimal("0")
-        )
-        Order.objects.filter(id=oid).update(invoiced=total)
-
-
-def _sync_invoice_after_elements(invoice: Invoice) -> None:
-    """
-    Recalculate invoice.value from InvoiceElement links.
-    For cancellation invoices: force value negative and set payed=value (negative) to satisfy clean rules.
-    """
-    invoice.recalculate_from_elements(save=False)
-
-    if invoice.cancellation_to_id:
-        invoice.value = -abs(invoice.value or Decimal("0"))
-        # Important: because Invoice.clean() has rule payed <= value,
-        # for negative invoices we keep payed == value (negative) so it passes.
-        invoice.payed = invoice.value
-        invoice.save()  # uses DocumentBase.save() to recompute VAT too
-    else:
-        invoice.save()  # recompute VAT
-        # keep payed cache consistent
-        invoice.recalculate_payed_from_payments(save=True)
-
-
-def _sync_proforma_after_elements(proforma: Proforma) -> None:
-    proforma.recalculate_from_elements(save=True)
+def _validation_error_to_text(e: ValidationError) -> str:
+    if hasattr(e, "message_dict"):
+        parts = []
+        for field, msgs in e.message_dict.items():
+            for m in msgs:
+                parts.append(f"{field}: {m}")
+        return " | ".join(parts) if parts else str(e)
+    if hasattr(e, "messages"):
+        return " | ".join(e.messages)
+    return str(e)
 
 
 # ----------------------------
-# Views
+# INVOICES (list)
 # ----------------------------
-
 @login_required(login_url="/login/")
 def invoices(request):
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
@@ -96,10 +47,10 @@ def invoices(request):
 
     base_qs = (
         Invoice.objects
-        .select_related("person", "currency", "modified_by", "created_by")  # <- fără status
+        .select_related("person", "currency", "modified_by", "created_by")
         .filter(
             created_at__range=(filter_start, filter_end),
-            description__icontains=search_description
+            description__icontains=search_description,
         )
         .filter(
             Q(person__firstname__icontains=search_client) |
@@ -108,7 +59,6 @@ def invoices(request):
         )
     )
 
-    # Prefetch invoice elements -> order elements -> order
     inv_el_qs = (
         InvoiceElement.objects
         .select_related("element", "element__order", "element__order__currency")
@@ -142,6 +92,7 @@ def invoices(request):
         "payed": lambda x: x["payed"] or 0,
         "update": lambda x: x["invoice"].modified_at or timezone.now(),
     }
+
     person_invoices.sort(
         key=sort_keys.get(sort, lambda x: x["invoice"].created_at or timezone.now()),
         reverse=(sort not in ["person", "payed"])
@@ -163,100 +114,69 @@ def invoices(request):
     )
 
 
+# ----------------------------
+# STORNO
+# ----------------------------
 @login_required(login_url="/login/")
 def cancellation_invoice(request, invoice_id):
-    """
-    Create a cancellation (storno) invoice for an existing invoice.
-    With current model constraints, we represent storno as:
-    - cancellation invoice with negative value
-    - payed equals value (negative) so it is not considered unpaid
-    - copy invoice elements
-    - link invoices via cancellation_to / cancelled_from
-    - update orders.invoiced totals
-    """
     cancelled_invoice = get_object_or_404(Invoice, id=invoice_id)
     serials = Serial.get_solo()
 
-    with transaction.atomic():
-        cancellation = Invoice.objects.create(
-            serial=serials.invoice_serial,
-            number=str(serials.invoice_number),
-            person=cancelled_invoice.person,
-            is_client=cancelled_invoice.is_client,
-            modified_by=request.user,
-            created_by=request.user,
-            currency=cancelled_invoice.currency,
-            cancellation_to=cancelled_invoice,
-            description="Stornorechnung",
-            value=Decimal("0"),   # will be computed from elements
-            payed=Decimal("0"),
-            vat_rate=cancelled_invoice.vat_rate,  # keep same VAT rate
+    try:
+        InvoiceService.create_cancellation_invoice(
+            cancelled_invoice=cancelled_invoice,
+            user=request.user,
+            serials=serials,
         )
-
-        # link back
-        cancelled_invoice.cancelled_from = cancellation
-        cancelled_invoice.save(update_fields=["cancelled_from"])
-
-        # copy links
-        src_elements = InvoiceElement.objects.filter(invoice=cancelled_invoice).values_list("element_id", flat=True)
-        for eid in src_elements:
-            InvoiceElement.objects.create(invoice=cancellation, element_id=eid)
-
-        # recalc value, set negative, set payed=value (negative)
-        _sync_invoice_after_elements(cancellation)
-
-        # update invoiced totals on involved orders
-        order_ids = set(
-            OrderElement.objects.filter(id__in=src_elements).values_list("order_id", flat=True)
-        )
-        _recalculate_order_invoiced_for_orders(order_ids)
-
-        # increment serial
-        serials.invoice_number += 1
-        serials.save(update_fields=["invoice_number"])
+        messages.success(request, "Stornorechnung a fost creată.")
+    except ValidationError as e:
+        messages.error(request, _validation_error_to_text(e))
+    except Exception as e:
+        messages.error(request, f"Eroare: {e}")
 
     return redirect("invoices")
 
 
+# ----------------------------
+# INVOICE (detail/edit/create)
+# ----------------------------
 @login_required(login_url="/login/")
 def invoice(request, invoice_id, person_id, order_id):
-    invoice_elements = []
     date_now = timezone.localtime()
     date_plus_five = timezone.localdate() + timedelta(days=5)
 
     person = get_object_or_404(Person, id=person_id)
     serials = Serial.get_solo()
 
-    # Resolve order (optional)
     order = get_object_or_404(Order, id=order_id) if int(order_id) > 0 else None
     is_client = order.is_client if order else True
 
     # Resolve invoice
     if int(invoice_id) > 0:
-        invoice = get_object_or_404(Invoice.objects.select_related("currency", "person"), id=invoice_id)
+        invoice_obj = get_object_or_404(Invoice.objects.select_related("currency", "person"), id=invoice_id)
         new = False
         last_invoice = Invoice.objects.order_by("-id").first()
-        last = True if (last_invoice and last_invoice.id == invoice.id) else False
+        last = bool(last_invoice and last_invoice.id == invoice_obj.id)
     else:
-        invoice = None
+        invoice_obj = None
         new = True
         last = True
 
-    # default serial/number
+    # Default serial/number for UI
     invoice_serial = serials.invoice_serial
     invoice_number = str(serials.invoice_number)
 
-    # For provider invoices, serial/number might be empty/manual
+    # Provider invoices might be manual
     if order and order.is_client is False:
         invoice_serial = ""
         invoice_number = ""
 
-    if invoice:
-        invoice_serial = invoice.serial
-        invoice_number = invoice.number
+    if invoice_obj:
+        invoice_serial = invoice_obj.serial
+        invoice_number = invoice_obj.number
 
     # -----------------------------
-    # Determine uninvoiced elements
+    # Determine eligible (uninvoiced) elements
     # -----------------------------
     all_order_elements = (
         OrderElement.objects
@@ -271,168 +191,188 @@ def invoice(request, invoice_id, person_id, order_id):
         .filter(invoice__person=person)
         .values_list("element_id", flat=True)
     )
-
     uninvoiced_elements = all_order_elements.exclude(id__in=invoiced_element_ids)
 
-    # Special: if current invoice is a cancellation, allow adding missing items from the cancelled invoice
-    if invoice and invoice.cancellation_to_id:
-        cancelled_elements = InvoiceElement.objects.filter(invoice=invoice.cancellation_to)
-        already_on_this_invoice_ids = InvoiceElement.objects.filter(invoice=invoice).values_list("element_id", flat=True)
-        cancelled_missing = cancelled_elements.exclude(element_id__in=already_on_this_invoice_ids).values_list("element_id", flat=True)
-        cancelled_missing_order_elements = OrderElement.objects.filter(id__in=cancelled_missing)
-        uninvoiced_elements = uninvoiced_elements | cancelled_missing_order_elements
+    # Special: for storno invoice allow adding missing items from original invoice
+    if invoice_obj and invoice_obj.cancellation_to_id:
+        cancelled_elements = InvoiceElement.objects.filter(invoice=invoice_obj.cancellation_to)
+        already_ids = InvoiceElement.objects.filter(invoice=invoice_obj).values_list("element_id", flat=True)
+        missing_ids = cancelled_elements.exclude(element_id__in=already_ids).values_list("element_id", flat=True)
+        missing_order_elements = OrderElement.objects.filter(id__in=missing_ids)
+        uninvoiced_elements = uninvoiced_elements | missing_order_elements
 
-    # -----------------------------------
-    # Existing invoice edit
-    # -----------------------------------
-    if invoice:
-        invoice_elements = (
+    # Load invoice elements
+    invoice_elements = []
+    if invoice_obj:
+        invoice_elements = list(
             InvoiceElement.objects
-            .filter(invoice=invoice)
+            .filter(invoice=invoice_obj)
             .select_related("element", "element__order", "element__service")
             .order_by("element__order__created_at")
         )
 
-        if request.method == "POST":
+    # ----------------------------
+    # POST actions
+    # ----------------------------
+    if request.method == "POST":
+        form = request.POST
+
+        try:
             with transaction.atomic():
-                if "invoice_description" in request.POST:
-                    invoice.description = request.POST.get("invoice_description", "")
+                # -----------------------------------
+                # Update existing invoice header
+                # -----------------------------------
+                if invoice_obj and "invoice_description" in form:
+                    invoice_obj.description = form.get("invoice_description", "")
 
                     # provider invoice manual serial/number
-                    if invoice.is_client is False:
-                        i_serial = request.POST.get("invoice_serial")
+                    if invoice_obj.is_client is False:
+                        i_serial = form.get("invoice_serial")
+                        i_number = form.get("invoice_number")
                         if i_serial is not None:
-                            invoice.serial = (i_serial or "").upper()
-                            invoice_serial = invoice.serial
-                        i_number = request.POST.get("invoice_number")
+                            invoice_obj.serial = (i_serial or "").upper()
+                            invoice_serial = invoice_obj.serial
                         if i_number is not None:
-                            invoice.number = (i_number or "").upper()
-                            invoice_number = invoice.number
+                            invoice_obj.number = (i_number or "").upper()
+                            invoice_number = invoice_obj.number
 
-                    deadline_date = request.POST.get("deadline_date")
-                    invoice_date = request.POST.get("invoice_date")
+                    deadline_date = form.get("deadline_date")
+                    invoice_date = form.get("invoice_date")
 
                     try:
-                        invoice.deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
+                        invoice_obj.deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
                     except Exception:
-                        invoice.deadline = timezone.localdate()
+                        invoice_obj.deadline = timezone.localdate()
 
                     try:
                         d = datetime.strptime(invoice_date, "%Y-%m-%d").date()
-                        invoice.created_at = timezone.make_aware(datetime.combine(d, date_now.time()))
+                        invoice_obj.created_at = timezone.make_aware(datetime.combine(d, date_now.time()))
                     except Exception:
                         pass
 
-                    invoice.modified_by = request.user
-                    invoice.modified_at = date_now
-                    invoice.save()
+                    invoice_obj.modified_by = request.user
+                    invoice_obj.modified_at = date_now
+                    invoice_obj.save()
 
-                # Remove an invoice element (only if more than 1)
-                if "invoice_element_id" in request.POST:
-                    try:
-                        inv_el_id = int(request.POST.get("invoice_element_id"))
-                        if InvoiceElement.objects.filter(invoice=invoice).count() > 1:
-                            inv_el = InvoiceElement.objects.filter(id=inv_el_id, invoice=invoice).first()
-                            if inv_el:
-                                touched_orders = {inv_el.element.order_id} if inv_el.element_id else set()
-                                inv_el.delete()
-                                _sync_invoice_after_elements(invoice)
-                                _recalculate_order_invoiced_for_orders(touched_orders)
-                    except Exception:
-                        pass
+                # -----------------------------------
+                # Remove an invoice element
+                # -----------------------------------
+                if invoice_obj and "invoice_element_id" in form:
+                    inv_el_id = int(form.get("invoice_element_id") or 0)
+                    if inv_el_id:
+                        if InvoiceElement.objects.filter(invoice=invoice_obj).count() <= 1:
+                            raise ValidationError("Nu poți șterge singurul element dintr-o factură.")
+                        inv_el = InvoiceElement.objects.select_related("element").filter(id=inv_el_id, invoice=invoice_obj).first()
+                        if inv_el:
+                            touched_order_id = inv_el.element.order_id if inv_el.element_id else None
+                            inv_el.delete()
+                            InvoiceService.sync_invoice_after_elements(invoice_obj)
+                            if touched_order_id:
+                                InvoiceService.recalculate_order_invoiced_for_orders([touched_order_id])
 
+                # -----------------------------------
                 # Add an uninvoiced element
-                if "uninvoiced_element_id" in request.POST:
-                    try:
-                        un_id = int(request.POST.get("uninvoiced_element_id"))
+                # -----------------------------------
+                if invoice_obj and "uninvoiced_element_id" in form:
+                    un_id = int(form.get("uninvoiced_element_id") or 0)
+                    if un_id:
                         element = uninvoiced_elements.get(id=un_id)
-                        InvoiceElement.objects.get_or_create(invoice=invoice, element=element)
-                        _sync_invoice_after_elements(invoice)
-                        _recalculate_order_invoiced_for_orders({element.order_id})
+                        InvoiceElement.objects.get_or_create(invoice=invoice_obj, element=element)
+                        InvoiceService.sync_invoice_after_elements(invoice_obj)
+                        InvoiceService.recalculate_order_invoiced_for_orders([element.order_id])
+
+                # -----------------------------------
+                # Create new invoice
+                # -----------------------------------
+                if (not invoice_obj) and ("invoice_description" in form) and order:
+                    invoice_description = form.get("invoice_description", "")
+
+                    # serial/number assignment
+                    if order.is_client is False:
+                        invoice_serial = form.get("invoice_serial") or "??"
+                        invoice_number = form.get("invoice_number") or "???"
+                    else:
+                        # reserve number
+                        serials.invoice_number += 1
+                        serials.save(update_fields=["invoice_number"])
+
+                    deadline_date = form.get("deadline_date")
+                    invoice_date = form.get("invoice_date")
+
+                    try:
+                        invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
+                    except Exception:
+                        invoice_deadline = timezone.localdate()
+
+                    created_at = date_now
+                    try:
+                        d = datetime.strptime(invoice_date, "%Y-%m-%d").date()
+                        created_at = timezone.make_aware(datetime.combine(d, date_now.time()))
                     except Exception:
                         pass
 
-                # After any change, ensure totals are correct
-                _sync_invoice_after_elements(invoice)
+                    invoice_obj = Invoice.objects.create(
+                        created_at=created_at,
+                        description=invoice_description,
+                        serial=invoice_serial,
+                        number=invoice_number,
+                        person=person,
+                        deadline=invoice_deadline,
+                        is_client=order.is_client,
+                        modified_by=request.user,
+                        created_by=request.user,
+                        currency=order.currency,
+                        value=Decimal("0"),
+                        payed=Decimal("0"),
+                        vat_rate=getattr(order, "vat_rate", Decimal("0")) or Decimal("0"),
+                    )
 
-        # end POST
+                    # Attach all uninvoiced elements
+                    for element in uninvoiced_elements:
+                        InvoiceElement.objects.get_or_create(invoice=invoice_obj, element=element)
 
-    # -----------------------------------
-    # New invoice creation
-    # -----------------------------------
-    else:
-        if request.method == "POST" and "invoice_description" in request.POST and order:
-            with transaction.atomic():
-                invoice_description = request.POST.get("invoice_description", "")
+                    InvoiceService.sync_invoice_after_elements(invoice_obj)
 
-                # serial/number assignment
-                if order.is_client is False:
-                    invoice_serial = request.POST.get("invoice_serial") or "??"
-                    invoice_number = request.POST.get("invoice_number") or "???"
-                else:
-                    # reserve number
-                    serials.invoice_number += 1
-                    serials.save(update_fields=["invoice_number"])
+                    # update order invoiced totals
+                    order_ids = set(
+                        InvoiceElement.objects.filter(invoice=invoice_obj).values_list("element__order_id", flat=True)
+                    )
+                    InvoiceService.recalculate_order_invoiced_for_orders(order_ids)
 
-                deadline_date = request.POST.get("deadline_date")
-                invoice_date = request.POST.get("invoice_date")
+                    return redirect(
+                        "invoice",
+                        invoice_id=invoice_obj.id,
+                        order_id=order.id if order else 0,
+                        person_id=person.id,
+                    )
 
-                try:
-                    invoice_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                except Exception:
-                    invoice_deadline = timezone.localdate()
+                # ensure sync after any changes on existing
+                if invoice_obj:
+                    InvoiceService.sync_invoice_after_elements(invoice_obj)
 
-                created_at = date_now
-                try:
-                    d = datetime.strptime(invoice_date, "%Y-%m-%d").date()
-                    created_at = timezone.make_aware(datetime.combine(d, date_now.time()))
-                except Exception:
-                    pass
+        except ValidationError as e:
+            messages.error(request, _validation_error_to_text(e))
+        except Exception as e:
+            messages.error(request, f"Eroare: {e}")
 
-                invoice = Invoice.objects.create(
-                    created_at=created_at,
-                    description=invoice_description,
-                    serial=invoice_serial,
-                    number=invoice_number,
-                    person=person,
-                    deadline=invoice_deadline,
-                    is_client=order.is_client,
-                    modified_by=request.user,
-                    created_by=request.user,
-                    currency=order.currency,
-                    value=Decimal("0"),
-                    payed=Decimal("0"),
-                    vat_rate=order.vat_rate if hasattr(order, "vat_rate") else Decimal("0"),
-                )
-
-                # Attach all uninvoiced elements
-                for element in uninvoiced_elements:
-                    InvoiceElement.objects.get_or_create(invoice=invoice, element=element)
-
-                _sync_invoice_after_elements(invoice)
-
-                # update order invoiced totals (all orders touched by the elements)
-                order_ids = set(
-                    InvoiceElement.objects.filter(invoice=invoice).values_list("element__order_id", flat=True)
-                )
-                _recalculate_order_invoiced_for_orders(order_ids)
-
-                return redirect(
-                    "invoice",
-                    invoice_id=invoice.id,
-                    order_id=order.id if order else 0,
-                    person_id=person.id,
-                )
+    # Reload elements for render
+    if invoice_obj:
+        invoice_elements = list(
+            InvoiceElement.objects
+            .filter(invoice=invoice_obj)
+            .select_related("element", "element__order", "element__service")
+            .order_by("element__order__created_at")
+        )
 
     return render(
         request,
         "payments/invoice.html",
         {
             "person": person,
-            "invoice": invoice,
+            "invoice": invoice_obj,
             "invoice_serial": invoice_serial,
             "invoice_number": invoice_number,
-            "is_client": (invoice.is_client if invoice else is_client),
+            "is_client": (invoice_obj.is_client if invoice_obj else is_client),
             "invoice_elements": invoice_elements,
             "uninvoiced_elements": uninvoiced_elements,
             "new": new,
@@ -442,24 +382,27 @@ def invoice(request, invoice_id, person_id, order_id):
     )
 
 
+# ----------------------------
+# PRINTING
+# ----------------------------
 @login_required(login_url="/login/")
 def print_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice_obj = get_object_or_404(Invoice, id=invoice_id)
     invoice_elements = (
         InvoiceElement.objects
         .exclude(element__status__id="6")
-        .filter(invoice=invoice)
+        .filter(invoice=invoice_obj)
         .select_related("element", "element__service", "element__order")
         .order_by("id")
     )
 
-    date1 = invoice.created_at.date() if invoice.created_at else timezone.localdate()
-    date2 = invoice.deadline
+    date1 = invoice_obj.created_at.date() if invoice_obj.created_at else timezone.localdate()
+    date2 = invoice_obj.deadline
     day_left = (date2 - date1).days if date2 else 0
 
-    leading_invoice = (invoice.number or "").rjust(4, "0")
+    leading_invoice = (invoice_obj.number or "").rjust(4, "0")
 
-    proforma = Proforma.objects.filter(invoice=invoice).first()
+    proforma = Proforma.objects.filter(invoice=invoice_obj).first()
     proforma_number = proforma.number if proforma else ""
     leading_proforma = (proforma_number or "").rjust(4, "0")
 
@@ -471,7 +414,7 @@ def print_invoice(request, invoice_id):
         invoice_css = f.read()
 
     context = {
-        "invoice": invoice,
+        "invoice": invoice_obj,
         "proforma": proforma,
         "day_left": day_left,
         "leading_invoice": leading_invoice,
@@ -483,23 +426,23 @@ def print_invoice(request, invoice_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_css)])
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response["Content-Disposition"] = f'filename=Rechnung-{invoice.serial}-{invoice.number}.pdf'
+    response["Content-Disposition"] = f'filename=Rechnung-{invoice_obj.serial}-{invoice_obj.number}.pdf'
     return response
 
 
 @login_required(login_url="/login/")
 def print_cancellation_invoice(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice_obj = get_object_or_404(Invoice, id=invoice_id)
     invoice_elements = (
         InvoiceElement.objects
         .exclude(element__status__id="6")
-        .filter(invoice=invoice)
+        .filter(invoice=invoice_obj)
         .select_related("element", "element__service", "element__order")
         .order_by("id")
     )
 
-    leading_storno = (invoice.number or "").rjust(4, "0")
-    leading_invoice = (invoice.cancellation_to.number if invoice.cancellation_to else "").rjust(4, "0")
+    leading_storno = (invoice_obj.number or "").rjust(4, "0")
+    leading_invoice = (invoice_obj.cancellation_to.number if invoice_obj.cancellation_to else "").rjust(4, "0")
 
     with open("static/images/logo-se.jpeg", "rb") as f:
         logo_bytes = f.read()
@@ -509,7 +452,7 @@ def print_cancellation_invoice(request, invoice_id):
         invoice_css = f.read()
 
     context = {
-        "invoice": invoice,
+        "invoice": invoice_obj,
         "leading_storno": leading_storno,
         "leading_invoice": leading_invoice,
         "invoice_elements": invoice_elements,
@@ -519,10 +462,13 @@ def print_cancellation_invoice(request, invoice_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=invoice_css)])
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response["Content-Disposition"] = f'filename=Stornorechnung-{invoice.serial}-{invoice.number}.pdf'
+    response["Content-Disposition"] = f'filename=Stornorechnung-{invoice_obj.serial}-{invoice_obj.number}.pdf'
     return response
 
 
+# ----------------------------
+# PROFORMAS (list/detail/convert/print)
+# ----------------------------
 @login_required(login_url="/login/")
 def proformas(request):
     filter_start, filter_end, reg_start, reg_end = get_date_range(request)
@@ -601,17 +547,16 @@ def proforma(request, proforma_id, person_id, order_id):
     order = get_object_or_404(Order, id=order_id) if int(order_id) > 0 else None
 
     if int(proforma_id) > 0:
-        proforma = get_object_or_404(Proforma.objects.select_related("currency", "person"), id=proforma_id)
+        proforma_obj = get_object_or_404(Proforma.objects.select_related("currency", "person"), id=proforma_id)
         new = False
     else:
-        proforma = None
+        proforma_obj = None
         new = True
 
-    if proforma:
-        proforma_serial = proforma.serial
-        proforma_number = proforma.number
+    if proforma_obj:
+        proforma_serial = proforma_obj.serial
+        proforma_number = proforma_obj.number
 
-    # elements eligible
     all_elements = (
         OrderElement.objects
         .exclude(status__percent__lt=1)
@@ -632,96 +577,106 @@ def proforma(request, proforma_id, person_id, order_id):
     )
     unproformed_elements = all_elements.exclude(id__in=invoiced_ids).exclude(id__in=proformed_ids)
 
-    if proforma:
-        proforma_elements = (
+    proforma_elements = []
+    if proforma_obj:
+        proforma_elements = list(
             ProformaElement.objects
-            .filter(proforma=proforma)
+            .filter(proforma=proforma_obj)
             .exclude(element__status__percent="0")
             .select_related("element", "element__order", "element__service")
             .order_by("element__order__created_at")
         )
-    else:
-        proforma_elements = []
 
-    if proforma:
-        if request.method == "POST":
+    if request.method == "POST":
+        form = request.POST
+        try:
             with transaction.atomic():
-                if "proforma_description" in request.POST:
-                    proforma.description = request.POST.get("proforma_description", "")
-                    deadline_date = request.POST.get("deadline_date")
-                    try:
-                        # Proforma.deadline in your model is DateField -> keep it date
-                        proforma.deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                    except Exception:
-                        proforma.deadline = timezone.localdate()
+                if proforma_obj:
+                    if "proforma_description" in form:
+                        proforma_obj.description = form.get("proforma_description", "")
+                        deadline_date = form.get("deadline_date")
+                        try:
+                            proforma_obj.deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
+                        except Exception:
+                            proforma_obj.deadline = timezone.localdate()
 
-                if "proforma_element_id" in request.POST:
-                    try:
-                        pe_id = int(request.POST.get("proforma_element_id"))
-                        if ProformaElement.objects.filter(proforma=proforma).count() > 1:
-                            ProformaElement.objects.filter(id=pe_id, proforma=proforma).delete()
-                    except Exception:
-                        pass
+                    if "proforma_element_id" in form:
+                        pe_id = int(form.get("proforma_element_id") or 0)
+                        if pe_id:
+                            if ProformaElement.objects.filter(proforma=proforma_obj).count() <= 1:
+                                raise ValidationError("Nu poți șterge singurul element din proformă.")
+                            ProformaElement.objects.filter(id=pe_id, proforma=proforma_obj).delete()
 
-                if "unproformed_element_id" in request.POST:
-                    try:
-                        ue_id = int(request.POST.get("unproformed_element_id"))
-                        element = unproformed_elements.get(id=ue_id)
-                        ProformaElement.objects.get_or_create(proforma=proforma, element=element)
-                    except Exception:
-                        pass
+                    if "unproformed_element_id" in form:
+                        ue_id = int(form.get("unproformed_element_id") or 0)
+                        if ue_id:
+                            element = unproformed_elements.get(id=ue_id)
+                            ProformaElement.objects.get_or_create(proforma=proforma_obj, element=element)
 
-                proforma.modified_by = request.user
-                proforma.modified_at = date_now
-                proforma.save()
-                _sync_proforma_after_elements(proforma)
+                    proforma_obj.modified_by = request.user
+                    proforma_obj.modified_at = date_now
+                    proforma_obj.save()
+                    InvoiceService.sync_proforma_after_elements(proforma_obj)
 
-    else:
-        if request.method == "POST" and "proforma_description" in request.POST and order:
-            with transaction.atomic():
-                proforma_description = request.POST.get("proforma_description", "")
+                else:
+                    if ("proforma_description" in form) and order:
+                        proforma_description = form.get("proforma_description", "")
 
-                deadline_date = request.POST.get("deadline_date")
-                try:
-                    proforma_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
-                except Exception:
-                    proforma_deadline = timezone.localdate()
+                        deadline_date = form.get("deadline_date")
+                        try:
+                            proforma_deadline = datetime.strptime(deadline_date, "%Y-%m-%d").date()
+                        except Exception:
+                            proforma_deadline = timezone.localdate()
 
-                proforma = Proforma.objects.create(
-                    description=proforma_description,
-                    serial=proforma_serial,
-                    number=proforma_number,
-                    person=person,
-                    deadline=proforma_deadline,
-                    is_client=True,
-                    modified_by=request.user,
-                    created_by=request.user,
-                    currency=order.currency,
-                    value=Decimal("0"),
-                    vat_rate=order.vat_rate if hasattr(order, "vat_rate") else Decimal("0"),
-                )
+                        proforma_obj = Proforma.objects.create(
+                            description=proforma_description,
+                            serial=proforma_serial,
+                            number=proforma_number,
+                            person=person,
+                            deadline=proforma_deadline,
+                            is_client=True,
+                            modified_by=request.user,
+                            created_by=request.user,
+                            currency=order.currency,
+                            value=Decimal("0"),
+                            vat_rate=getattr(order, "vat_rate", Decimal("0")) or Decimal("0"),
+                        )
 
-                for element in unproformed_elements:
-                    ProformaElement.objects.get_or_create(proforma=proforma, element=element)
+                        for element in unproformed_elements:
+                            ProformaElement.objects.get_or_create(proforma=proforma_obj, element=element)
 
-                _sync_proforma_after_elements(proforma)
+                        InvoiceService.sync_proforma_after_elements(proforma_obj)
 
-                serials.proforma_number += 1
-                serials.save(update_fields=["proforma_number"])
+                        serials.proforma_number += 1
+                        serials.save(update_fields=["proforma_number"])
 
-                return redirect(
-                    "proforma",
-                    proforma_id=proforma.id,
-                    order_id=order.id if order else 0,
-                    person_id=person.id,
-                )
+                        return redirect(
+                            "proforma",
+                            proforma_id=proforma_obj.id,
+                            order_id=order.id if order else 0,
+                            person_id=person.id,
+                        )
+        except ValidationError as e:
+            messages.error(request, _validation_error_to_text(e))
+        except Exception as e:
+            messages.error(request, f"Eroare: {e}")
+
+    # reload for render
+    if proforma_obj:
+        proforma_elements = list(
+            ProformaElement.objects
+            .filter(proforma=proforma_obj)
+            .exclude(element__status__percent="0")
+            .select_related("element", "element__order", "element__service")
+            .order_by("element__order__created_at")
+        )
 
     return render(
         request,
         "payments/proforma.html",
         {
             "person": person,
-            "proforma": proforma,
+            "proforma": proforma_obj,
             "proforma_serial": proforma_serial,
             "proforma_number": proforma_number,
             "proforma_elements": proforma_elements,
@@ -734,19 +689,19 @@ def proforma(request, proforma_id, person_id, order_id):
 
 @login_required(login_url="/login/")
 def print_proforma(request, proforma_id):
-    proforma = get_object_or_404(Proforma, id=proforma_id)
+    proforma_obj = get_object_or_404(Proforma, id=proforma_id)
     proforma_elements = (
         ProformaElement.objects
         .exclude(element__status__id="6")
-        .filter(proforma=proforma)
+        .filter(proforma=proforma_obj)
         .select_related("element", "element__service", "element__order")
         .order_by("id")
     )
 
-    date1 = proforma.created_at.date() if proforma.created_at else timezone.localdate()
-    date2 = proforma.deadline
+    date1 = proforma_obj.created_at.date() if proforma_obj.created_at else timezone.localdate()
+    date2 = proforma_obj.deadline
     day_left = (date2 - date1).days if date2 else 0
-    leading_number = (proforma.number or "").rjust(3, "0")
+    leading_number = (proforma_obj.number or "").rjust(3, "0")
 
     with open("static/images/logo-se.jpeg", "rb") as f:
         logo_bytes = f.read()
@@ -756,7 +711,7 @@ def print_proforma(request, proforma_id):
         css_content = f.read()
 
     context = {
-        "proforma": proforma,
+        "proforma": proforma_obj,
         "day_left": day_left,
         "leading_number": leading_number,
         "proforma_elements": proforma_elements,
@@ -766,53 +721,53 @@ def print_proforma(request, proforma_id):
 
     pdf_file = HTML(string=html_content).write_pdf(stylesheets=[CSS(string=css_content)])
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response["Content-Disposition"] = f'filename=Proforma-{proforma.serial}-{proforma.number}.pdf'
+    response["Content-Disposition"] = f'filename=Proforma-{proforma_obj.serial}-{proforma_obj.number}.pdf'
     return response
 
 
 @login_required(login_url="/login/")
 def convert_proforma(request, proforma_id):
-    proforma = get_object_or_404(Proforma.objects.select_related("currency", "person"), id=proforma_id)
+    proforma_obj = get_object_or_404(Proforma.objects.select_related("currency", "person"), id=proforma_id)
     serials = Serial.get_solo()
 
     proforma_elements = (
         ProformaElement.objects
         .exclude(element__status__percent__lt=1)
-        .filter(proforma=proforma)
+        .filter(proforma=proforma_obj)
         .select_related("element")
         .order_by("id")
     )
 
     with transaction.atomic():
-        invoice = Invoice.objects.create(
-            description=proforma.description,
+        invoice_obj = Invoice.objects.create(
+            description=proforma_obj.description,
             serial=serials.invoice_serial,
             number=str(serials.invoice_number),
-            person=proforma.person,
-            deadline=proforma.deadline,
+            person=proforma_obj.person,
+            deadline=proforma_obj.deadline,
             is_client=True,
             modified_by=request.user,
             created_by=request.user,
-            currency=proforma.currency,
+            currency=proforma_obj.currency,
             value=Decimal("0"),
             payed=Decimal("0"),
-            vat_rate=proforma.vat_rate,
+            vat_rate=proforma_obj.vat_rate,
         )
 
         serials.invoice_number += 1
         serials.save(update_fields=["invoice_number"])
 
         for pe in proforma_elements:
-            InvoiceElement.objects.create(invoice=invoice, element=pe.element)
+            InvoiceElement.objects.create(invoice=invoice_obj, element=pe.element)
 
-        _sync_invoice_after_elements(invoice)
+        InvoiceService.sync_invoice_after_elements(invoice_obj)
 
-        proforma.invoice = invoice
-        proforma.save(update_fields=["invoice"])
+        proforma_obj.invoice = invoice_obj
+        proforma_obj.save(update_fields=["invoice"])
 
     return redirect(
         "invoice",
-        invoice_id=invoice.pk,
-        person_id=invoice.person.pk,
+        invoice_id=invoice_obj.pk,
+        person_id=invoice_obj.person.pk,
         order_id=0
     )

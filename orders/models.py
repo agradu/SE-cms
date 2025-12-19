@@ -6,7 +6,7 @@ from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 from django.apps import apps
 from django.db import transaction
 
-from services.models import DocumentBase, DocumentElement, Status
+from core.models import DocumentBase, DocumentElement, Status
 
 
 class Order(DocumentBase):
@@ -95,6 +95,11 @@ class Order(DocumentBase):
                 prof.save(update_fields=["vat_rate"])
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        # dacă update_fields e set și nu conține vat_rate, nu are sens să verifici/propagezi
+        if update_fields is not None and "vat_rate" not in set(update_fields):
+            return super().save(*args, **kwargs)
+
         vat_changed = False
         if self.pk:
             old = type(self).objects.filter(pk=self.pk).values_list("vat_rate", flat=True).first()

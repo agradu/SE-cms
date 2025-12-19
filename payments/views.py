@@ -19,7 +19,7 @@ from num2words import num2words
 from persons.models import Person
 from invoices.models import Invoice
 from payments.models import Payment, PaymentElement
-from services.models import Serial
+from core.models import Serial
 from common.helpers import get_date_range, get_search_params, paginate_objects
 from .functions import get_serial_and_number, parse_payment_date
 
@@ -36,6 +36,15 @@ def _validation_error_to_text(e: ValidationError) -> str:
     if hasattr(e, "messages"):
         return " | ".join(e.messages)
     return str(e)
+
+
+def _to_decimal(raw) -> Decimal | None:
+    if raw is None:
+        return None
+    try:
+        return Decimal(str(raw).strip().replace(",", "."))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
 
 
 @login_required(login_url="/login/")
@@ -114,7 +123,7 @@ def payment(request, payment_id, person_id, invoice_id):
     is_recurrent = False
 
     new = (int(payment_id) == 0)
-    payment_obj = None
+    payment_obj: Payment | None = None
 
     invoice = (
         Invoice.objects.select_related("currency").get(id=invoice_id)
@@ -123,8 +132,8 @@ def payment(request, payment_id, person_id, invoice_id):
     )
     is_client = invoice.is_client if invoice else True
 
-    attached_invoice_ids = []
-    payment_elements = []
+    attached_invoice_ids: list[int] = []
+    payment_elements: list[PaymentElement] = []
 
     # ----------------------------
     # Load existing payment
@@ -161,23 +170,15 @@ def payment(request, payment_id, person_id, invoice_id):
                 assign_serial_number=False,
                 get_serial_and_number_func=get_serial_and_number,
             )
-            # ✅ IMPORTANT: redirect so we reload in "existing payment" branch and show table reliably
-            return redirect(
-                "payment",
-                payment_id=payment_obj.id,
-                person_id=person.id,
-                invoice_id=invoice.id,
-            )
+            new = False
+            attached_invoice_ids = [invoice.id]
         except ValidationError as e:
             messages.warning(request, _validation_error_to_text(e))
 
     # ----------------------------
-    # Unpaid invoices list (NET) for adding
-    # IMPORTANT RULE:
-    # - when adding invoices to an existing payment, show ONLY fully-unpaid invoices (total_paid == 0),
-    #   because partially-paid invoices must be paid separately.
+    # Unpaid invoices for this person (NET), exclude already attached
     # ----------------------------
-    unpayed_qs = (
+    unpayed_elements = (
         Invoice.objects
         .filter(person=person, is_client=is_client)
         .exclude(id__in=attached_invoice_ids)
@@ -185,12 +186,6 @@ def payment(request, payment_id, person_id, invoice_id):
         .filter(total_paid__lt=F("value"))
         .order_by("deadline")
     )
-
-    # If payment exists (we are in "add more invoices" mode), hide partially paid invoices
-    if payment_obj and payment_obj.id:
-        unpayed_qs = unpayed_qs.filter(total_paid=0)
-
-    unpayed_elements = unpayed_qs
 
     # ----------------------------
     # POST actions
@@ -201,6 +196,15 @@ def payment(request, payment_id, person_id, invoice_id):
         payment_date = parse_payment_date(form.get("payment_date", ""), now)
         desc = form.get("payment_description", "")
         p_type = form.get("payment_type", payment_obj.type if payment_obj else "bank")
+
+        # detect actions (IMPORTANT: use .get(...) truthy, not "in form")
+        remove_elem_id_raw = form.get("payment_element_id")  # string or ""
+        add_invoice_id_raw = form.get("unpayed_element_id")  # string or ""
+        payment_value_raw = form.get("payment_value")        # string or ""
+
+        wants_remove = bool(remove_elem_id_raw and str(remove_elem_id_raw).strip())
+        wants_add = bool(add_invoice_id_raw and str(add_invoice_id_raw).strip())
+        wants_set_value = bool(payment_value_raw and str(payment_value_raw).strip())
 
         try:
             with transaction.atomic():
@@ -223,7 +227,7 @@ def payment(request, payment_id, person_id, invoice_id):
                     )
                     new = False
 
-                # ---- update header fields if existing ----
+                # ---- update header fields ----
                 else:
                     old_type = payment_obj.type
                     old_serial = payment_obj.serial
@@ -258,37 +262,36 @@ def payment(request, payment_id, person_id, invoice_id):
                     payment_obj.save()
 
                 # ---- element operations via service ----
-                if "payment_element_id" in form and payment_obj:
-                    PaymentService.remove_payment_element(payment_obj, int(form["payment_element_id"]))
+                if wants_remove and payment_obj:
+                    PaymentService.remove_payment_element(payment_obj, int(remove_elem_id_raw))
 
-                if "unpayed_element_id" in form and payment_obj:
+                if wants_add and payment_obj:
                     inv = get_object_or_404(
                         Invoice,
-                        id=int(form["unpayed_element_id"]),
+                        id=int(add_invoice_id_raw),
                         person=person,
                         is_client=is_client,
                     )
                     PaymentService.add_invoice_to_payment(payment_obj, inv)
 
-                if "payment_value" in form and payment_obj:
-                    raw = form.get("payment_value")
-                    try:
-                        desired = Decimal(str(raw).strip().replace(",", "."))
-                    except (InvalidOperation, TypeError, ValueError):
-                        desired = None
-
+                # IMPORTANT: set value only if this submit is NOT add/remove
+                if wants_set_value and payment_obj and (not wants_add) and (not wants_remove):
+                    desired = _to_decimal(payment_value_raw)
                     if desired is not None:
-                        PaymentService.set_single_invoice_amount(payment_obj, desired)
+                        applied = PaymentService.set_single_invoice_amount(payment_obj, desired)
+                        if applied is not None and desired is not None and applied != desired:
+                            messages.info(
+                                request,
+                                f"Suma introdusă a depășit maximul; am setat automat suma maximă necesară: {applied}."
+                            )
 
-                # ---- FINAL: enforce + sync caches once ----
-                PaymentService.enforce_no_partial_when_multiple(payment_obj)
-
-                current_invoice_ids = list(
-                    PaymentElement.objects
-                    .filter(payment=payment_obj)
-                    .values_list("invoice_id", flat=True)
-                )
-                PaymentService.sync_payment_and_invoices(payment_obj, current_invoice_ids)
+                # FINAL consistency
+                if payment_obj:
+                    PaymentService.enforce_no_partial_when_multiple(payment_obj)
+                    current_invoice_ids = list(
+                        PaymentElement.objects.filter(payment=payment_obj).values_list("invoice_id", flat=True)
+                    )
+                    PaymentService.sync_payment_and_invoices(payment_obj, current_invoice_ids)
 
                 return redirect(
                     "payment",

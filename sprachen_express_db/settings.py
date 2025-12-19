@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "payments",
     "reports",
     "users",
-    "services",
+    "core.apps.ServicesConfig",
     "common",
 ]
 

@@ -1,7 +1,7 @@
 # payments/services.py
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Iterable, Callable
 
 from django.core.exceptions import ValidationError
@@ -14,6 +14,8 @@ from invoices.models import Invoice
 from payments.models import Payment, PaymentElement
 
 
+TWOPLACES = Decimal("0.01")
+
 GetSerialAndNumberFn = Callable[[bool, str, object, bool], tuple[str, str]]
 # signature: (is_client, payment_type, serials, assign) -> (serial, number)
 
@@ -22,15 +24,20 @@ class PaymentService:
     """
     Domain/service layer for Payment orchestration:
     - calculates remaining amounts using real allocations (PaymentElement)
-    - enforces business rules:
-        (1) no partial payments when a payment covers multiple invoices
-        (2) invoices already partially paid must be paid separately (cannot be added to a multi-invoice payment)
+    - enforces business rule: no partial payments when a payment covers multiple invoices
     - keeps caches consistent (Payment.value and Invoice.payed)
+    - UX improvements:
+        * when setting a value too high -> clamp to max
+        * when adding a 2nd invoice -> auto-fill first invoice to full remaining
     """
 
     # ----------------------------
-    # Core calculations
+    # Core calculations (NET)
     # ----------------------------
+
+    @staticmethod
+    def _q2(x: Decimal) -> Decimal:
+        return (x or Decimal("0")).quantize(TWOPLACES, rounding=ROUND_HALF_UP)
 
     @staticmethod
     def invoice_paid_net(invoice: Invoice, exclude_element_id: int | None = None) -> Decimal:
@@ -43,12 +50,13 @@ class PaymentService:
             .get("total")
             or Decimal("0")
         )
-        return total
+        return PaymentService._q2(total)
 
     @staticmethod
     def invoice_remaining_net(invoice: Invoice, exclude_element_id: int | None = None) -> Decimal:
         paid = PaymentService.invoice_paid_net(invoice, exclude_element_id=exclude_element_id)
-        return (invoice.value or Decimal("0")) - paid
+        remaining = (invoice.value or Decimal("0")) - paid
+        return PaymentService._q2(remaining)
 
     # ----------------------------
     # Consistency / caches
@@ -77,7 +85,7 @@ class PaymentService:
     @staticmethod
     def enforce_no_partial_when_multiple(payment: Payment) -> None:
         """
-        If payment has > 1 invoice element, each element must equal the invoice remaining
+        If payment has > 1 invoice element, each element must equal invoice remaining
         (excluding this element), i.e. pay full NET remaining for each invoice.
         """
         elems = list(payment.elements.select_related("invoice"))
@@ -86,27 +94,52 @@ class PaymentService:
 
         for el in elems:
             inv = el.invoice
-            remaining_excluding_this = PaymentService.invoice_remaining_net(inv, exclude_element_id=el.pk)
-            if el.value != remaining_excluding_this:
+            required = PaymentService.invoice_remaining_net(inv, exclude_element_id=el.pk)
+            required = PaymentService._q2(required)
+            current = PaymentService._q2(el.value or Decimal("0"))
+
+            if current != required:
                 raise ValidationError(
                     "Când un payment conține mai multe facturi, fiecare trebuie plătită integral (NET)."
                 )
 
+    # ----------------------------
+    # Internal helpers
+    # ----------------------------
+
     @staticmethod
-    def enforce_partially_paid_invoice_must_be_separate(payment: Payment, invoice: Invoice) -> None:
+    def _ensure_invoice_not_cancelled(invoice: Invoice) -> None:
+        if invoice.is_cancelled:
+            raise ValidationError({"invoice": "Nu poți aloca plată pe o factură anulată."})
+
+    @staticmethod
+    def _ensure_payment_single_element_is_full_remaining_if_needed(payment: Payment) -> None:
         """
-        Rule: if an invoice is already partially paid (paid_net > 0),
-        it must NOT be added to a payment that already has at least one other invoice.
-        (i.e. partially paid invoices must be paid in a separate payment)
+        UX fix:
+        If user is about to make payment cover multiple invoices,
+        then the existing single element must be full remaining.
+        We'll auto-adjust it to remaining (excluding itself).
         """
-        paid_net = PaymentService.invoice_paid_net(invoice)
-        if paid_net > 0:
-            # if we are about to have multiple invoices in this payment, forbid
-            has_other = payment.elements.exclude(invoice_id=invoice.id).exists()
-            if has_other:
-                raise ValidationError(
-                    {"invoice": "Factura este plătită parțial și trebuie achitată separat (nu la grămadă cu altele)."}
-                )
+        elems = list(payment.elements.select_related("invoice"))
+        if len(elems) != 1:
+            return
+
+        pe = elems[0]
+        inv = pe.invoice
+
+        required = PaymentService.invoice_remaining_net(inv, exclude_element_id=pe.pk)
+        required = PaymentService._q2(required)
+
+        current = PaymentService._q2(pe.value or Decimal("0"))
+
+        # Only adjust if required is positive; if required <= 0, invoice is already fully covered elsewhere
+        if required <= 0:
+            return
+
+        if current != required:
+            pe.value = required
+            pe.full_clean()
+            pe.save(update_fields=["value"])
 
     # ----------------------------
     # High-level operations
@@ -126,12 +159,7 @@ class PaymentService:
         assign_serial_number: bool,
         get_serial_and_number_func: GetSerialAndNumberFn,
     ) -> Payment:
-        """
-        Creates a Payment and attaches exactly one invoice with full remaining NET.
-        Serial/number generation is injected via get_serial_and_number_func.
-        """
-        if invoice.is_cancelled:
-            raise ValidationError({"invoice": "Nu poți aloca plată pe o factură anulată."})
+        PaymentService._ensure_invoice_not_cancelled(invoice)
 
         if invoice.person_id and person and invoice.person_id != person.id:
             raise ValidationError({"invoice": "Factura nu aparține acestui client/provider."})
@@ -167,22 +195,19 @@ class PaymentService:
             pe.full_clean()
             pe.save()
 
-            # For a single-invoice payment, partially paid invoices are allowed (this is the "separately" case).
-            PaymentService.enforce_no_partial_when_multiple(payment)
             PaymentService.sync_payment_and_invoices(payment, [invoice.id])
-
             return payment
 
     @staticmethod
     def add_invoice_to_payment(payment: Payment, invoice: Invoice) -> PaymentElement:
         """
         Adds an invoice to a payment by creating a PaymentElement with full remaining NET.
-        Enforces:
-          - no partials when multiple invoices
-          - partially paid invoices must be paid separately (cannot be added when payment already contains another invoice)
+
+        IMPORTANT UX fix:
+        - If payment currently has exactly 1 invoice, we auto-adjust that existing element
+          to full remaining BEFORE adding the new invoice, so user doesn't get blocked.
         """
-        if invoice.is_cancelled:
-            raise ValidationError({"invoice": "Nu poți aloca plată pe o factură anulată."})
+        PaymentService._ensure_invoice_not_cancelled(invoice)
 
         if PaymentElement.objects.filter(payment=payment, invoice=invoice).exists():
             raise ValidationError({"invoice": "Factura este deja atașată acestui payment."})
@@ -192,25 +217,22 @@ class PaymentService:
             raise ValidationError({"invoice": "Factura este deja plătită (NET)."})
 
         with transaction.atomic():
-            # Create element first
+            # ✅ auto-fill existing single element to full remaining if we are going multi-invoice
+            PaymentService._ensure_payment_single_element_is_full_remaining_if_needed(payment)
+
             pe = PaymentElement(payment=payment, invoice=invoice, value=remaining)
             pe.full_clean()
             pe.save()
 
-            # Enforce new business rule AFTER creation (payment now includes it)
-            PaymentService.enforce_partially_paid_invoice_must_be_separate(payment, invoice)
-
+            # rule check + cache sync
             PaymentService.enforce_no_partial_when_multiple(payment)
-            PaymentService.sync_payment_and_invoices(payment, [invoice.id])
+            current_invoice_ids = list(payment.elements.values_list("invoice_id", flat=True))
+            PaymentService.sync_payment_and_invoices(payment, current_invoice_ids)
 
             return pe
 
     @staticmethod
     def remove_payment_element(payment: Payment, element_id: int) -> None:
-        """
-        Removes a PaymentElement from the payment, but only if payment has >1 elements.
-        Enforces rule and syncs caches.
-        """
         try:
             pe = PaymentElement.objects.select_related("invoice").get(id=element_id, payment=payment)
         except PaymentElement.DoesNotExist:
@@ -229,12 +251,21 @@ class PaymentService:
             PaymentService.sync_payment_and_invoices(payment, [invoice_id, *current_invoice_ids])
 
     @staticmethod
-    def set_single_invoice_amount(payment: Payment, desired: Decimal) -> None:
+    def set_single_invoice_amount(payment: Payment, desired: Decimal) -> Decimal:
         """
         Allowed only when payment has exactly 1 invoice element.
-        Sets PaymentElement.value to desired (NET), respecting remaining NET for that invoice.
+        If desired > max allowable -> clamp to max (as user requested).
+        Returns the final applied value.
         """
-        if desired is None or desired <= 0:
+        if desired is None:
+            raise ValidationError({"payment_value": "Suma lipsește."})
+
+        try:
+            desired = PaymentService._q2(Decimal(desired))
+        except Exception:
+            raise ValidationError({"payment_value": "Suma nu este validă."})
+
+        if desired <= 0:
             raise ValidationError({"payment_value": "Suma trebuie să fie > 0."})
 
         elems = list(payment.elements.select_related("invoice"))
@@ -245,13 +276,19 @@ class PaymentService:
         inv = pe.invoice
 
         max_remaining = PaymentService.invoice_remaining_net(inv, exclude_element_id=pe.pk)
-        if desired > max_remaining:
-            raise ValidationError({"payment_value": f"Suma depășește restul de plată NET ({max_remaining})."})
+
+        if max_remaining <= 0:
+            raise ValidationError({"payment_value": "Factura este deja acoperită (NET)."})
+
+        # ✅ clamp
+        applied = desired if desired <= max_remaining else max_remaining
+        applied = PaymentService._q2(applied)
 
         with transaction.atomic():
-            pe.value = desired
+            pe.value = applied
             pe.full_clean()
             pe.save(update_fields=["value"])
 
-            PaymentService.enforce_no_partial_when_multiple(payment)
             PaymentService.sync_payment_and_invoices(payment, [inv.id])
+
+        return applied

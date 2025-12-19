@@ -17,7 +17,7 @@ from .models import Order, OrderElement, Offer, OfferElement
 from payments.models import Payment, PaymentElement
 from persons.models import Person
 from invoices.models import Invoice, InvoiceElement, ProformaElement
-from services.models import Currency, Status, Service, UM, Serial
+from core.models import Currency, Status, Service, UM, Serial
 from common.helpers import get_date_range, get_search_params, paginate_objects
 
 

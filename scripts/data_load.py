@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from services.models import Status, UM, Service, Currency, Serial
+from core.models import Status, UM, Service, Currency, Serial
 from users.models import CustomUser
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO

@@ -5,10 +5,11 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper
+from django.db.models.functions import Coalesce
 
 from persons.models import Person  # păstrat pt. Proforma (redefinește person)
 from orders.models import OrderElement
-from services.models import DocumentBase
+from core.models import DocumentBase
 
 
 class Invoice(DocumentBase):
@@ -34,7 +35,7 @@ class Invoice(DocumentBase):
 
     is_recurrent = models.BooleanField(default=False)
 
-    # păstrăm câmpul existent (cache)
+    # cache (NET) – plătit pe factură
     payed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
@@ -51,8 +52,6 @@ class Invoice(DocumentBase):
 
     @property
     def remaining_to_pay(self) -> Decimal:
-        # Atenție: aici presupunem că value = NET și payed = NET.
-        # Dacă la tine plățile sunt GROSS, schimbăm la self.gross (din DocumentBase).
         val = self.value or Decimal("0")
         paid = self.payed or Decimal("0")
         return val - paid
@@ -64,19 +63,6 @@ class Invoice(DocumentBase):
     # -----------------
     # Domain actions
     # -----------------
-    def register_payment(self, amount: Decimal, save: bool = True):
-        """
-        Folosește asta doar dacă TU vrei să împingi manual payed.
-        Recomandarea OOP: payed să fie recalculat din PaymentElement (vezi recalculate_payed_from_payments).
-        """
-        if amount is None:
-            return
-        if amount < 0:
-            raise ValueError("amount must be >= 0")
-        self.payed = (self.payed or Decimal("0")) + amount
-        if save:
-            self.save(update_fields=["payed"])
-
     def recalculate_from_elements(self, save: bool = True) -> Decimal:
         """
         Recalculează value (NET) ca sumă a elementelor de comandă
@@ -86,21 +72,19 @@ class Invoice(DocumentBase):
             F("element__quantity") * F("element__price"),
             output_field=DecimalField(max_digits=12, decimal_places=2),
         )
-        agg = self.elements.aggregate(total=Sum(total_expr))
+        agg = self.elements.aggregate(total=Coalesce(Sum(total_expr), Decimal("0")))
         total = agg["total"] or Decimal("0")
-        self.value = total  # vat_value se poate recalcula în DocumentBase.save()
+        self.value = total
         if save:
-            self.save()
+            self.save()  # DocumentBase.save() îți poate recalcula vat_value
         return total
 
     def recalculate_payed_from_payments(self, save: bool = True) -> Decimal:
         """
-        Recalculează payed ca sumă a PaymentElement.value alocate pe această factură.
-        Evită circular imports prin import local.
+        Recalculează payed ca sumă a PaymentElement.value (NET) alocate pe această factură.
+        payment_links = related_name definit în PaymentElement.invoice
         """
-        from payments.models import PaymentElement  # local import
-
-        agg = PaymentElement.objects.filter(invoice_id=self.id).aggregate(total=Sum("value"))
+        agg = self.payment_links.aggregate(total=Coalesce(Sum("value"), Decimal("0")))
         total = agg["total"] or Decimal("0")
         self.payed = total
         if save:
@@ -113,9 +97,6 @@ class Invoice(DocumentBase):
     def clean(self):
         super().clean()
 
-        if self.payed is not None and self.payed < 0:
-            raise ValidationError({"payed": "payed nu poate fi negativ."})
-
         # self-reference protection
         if self.id:
             if self.cancellation_to_id == self.id:
@@ -127,14 +108,21 @@ class Invoice(DocumentBase):
         if self.cancellation_to_id and self.cancelled_from_id:
             raise ValidationError("Invoice-ul nu poate avea și cancellation_to și cancelled_from setate simultan.")
 
-        # business rule: nu plătim peste value (NET)
-        # (dacă la tine plățile sunt pe GROSS, schimbăm la self.gross)
-        if self.value is not None and self.payed is not None and self.payed > self.value:
-            raise ValidationError({"payed": "payed nu poate depăși value (net)."})
+        # allow negative payed ONLY for storno/cancellation invoices
+        if self.payed is not None and self.payed < 0:
+            if not (self.cancellation_to_id or (self.value is not None and self.value < 0)):
+                raise ValidationError({"payed": "payed nu poate fi negativ."})
 
-        # optional: nu factura pe un invoice anulat (în funcție de procesul tău)
-        # if self.is_cancelled and self.value and self.value > 0:
-        #     raise ValidationError("Nu poți avea valoare > 0 pe o factură anulată.")
+        # business rule: payed vs value (NET)
+        if self.value is not None and self.payed is not None:
+            if self.value >= 0:
+                # normal invoice: cannot overpay
+                if self.payed > self.value:
+                    raise ValidationError({"payed": "payed nu poate depăși value (net)."})
+            else:
+                # storno invoice (value < 0): keep payed == value (negativ) by design
+                if self.payed != self.value:
+                    raise ValidationError({"payed": "La storno, payed trebuie să fie egal cu value (negativ)."})
 
 
 class InvoiceElement(models.Model):
@@ -148,14 +136,13 @@ class InvoiceElement(models.Model):
 
     def clean(self):
         super().clean()
-        # optional: nu lega elemente de order diferit dacă ai o regulă de “o factură = un client”
+        # opțional: reguli de consistență person/order
         # if self.invoice and self.element and self.invoice.person_id != self.element.order.person_id:
         #     raise ValidationError("Elementul nu aparține aceluiași client ca factura.")
 
 
 class Proforma(DocumentBase):
-    # DocumentBase are deja person/is_client, dar în DB-ul tău sunt redefinite.
-    # Păstrăm exact ca să evităm orice migrație/riscuri:
+    # păstrăm exact ca să evităm migrații
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
 
@@ -175,14 +162,11 @@ class Proforma(DocumentBase):
         return f"Proforma {self.serial}{self.number} from {formatted_created_at} - {self.person} - {desc}"
 
     def recalculate_from_elements(self, save: bool = True) -> Decimal:
-        """
-        value (NET) = sum(element.quantity * element.price) prin ProformaElement.
-        """
         total_expr = ExpressionWrapper(
             F("element__quantity") * F("element__price"),
             output_field=DecimalField(max_digits=12, decimal_places=2),
         )
-        agg = self.elements.aggregate(total=Sum(total_expr))
+        agg = self.elements.aggregate(total=Coalesce(Sum(total_expr), Decimal("0")))
         total = agg["total"] or Decimal("0")
         self.value = total
         if save:
@@ -191,7 +175,7 @@ class Proforma(DocumentBase):
 
     def clean(self):
         super().clean()
-        # opțional: dacă proforma e legată de invoice, poate trebuie să fie același person
+        # opțional: dacă proforma e legată de invoice, poate trebuie același person
         # if self.invoice_id and self.person_id and self.invoice.person_id != self.person_id:
         #     raise ValidationError({"invoice": "Invoice-ul legat are alt person decât proforma."})
 
@@ -207,6 +191,3 @@ class ProformaElement(models.Model):
 
     def clean(self):
         super().clean()
-        # opțional: aceeași regulă ca mai sus, dacă vrei consistență person/order
-        # if self.proforma and self.element and self.proforma.person_id != self.element.order.person_id:
-        #     raise ValidationError("Elementul nu aparține aceluiași client ca proforma.")

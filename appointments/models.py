@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from persons.models import Person
 from orders.models import Order
-from services.models import Status
+from core.models import Status
 from common.models import TimestampedModel
 # Create your models here.
 

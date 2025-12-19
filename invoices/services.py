@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Iterable, Set
+from typing import Iterable
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum, F, Value, DecimalField, ExpressionWrapper
 from django.db.models.functions import Coalesce
 
-from invoices.models import Invoice, InvoiceElement, Proforma, ProformaElement
+from invoices.models import Invoice, InvoiceElement, Proforma
 from orders.models import Order, OrderElement
 
 
 class InvoiceService:
+    # ----------------------------
+    # Low-level expressions
+    # ----------------------------
     @staticmethod
     def _invoice_elements_total_expr(prefix: str = "element__") -> ExpressionWrapper:
         return ExpressionWrapper(
@@ -19,6 +23,9 @@ class InvoiceService:
             output_field=DecimalField(max_digits=12, decimal_places=2),
         )
 
+    # ----------------------------
+    # Sync / caches
+    # ----------------------------
     @staticmethod
     def sync_invoice_after_elements(invoice: Invoice) -> None:
         """
@@ -29,15 +36,22 @@ class InvoiceService:
 
         if invoice.cancellation_to_id:
             invoice.value = -abs(invoice.value or Decimal("0"))
-            invoice.payed = invoice.value
-            invoice.save()
+            invoice.payed = invoice.value  # negativ
+            invoice.save()  # DocumentBase.save() poate recalcula TVA
         else:
             invoice.save()
             invoice.recalculate_payed_from_payments(save=True)
 
     @staticmethod
+    def sync_proforma_after_elements(proforma: Proforma) -> None:
+        proforma.recalculate_from_elements(save=True)
+
+    # ----------------------------
+    # Order.invoiced cache
+    # ----------------------------
+    @staticmethod
     def recalculate_order_invoiced_for_orders(order_ids: Iterable[int]) -> None:
-        order_ids = set(order_ids)
+        order_ids = set(int(x) for x in order_ids if x)
         if not order_ids:
             return
 
@@ -57,16 +71,23 @@ class InvoiceService:
             )
             Order.objects.filter(id=oid).update(invoiced=total)
 
-    @staticmethod
-    def sync_proforma_after_elements(proforma: Proforma) -> None:
-        proforma.recalculate_from_elements(save=True)
-
+    # ----------------------------
+    # High-level operations
+    # ----------------------------
     @staticmethod
     @transaction.atomic
-    def create_cancellation_invoice(cancelled_invoice: Invoice, user, serials) -> Invoice:
+    def create_cancellation_invoice(*, cancelled_invoice: Invoice, user, serials) -> Invoice:
         """
-        Create storno invoice: copy InvoiceElements, link both, sync totals, update orders.invoiced.
+        Create storno invoice:
+        - create new invoice with cancellation_to
+        - set cancelled_invoice.cancelled_from
+        - copy InvoiceElements
+        - sync totals and Order.invoiced
+        - increment serials.invoice_number
         """
+        if cancelled_invoice.is_cancelled:
+            raise ValidationError({"invoice": "Factura este deja anulată / are legătură de storno."})
+
         cancellation = Invoice.objects.create(
             serial=serials.invoice_serial,
             number=str(serials.invoice_number),

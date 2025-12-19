@@ -191,7 +191,7 @@
                 <th>Invoice</th>
                 <th>Description</th>
                 <th>Date</th>
-                <th style="text-align: right;" width="15%">Value</th>
+                <th style="text-align: right;" width="15%">Invoice value</th>
                 <th colspan="2" width="10%"></th>
               </tr>
             </thead>
@@ -209,7 +209,7 @@
 
                 {# IMPORTANT: show allocation value (PaymentElement.value), not invoice total #}
                 <td style="text-align: right;">
-                  {{ e.value }} {{ e.payment.currency.symbol }}
+                  {{ e.invoice.value }} {{ e.invoice.currency.symbol }}
                 </td>
 
                 <td style="text-align: right;" colspan="2">
@@ -279,7 +279,7 @@
                 <th>Invoice</th>
                 <th>Description</th>
                 <th>Date</th>
-                <th style="text-align: right;" width="15%">Value</th>
+                <th style="text-align: right;" width="15%">Ivoice value</th>
                 <th colspan="2" width="10%"></th>
               </tr>
             </thead>

@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
-from services.models import DocumentBase
+from core.models import DocumentBase
 from invoices.models import Invoice
 
 

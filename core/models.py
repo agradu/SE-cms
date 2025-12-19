@@ -1,10 +1,10 @@
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import models
-from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+
 from common.models import TimestampedModel
 from persons.models import Person
 
@@ -38,7 +38,6 @@ class Currency(models.Model):
     def format(self, amount: Decimal) -> str:
         if amount is None:
             amount = Decimal("0")
-        # doar afișare, nu afectează DB
         return f"{self.symbol} {amount.quantize(TWOPLACES)}"
 
 
@@ -83,7 +82,7 @@ class Serial(models.Model):
 
     @classmethod
     def get_solo(cls) -> "Serial":
-        obj, _ = cls.objects.get_or_create(pk=1)  # convenție; fără constrângeri DB
+        obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
     def next_invoice(self, save: bool = True) -> int:
@@ -100,12 +99,20 @@ class Serial(models.Model):
 
 
 class DocumentBase(TimestampedModel):
+    """
+    Baza comună pentru documente (Offer/Order/Invoice/Proforma/Payment).
+    IMPORTANT:
+      - by default value must be >= 0
+      - subclasses can override allows_negative_value() to permit storno/negative docs
+    """
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
     is_client = models.BooleanField(default=True)
     serial = models.CharField(max_length=10, blank=True)
     number = models.CharField(max_length=20, blank=True)
 
+    # value = NET în proiectul tău
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     vat_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -120,6 +127,14 @@ class DocumentBase(TimestampedModel):
     class Meta:
         abstract = True
 
+    # ---- hooks (override in subclasses if needed) ----
+    def allows_negative_value(self) -> bool:
+        """
+        Override în subclasses care au voie să fie negative (ex: Invoice storno).
+        """
+        return False
+
+    # ---- computed amounts ----
     @property
     def net(self) -> Decimal:
         return (self.value or Decimal("0")).quantize(TWOPLACES)
@@ -132,27 +147,28 @@ class DocumentBase(TimestampedModel):
     def gross(self) -> Decimal:
         return (self.net + self.vat).quantize(TWOPLACES)
 
+    # ---- VAT ----
     def calculate_vat_value(self) -> Decimal:
         base = self.value or Decimal("0")
         rate = self.vat_rate or Decimal("0")
-        vat = (base * rate / Decimal("100")).quantize(TWOPLACES, rounding=ROUND_HALF_UP)
-        return vat
+        # dacă base e negativ (storno), vat va fi negativ -> corect fiscal
+        return (base * rate / Decimal("100")).quantize(TWOPLACES, rounding=ROUND_HALF_UP)
 
     def recalculate_vat(self):
         self.vat_value = self.calculate_vat_value()
 
+    # ---- Validation ----
     def clean(self):
         super().clean()
-        # Exemple de reguli (le ajustăm după fluxul tău):
+
         if self.value is None:
             raise ValidationError({"value": "value nu poate fi null."})
-        if self.value < 0:
+
+        if self.value < 0 and not self.allows_negative_value():
             raise ValidationError({"value": "value nu poate fi negativ."})
 
-        # Poți decide: dacă vat_rate = 0, vat_value trebuie să fie 0 (consistență)
-        if (self.vat_rate or Decimal("0")) == 0 and (self.vat_value or Decimal("0")) != 0:
-            # nu forțăm aici, doar semnalăm; sau poți auto-corecta în save()
-            pass
+        # (opțional) consistență: dacă vat_rate=0, vat_value ar trebui 0 (dar îl recalculăm în save)
+        # Nu blocăm aici.
 
     def save(self, *args, **kwargs):
         self.recalculate_vat()
@@ -184,7 +200,6 @@ class DocumentElement(models.Model):
         super().clean()
 
         if self.service:
-            # UM derivat din service -> consistență
             self.um = self.service.um
 
         if self.price is not None and self.price < 0:

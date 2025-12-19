@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from .models import Appointment
 from persons.models import Person
-from services.models import Status
+from core.models import Status
 from orders.models import Order
 from common.helpers import Unaccent
 
